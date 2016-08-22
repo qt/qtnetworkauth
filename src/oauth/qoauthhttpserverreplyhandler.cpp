@@ -86,7 +86,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_readData(QTcpSocket *socket)
         clients[socket].port = httpServer.serverPort();
 
     QHttpRequest *request = &clients[socket];
-    bool error;
+    bool error = false;
 
     if (Q_LIKELY(request->state == QHttpRequest::State::ReadingMethod))
         if (Q_UNLIKELY(error = !request->readMethod(socket)))
