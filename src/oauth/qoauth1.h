@@ -117,7 +117,7 @@ public Q_SLOTS:
     void continueGrantWithVerifier(const QString &verifier);
 
 Q_SIGNALS:
-    void signatureMethodChanged(SignatureMethod method);
+    void signatureMethodChanged(QOAuth1::SignatureMethod method);
     void clientSharedSecretChanged(const QString &credential);
     void tokenSecretChanged(const QString &token);
     void temporaryCredentialsUrlChanged(const QUrl &url);

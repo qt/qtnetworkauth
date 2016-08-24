@@ -74,11 +74,62 @@ public:
     int waitForFinish(QNetworkReplyPtr &reply);
     void fillParameters(QVariantMap *parameters, const QUrlQuery &query);
 
+    template<class Type>
+    struct PropertyTester
+    {
+        typedef Type InnerType;
+        typedef void(QOAuth1::*ConstSignalType)(const Type &);
+        typedef void(QOAuth1::*SignalType)(Type);
+        typedef QVector<std::function<void(Type *, QOAuth1 *object)>> SetterFunctions;
+
+    private:
+        // Each entry in setters should set its first parameter to an expected value
+        // and act on its second, a QOAuth1 object, to trigger signal; this
+        // function shall check that signal is passed the value the setter previously
+        // told us to expect.
+        template<class SignalType>
+        static void runImpl(SignalType signal, const SetterFunctions &setters)
+        {
+            QOAuth1 obj;
+            Type expectedValue;
+            QSignalSpy spy(&obj, signal);
+            connect(&obj, signal, [&](const Type &value) {
+                QCOMPARE(expectedValue, value);
+            });
+            for (const auto &setter : setters) {
+                const auto previous = expectedValue;
+                setter(&expectedValue, &obj);
+                QVERIFY(previous != expectedValue); // To check if the value was modified
+            }
+            QCOMPARE(spy.count(), setters.size()); // The signal should be emitted
+        }
+
+    public:
+
+        static void run(ConstSignalType signal, const SetterFunctions &setters)
+        {
+            runImpl(signal, setters);
+        }
+
+        static void run(SignalType signal, const SetterFunctions &setters)
+        {
+            runImpl(signal, setters);
+        }
+    };
+
 public Q_SLOTS:
     void finished();
     void gotError();
 
 private Q_SLOTS:
+    void clientIdentifierSignal();
+    void clientSharedSecretSignal();
+    void tokenSecretSignal();
+    void temporaryCredentialsUrlSignal();
+    void temporaryTokenCredentialsUrlSignal();
+    void tokenCredentialsUrlSignal();
+    void signatureMethodSignal();
+
     void getToken_data();
     void getToken();
 
@@ -130,6 +181,103 @@ void tst_OAuth1::gotError()
     if (loop)
         loop->exit(returnCode = Failure);
     disconnect(QObject::sender(), SIGNAL(finished()), this, 0);
+}
+
+void tst_OAuth1::clientIdentifierSignal()
+{
+    using PropertyTester = PropertyTester<QString>;
+    PropertyTester::SetterFunctions setters {
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setClientIdentifier";
+            object->setClientIdentifier(*expectedValue);
+        },
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setClientCredentials";
+            object->setClientCredentials(qMakePair(*expectedValue, QString()));
+        }
+    };
+    PropertyTester::run(&QOAuth1::clientIdentifierChanged, setters);
+}
+
+void tst_OAuth1::clientSharedSecretSignal()
+{
+    using PropertyTester = PropertyTester<QString>;
+    PropertyTester::SetterFunctions setters {
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setClientSharedSecret";
+            object->setClientSharedSecret(*expectedValue);
+        },
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setClientCredentials";
+            object->setClientCredentials(qMakePair(QString(), *expectedValue));
+        }
+    };
+    PropertyTester::run(&QOAuth1::clientSharedSecretChanged, setters);
+}
+
+void tst_OAuth1::tokenSecretSignal()
+{
+    using PropertyTester = PropertyTester<QString>;
+    PropertyTester::SetterFunctions setters {
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setToken";
+            object->setToken(*expectedValue);
+        },
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setTokenCredentials";
+            object->setTokenCredentials(qMakePair(*expectedValue, QString()));
+        }
+    };
+    PropertyTester::run(&QOAuth1::tokenChanged, setters);
+}
+
+void tst_OAuth1::temporaryCredentialsUrlSignal()
+{
+    using PropertyTester = PropertyTester<QUrl>;
+    PropertyTester::SetterFunctions setters {
+        [](QUrl *expectedValue, QOAuth1 *object) {
+            *expectedValue = QUrl("http://example.net/");
+            object->setTemporaryCredentialsUrl(*expectedValue);
+        }
+    };
+    PropertyTester::run(&QOAuth1::temporaryCredentialsUrlChanged, setters);
+}
+
+void tst_OAuth1::temporaryTokenCredentialsUrlSignal()
+{
+    using PropertyTester = PropertyTester<QUrl>;
+    PropertyTester::SetterFunctions setters {
+        [](QUrl *expectedValue, QOAuth1 *object) {
+            *expectedValue = QUrl("http://example.net/");
+            object->setTemporaryCredentialsUrl(*expectedValue);
+        }
+    };
+    PropertyTester::run(&QOAuth1::temporaryCredentialsUrlChanged, setters);
+}
+
+void tst_OAuth1::tokenCredentialsUrlSignal()
+{
+    using PropertyTester = PropertyTester<QUrl>;
+    PropertyTester::SetterFunctions setters {
+        [](QUrl *expectedValue, QOAuth1 *object) {
+            *expectedValue = QUrl("http://example.net/");
+            object->setTokenCredentialsUrl(*expectedValue);
+        }
+    };
+    PropertyTester::run(&QOAuth1::tokenCredentialsUrlChanged, setters);
+}
+
+void tst_OAuth1::signatureMethodSignal()
+{
+    using PropertyTester = PropertyTester<QOAuth1::SignatureMethod>;
+    PropertyTester::SetterFunctions setters {
+        [](PropertyTester::InnerType *expectedValue, QOAuth1 *object) {
+            QVERIFY(object->signatureMethod() != QOAuth1::SignatureMethod::PlainText);
+            *expectedValue = QOAuth1::SignatureMethod::PlainText;
+            object->setSignatureMethod(*expectedValue);
+        }
+    };
+    PropertyTester::run(&QOAuth1::signatureMethodChanged, setters);
 }
 
 void tst_OAuth1::getToken_data()

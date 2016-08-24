@@ -66,7 +66,8 @@ QAbstractOAuthPrivate::QAbstractOAuthPrivate(QNetworkAccessManager *manager) :
 
 QAbstractOAuthPrivate::QAbstractOAuthPrivate(const QUrl &authorizationUrl,
                                              QNetworkAccessManager *manager) :
-    authorizationUrl(authorizationUrl), defaultReplyHandler(new QOAuthOobReplyHandler),
+    authorizationUrl(authorizationUrl),
+    defaultReplyHandler(new QOAuthOobReplyHandler),
     networkAccessManagerPointer(manager)
 {}
 
