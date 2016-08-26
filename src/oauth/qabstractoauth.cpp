@@ -95,7 +95,7 @@ void QAbstractOAuthPrivate::setStatus(QAbstractOAuth::Status newStatus)
 QByteArray QAbstractOAuthPrivate::generateRandomString(quint8 length)
 {
     const char characters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    std::mt19937 randomEngine;
+    static std::mt19937 randomEngine(QDateTime::currentDateTime().toMSecsSinceEpoch());
     std::uniform_int_distribution<int> distribution(0, sizeof(characters) - 2);
     QByteArray data;
     data.reserve(length);
