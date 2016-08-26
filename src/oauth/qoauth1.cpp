@@ -72,9 +72,6 @@ const QString Key::oauthTokenSecret =        QStringLiteral("oauth_token_secret"
 const QString Key::oauthVerifier =           QStringLiteral("oauth_verifier");
 const QString Key::oauthVersion =            QStringLiteral("oauth_version");
 
-static auto networkReplyErrorFunctionPointer = static_cast<void(QNetworkReply::*)(
-            QNetworkReply::NetworkError)>(&QNetworkReply::error);
-
 QOAuth1Private::QOAuth1Private(QNetworkAccessManager *networkAccessManager)
     : QAbstractOAuthPrivate(networkAccessManager)
 {
@@ -160,7 +157,8 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
         reply = networkAccessManager()->post(request, data);
     }
 
-    connect(reply, networkReplyErrorFunctionPointer, this, &QOAuth1Private::_q_onTokenRequestError);
+    connect(reply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+            this, &QOAuth1Private::_q_onTokenRequestError);
 
     QAbstractOAuthReplyHandler *handler = replyHandler ? replyHandler.data()
                                                        : defaultReplyHandler.data();
