@@ -59,7 +59,9 @@
 #include <QtNetworkAuth/qoauthglobal.h>
 
 #include <QtCore/qurl.h>
+#include <QtCore/qpair.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qstring.h>
 
 #include <QtNetwork/qnetworkreply.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -71,7 +73,8 @@ class QOAuth1Private : public QAbstractOAuthPrivate
     Q_DECLARE_PUBLIC(QOAuth1)
 
 public:
-    QOAuth1Private(QNetworkAccessManager *networkAccessManager = nullptr);
+    QOAuth1Private(const QPair<QString, QString> &clientCredentials,
+                   QNetworkAccessManager *networkAccessManager = nullptr);
 
     void appendCommonHeaders(QVariantMap *headers);
     void appendSignature(QAbstractOAuth::Stage stage,

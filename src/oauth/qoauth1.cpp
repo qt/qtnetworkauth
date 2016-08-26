@@ -72,8 +72,10 @@ const QString Key::oauthTokenSecret =        QStringLiteral("oauth_token_secret"
 const QString Key::oauthVerifier =           QStringLiteral("oauth_verifier");
 const QString Key::oauthVersion =            QStringLiteral("oauth_version");
 
-QOAuth1Private::QOAuth1Private(QNetworkAccessManager *networkAccessManager)
-    : QAbstractOAuthPrivate(networkAccessManager)
+QOAuth1Private::QOAuth1Private(const QPair<QString, QString> &clientCredentials,
+                               QNetworkAccessManager *networkAccessManager) :
+    QAbstractOAuthPrivate(networkAccessManager),
+    clientCredentials(clientCredentials)
 {
     qRegisterMetaType<QNetworkReply::NetworkError>("QNetworkReply::NetworkError");
 }
@@ -236,27 +238,28 @@ void QOAuth1Private::_q_tokensReceived(const QVariantMap &tokens)
     case QAbstractOAuth::Status::RefreshingToken:
         break;
     }
-
 }
 
-QOAuth1::QOAuth1(QObject *parent)
-    : QAbstractOAuth(*new QOAuth1Private, parent)
+QOAuth1::QOAuth1(QObject *parent) :
+    QOAuth1(nullptr,
+            parent)
 {}
 
-QOAuth1::QOAuth1(QNetworkAccessManager *manager, QObject *parent)
-    : QAbstractOAuth(*new QOAuth1Private(manager), parent)
+QOAuth1::QOAuth1(QNetworkAccessManager *manager, QObject *parent) :
+    QOAuth1(QString(),
+            QString(),
+            manager,
+            parent)
 {}
 
 QOAuth1::QOAuth1(const QString &clientIdentifier,
                  const QString &clientSharedSecret,
                  QNetworkAccessManager *manager,
                  QObject *parent)
-    : QAbstractOAuth(*new QOAuth1Private(manager), parent)
-{
-    Q_D(QOAuth1);
-    d->clientCredentials.first = clientIdentifier;
-    d->clientCredentials.second = clientSharedSecret;
-}
+    : QAbstractOAuth(*new QOAuth1Private(qMakePair(clientIdentifier, clientSharedSecret),
+                                         manager),
+                     parent)
+{}
 
 QOAuth1::~QOAuth1()
 {}
