@@ -34,4 +34,6 @@ SOURCES += \
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
 
+QMAKE_DOCS = $$PWD/doc/qtnetworkauth.qdocconf
+
 load(qt_module)
