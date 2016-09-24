@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
 
 class QUrlQuery;
 
-class QAbstractOAuthPrivate : public QObjectPrivate
+class Q_AUTOTEST_EXPORT QAbstractOAuthPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QAbstractOAuth)
 
