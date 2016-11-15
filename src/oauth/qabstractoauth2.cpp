@@ -151,7 +151,7 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
 {}
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(authorizationUrl, manager)
+    QAbstractOAuthPrivate(manager)
 {}
 
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
