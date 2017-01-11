@@ -54,6 +54,16 @@ QAbstractOAuthReplyHandler::QAbstractOAuthReplyHandler(QObjectPrivate &d, QObjec
     : QObject(d, parent)
 {}
 
+/*!
+    \class QAbstractOAuthReplyHandler
+    \inmodule QtNetworkAuth
+    \ingroup oauth
+    \brief Handles replies to OAuth authentication requests
+    \since 5.8
+
+    The QAbstractOAuthReplyHandler class handles the answers
+    to all OAuth authentication requests
+*/
 QT_END_NAMESPACE
 
 #endif // QT_NO_HTTP

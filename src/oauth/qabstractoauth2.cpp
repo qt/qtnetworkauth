@@ -53,6 +53,79 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \class QAbstractOAuth2
+    \inmodule QtNetworkAuth
+    \ingroup oauth
+    \brief The QAbstractOAuth2 class is the base of all
+    implementations of OAuth 2 authentication methods.
+    \since 5.8
+
+    The class defines the basic interface of the OAuth 2
+    authentication classes. By inheriting this class, you
+    can create custom authentication methods using the OAuth 2
+    standard for different web services.
+
+    A description of how OAuth 2 works can be found in:
+    \l {https://tools.ietf.org/html/rfc6749}{The OAuth 2.0
+    Authorization Framework}
+*/
+/*!
+    \property QAbstractOAuth2::scope
+    \brief This property holds the desired scope which defines the
+    permissions requested by the client.
+*/
+
+/*!
+    \property QAbstractOAuth2::userAgent
+    This property holds the User-Agent header used to create the
+    network requests.
+
+    The default value is "QtOAuth/1.0 (+https://www.qt.io)".
+*/
+
+/*!
+    \property QAbstractOAuth2::clientIdentifier
+    This property holds the client identifier used to identify the
+    application in the authentication process.
+*/
+
+/*!
+    \property QAbstractOAuth2::clientIdentifierSharedKey
+    This property holds the client shared key used as a password if
+    the server requires authentication to request the token.
+*/
+
+/*!
+    \property QAbstractOAuth2::state
+    This property holds the string sent to the server during
+    authentication. The state is used to identify and validate the
+    request when the callback is received.
+*/
+
+/*!
+    \property QAbstractOAuth2::expiration
+    This property holds the expiration time of the current access
+    token.
+*/
+
+/*!
+    \fn QAbstractOAuth2::error(const QString &error, const QString &errorDescription, const QUrl &uri)
+
+    Signal emitted when the server responds to the request with an
+    error: \a error is the name of the error; \a description describes
+    the error and \a uri is an optional URI containing more
+    information about the error.
+*/
+
+/*!
+    \fn QAbstractOAuth2::authorizationCallbackReceived(const QVariantMap &data)
+
+    Signal emitted when the reply server receives the authorization
+    callback from the server: \a data contains the values received
+    from the server.
+*/
+
 using Key = QAbstractOAuth2Private::OAuth2KeyString;
 const QString Key::accessToken =        QStringLiteral("access_token");
 const QString Key::apiKey =             QStringLiteral("api_key");
@@ -78,7 +151,7 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
 {}
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(authorizationUrl, manager)
+    QAbstractOAuthPrivate(manager)
 {}
 
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
@@ -106,10 +179,17 @@ QNetworkRequest QAbstractOAuth2Private::createRequest(const QUrl &url, const QVa
     return request;
 }
 
+/*!
+    Constructs a QAbstractOAuth2 object using \a parent as parent.
+*/
 QAbstractOAuth2::QAbstractOAuth2(QObject *parent) :
     QAbstractOAuth2(nullptr, parent)
 {}
 
+/*!
+    Constructs a QAbstractOAuth2 object using \a parent as parent and
+    sets \a manager as the network access manager.
+*/
 QAbstractOAuth2::QAbstractOAuth2(QNetworkAccessManager *manager, QObject *parent) :
     QAbstractOAuth(*new QAbstractOAuth2Private(manager), parent)
 {}
@@ -118,9 +198,16 @@ QAbstractOAuth2::QAbstractOAuth2(QAbstractOAuth2Private &dd, QObject *parent) :
     QAbstractOAuth(dd, parent)
 {}
 
+/*!
+    Destroys the QAbstractOAuth2 instance.
+*/
 QAbstractOAuth2::~QAbstractOAuth2()
 {}
 
+/*!
+    The returned URL is based on \a url, combining it with the given
+    \a parameters and the access token.
+*/
 QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(const QAbstractOAuth2);
@@ -137,6 +224,14 @@ QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap 
     return ret;
 }
 
+/*!
+    Sends an authenticated HEAD request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.4}
+    {Hypertext Transfer Protocol -- HTTP/1.1: HEAD}
+*/
 QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
@@ -145,6 +240,14 @@ QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &paramet
     return reply;
 }
 
+/*!
+    Sends an authenticated GET request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.3}
+    {Hypertext Transfer Protocol -- HTTP/1.1: GET}
+*/
 QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
@@ -154,6 +257,14 @@ QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &paramete
     return reply;
 }
 
+/*!
+    Sends an authenticated POST request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.5}
+    {Hypertext Transfer Protocol -- HTTP/1.1: POST}
+*/
 QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
@@ -163,6 +274,14 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
     return reply;
 }
 
+/*!
+    Sends an authenticated DELETE request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.7}
+    {Hypertext Transfer Protocol -- HTTP/1.1: DELETE}
+*/
 QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
