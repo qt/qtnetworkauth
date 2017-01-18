@@ -64,6 +64,10 @@ class Q_OAUTH_EXPORT  QAbstractOAuth : public QObject
                READ authorizationUrl
                WRITE setAuthorizationUrl
                NOTIFY authorizationUrlChanged)
+    Q_PROPERTY(QAbstractOAuth::ContentType contentType
+               READ contentType
+               WRITE setContentType
+               NOTIFY contentTypeChanged)
 
 public:
     enum class Status {
@@ -87,6 +91,11 @@ public:
         OAuthTokenNotFoundError,
         OAuthTokenSecretNotFoundError,
         OAuthCallbackNotVerified
+    };
+
+    enum class ContentType {
+        WwwFormUrlEncoded,
+        Json
     };
 
     typedef std::function<void(Stage, QVariantMap*)> ModifyParametersFunction;
@@ -124,6 +133,9 @@ public:
     ModifyParametersFunction modifyParametersFunction() const;
     void setModifyParametersFunction(const ModifyParametersFunction &modifyParametersFunction);
 
+    ContentType contentType() const;
+    void setContentType(ContentType contentType);
+
 public Q_SLOTS:
     virtual void grant() = 0;
 
@@ -133,6 +145,7 @@ Q_SIGNALS:
     void statusChanged(Status status);
     void authorizationUrlChanged(const QUrl &url);
     void extraTokensChanged(const QVariantMap &tokens);
+    void contentTypeChanged(ContentType contentType);
 
     void requestFailed(const Error error);
     void authorizeWithBrowser(const QUrl &url);

@@ -69,7 +69,7 @@ public:
     ~QAbstractOAuth2Private();
 
     static QString generateRandomState();
-    QNetworkRequest createRequest(const QUrl &url, const QVariantMap &parameters);
+    QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
 
     QPair<QString, QString> clientCredentials;
     QString token;

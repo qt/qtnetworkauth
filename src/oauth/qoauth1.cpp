@@ -430,12 +430,10 @@ QNetworkReply *QOAuth1::post(const QUrl &url, const QVariantMap &parameters)
     }
     QNetworkRequest request(url);
     setup(&request, parameters, QNetworkAccessManager::PostOperation);
+    d->addContentTypeHeaders(&request);
 
-    QUrlQuery query;
-    for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it)
-        query.addQueryItem(it.key(), it.value().toString());
-    QString data = query.toString(QUrl::FullyEncoded);
-    QNetworkReply *reply = d->networkAccessManager()->post(request, data.toUtf8());
+    const QByteArray data = d->convertParameters(parameters);
+    QNetworkReply *reply = d->networkAccessManager()->post(request, data);
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }

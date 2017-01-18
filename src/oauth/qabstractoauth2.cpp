@@ -152,17 +152,20 @@ QString QAbstractOAuth2Private::generateRandomState()
     return QString::fromUtf8(QAbstractOAuthPrivate::generateRandomString(8));
 }
 
-QNetworkRequest QAbstractOAuth2Private::createRequest(const QUrl &url, const QVariantMap &parameters)
+QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMap *parameters)
 {
     QUrlQuery query(url.query());
 
-    for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it)
-        query.addQueryItem(it.key(), it.value().toString());
+    QNetworkRequest request;
+    if (parameters) {
+        for (auto it = parameters->begin(), end = parameters->end(); it != end; ++it)
+            query.addQueryItem(it.key(), it.value().toString());
+        url.setQuery(query);
+    } else { // POST, PUT request
+        addContentTypeHeaders(&request);
+    }
 
-    QUrl u(url);
-    u.setQuery(query);
-
-    QNetworkRequest request(u);
+    request.setUrl(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
     const QString bearer = bearerFormat.arg(token);
     request.setRawHeader("Authorization", bearer.toUtf8());
@@ -225,7 +228,7 @@ QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap 
 QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
-    QNetworkReply *reply = d->networkAccessManager()->head(d->createRequest(url, parameters));
+    QNetworkReply *reply = d->networkAccessManager()->head(d->createRequest(url, &parameters));
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
@@ -241,8 +244,7 @@ QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &paramet
 QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
-    QNetworkReply *reply = d->networkAccessManager()->get(
-                d->createRequest(url, parameters));
+    QNetworkReply *reply = d->networkAccessManager()->get(d->createRequest(url, &parameters));
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
@@ -258,8 +260,8 @@ QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &paramete
 QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
-    QNetworkReply *reply = d->networkAccessManager()->post(
-                d->createRequest(url, parameters), QByteArray());
+    const auto data = d->convertParameters(parameters);
+    QNetworkReply *reply = d->networkAccessManager()->post(d->createRequest(url), data);
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
@@ -276,7 +278,7 @@ QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMa
 {
     Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->deleteResource(
-                d->createRequest(url, parameters));
+                d->createRequest(url, &parameters));
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
