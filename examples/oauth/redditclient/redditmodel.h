@@ -27,47 +27,39 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTOAUTHREPLYHANDLER_H
-#define QABSTRACTOAUTHREPLYHANDLER_H
+#ifndef REDDITMODEL_H
+#define REDDITMODEL_H
 
-#ifndef QT_NO_HTTP
+#include "redditwrapper.h"
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qabstractoauth.h>
+#include <QtCore>
 
-#include <QtCore/qobject.h>
+class QNetworkReply;
 
-QT_BEGIN_NAMESPACE
-
-class Q_OAUTH_EXPORT QAbstractOAuthReplyHandler : public QObject
+class RedditModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit QAbstractOAuthReplyHandler(QObject *parent = nullptr);
-    virtual ~QAbstractOAuthReplyHandler();
+    RedditModel(QObject *parent = nullptr);
+    RedditModel(const QString &clientId, QObject *parent = nullptr);
 
-    virtual QString callback() const = 0;
+    virtual int rowCount(const QModelIndex &parent) const override;
+    virtual int columnCount(const QModelIndex &parent) const override;
+    virtual QVariant data(const QModelIndex &index, int role) const override;
 
-public Q_SLOTS:
-    virtual void networkReplyFinished(QNetworkReply *reply) = 0;
+    void grant();
 
-Q_SIGNALS:
-    void callbackReceived(const QVariantMap &values);
-    void tokensReceived(const QVariantMap &tokens);
+signals:
+    void error(const QString &errorString);
 
-    void replyDataReceived(const QByteArray &data);
-    void callbackDataReceived(const QByteArray &data);
-
-protected:
-    QAbstractOAuthReplyHandler(QObjectPrivate &d, QObject *parent = nullptr);
+private slots:
+    void update();
 
 private:
-    Q_DISABLE_COPY(QAbstractOAuthReplyHandler)
+    RedditWrapper redditWrapper;
+    QPointer<QNetworkReply> liveThreadReply;
+    QList<QJsonObject> threads;
 };
 
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QABSTRACTOAUTHREPLYHANDLER_H
+#endif // REDDITMODEL_H

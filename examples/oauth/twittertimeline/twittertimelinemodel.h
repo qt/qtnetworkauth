@@ -27,47 +27,44 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTOAUTHREPLYHANDLER_H
-#define QABSTRACTOAUTHREPLYHANDLER_H
+#include "twitter.h"
 
-#ifndef QT_NO_HTTP
+#include <QtCore>
+#include <QtNetwork>
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qabstractoauth.h>
-
-#include <QtCore/qobject.h>
-
-QT_BEGIN_NAMESPACE
-
-class Q_OAUTH_EXPORT QAbstractOAuthReplyHandler : public QObject
+class TwitterTimelineModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit QAbstractOAuthReplyHandler(QObject *parent = nullptr);
-    virtual ~QAbstractOAuthReplyHandler();
+    TwitterTimelineModel(QObject *parent = nullptr);
 
-    virtual QString callback() const = 0;
+    int rowCount(const QModelIndex &parent) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-public Q_SLOTS:
-    virtual void networkReplyFinished(QNetworkReply *reply) = 0;
+    void authenticate(const QPair<QString, QString> &clientCredentials);
+    QAbstractOAuth::Status status() const;
 
-Q_SIGNALS:
-    void callbackReceived(const QVariantMap &values);
-    void tokensReceived(const QVariantMap &tokens);
+public slots:
+    void updateTimeline();
 
-    void replyDataReceived(const QByteArray &data);
-    void callbackDataReceived(const QByteArray &data);
-
-protected:
-    QAbstractOAuthReplyHandler(QObjectPrivate &d, QObject *parent = nullptr);
+signals:
+    void authenticated();
 
 private:
-    Q_DISABLE_COPY(QAbstractOAuthReplyHandler)
+    Q_DISABLE_COPY(TwitterTimelineModel)
+
+    void parseJson();
+
+    struct Tweet {
+        quint64 id;
+        QDateTime createdAt;
+        QString user;
+        QString text;
+    };
+
+    QList<Tweet> tweets;
+    Twitter twitter;
 };
-
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QABSTRACTOAUTHREPLYHANDLER_H

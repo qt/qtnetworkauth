@@ -54,16 +54,39 @@
     \endcode
 //! [qtnetworkauth-usage]
 
-    \omit
     \section1 Overview
-    TODO
-    \endomit
+
+    The goal of this module is to provide a way to handle different
+    authentication methods present on the Internet.
+
+    There are several authentication systems, including:
+
+    \list
+      \li \l {https://tools.ietf.org/html/rfc5849} {OAuth 1}
+      \li \l {https://tools.ietf.org/html/rfc6749} {OAuth 2}
+      \li \l {http://openid.net} {OpenID}
+      \li \l {http://openid.net/connect/} {OpenID Connect}
+      \li \l {https://developer.mozilla.org/Persona} {Mozilla Persona}
+    \endlist
+
+    These systems allow the application developers to create applications which
+    use external authentication servers provided by an
+    \e {Authorization Server}.
+    Users of these services need not worry about passing their credentials to
+    suspicious applications. Instead, the credentials are entered in a known
+    and trusted web interface.
+
+    \section1 Examples
+    \list
+      \li \l {Qt Network Authorization Examples}
+    \endlist
 
     \section1 API Reference
     \list
       \li \l{Qt Network Authorization C++ Classes}{C++ Classes}
     \endlist
 */
+
 /*!
     \module QtNetworkAuth
     \title Qt Network Authorization C++ Classes

@@ -27,47 +27,29 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTOAUTHREPLYHANDLER_H
-#define QABSTRACTOAUTHREPLYHANDLER_H
+#include "redditmodel.h"
 
-#ifndef QT_NO_HTTP
+#include <QtCore>
+#include <QtWidgets>
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qabstractoauth.h>
-
-#include <QtCore/qobject.h>
-
-QT_BEGIN_NAMESPACE
-
-class Q_OAUTH_EXPORT QAbstractOAuthReplyHandler : public QObject
+int main(int argc, char **argv)
 {
-    Q_OBJECT
+    QApplication app(argc, argv);
+    QCommandLineParser parser;
+    const QCommandLineOption clientId(QStringList() << "i" << "client-id",
+                                      "Specifies the application client id", "client_id");
 
-public:
-    explicit QAbstractOAuthReplyHandler(QObject *parent = nullptr);
-    virtual ~QAbstractOAuthReplyHandler();
+    parser.addOptions({clientId});
+    parser.process(app);
 
-    virtual QString callback() const = 0;
-
-public Q_SLOTS:
-    virtual void networkReplyFinished(QNetworkReply *reply) = 0;
-
-Q_SIGNALS:
-    void callbackReceived(const QVariantMap &values);
-    void tokensReceived(const QVariantMap &tokens);
-
-    void replyDataReceived(const QByteArray &data);
-    void callbackDataReceived(const QByteArray &data);
-
-protected:
-    QAbstractOAuthReplyHandler(QObjectPrivate &d, QObject *parent = nullptr);
-
-private:
-    Q_DISABLE_COPY(QAbstractOAuthReplyHandler)
-};
-
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QABSTRACTOAUTHREPLYHANDLER_H
+    if (parser.isSet(clientId)) {
+        QListView view;
+        RedditModel model(parser.value(clientId));
+        view.setModel(&model);
+        view.show();
+        return app.exec();
+    } else {
+        parser.showHelp();
+    }
+    return 0;
+}
