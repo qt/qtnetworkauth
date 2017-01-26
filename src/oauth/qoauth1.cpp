@@ -68,6 +68,7 @@ QOAuth1Private::QOAuth1Private(const QPair<QString, QString> &clientCredentials,
     clientCredentials(clientCredentials)
 {
     qRegisterMetaType<QNetworkReply::NetworkError>("QNetworkReply::NetworkError");
+    qRegisterMetaType<QOAuth1::SignatureMethod>("QOAuth1::SignatureMethod");
 }
 
 void QOAuth1Private::appendCommonHeaders(QVariantMap *headers)
