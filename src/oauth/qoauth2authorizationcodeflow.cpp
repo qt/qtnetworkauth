@@ -45,6 +45,33 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \class QOAuth2AuthorizationCodeFlow
+    \inmodule QtNetworkAuth
+    \ingroup oauth
+    \brief The QOAuth2AuthorizationCodeFlow class provides an
+    implementation of the
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1}
+    {Authorization Code Grant} flow.
+    \since 5.8
+
+    This class implements the
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1}
+    {Authorization Code Grant} flow, which is used both to obtain and
+    to refresh access tokens. It is a redirection-based flow so the
+    user will need access to a web browser.
+*/
+
+/*!
+    \property QOAuth2AuthorizationCodeFlow::accessTokenUrl
+    \brief This property holds the URL used to convert the temporary
+    code received during the authorization response.
+
+    \b {See also}:
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1.3}{Access
+    Token Request}
+*/
+
 QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
         const QUrl &authorizationUrl, const QUrl &accessTokenUrl, const QString &clientIdentifier,
         QNetworkAccessManager *manager) :
@@ -146,15 +173,28 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate(QNetworkReply *reply,
     }
 }
 
+/*!
+    Constructs a QOAuth2AuthorizationCodeFlow object with parent
+    object \a parent.
+*/
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(QObject *parent) :
     QAbstractOAuth2(*new QOAuth2AuthorizationCodeFlowPrivate, parent)
 {}
 
+/*!
+    Constructs a QOAuth2AuthorizationCodeFlow object using \a parent
+    as parent and sets \a manager as the network access manager.
+*/
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(QNetworkAccessManager *manager,
                                                            QObject *parent) :
     QAbstractOAuth2(*new QOAuth2AuthorizationCodeFlowPrivate(manager), parent)
 {}
 
+/*!
+    Constructs a QOAuth2AuthorizationCodeFlow object using \a parent
+    as parent and sets \a manager as the network access manager. The
+    client identifier is set to \a clientIdentifier.
+*/
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &clientIdentifier,
                                                            QNetworkAccessManager *manager,
                                                            QObject *parent) :
@@ -163,6 +203,12 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
                     parent)
 {}
 
+/*!
+    Constructs a QOAuth2AuthorizationCodeFlow object using \a parent
+    as parent and sets \a manager as the network access manager. The
+    authenticate URL is set to \a authenticateUrl and the access
+    token URL is set to \a accessTokenUrl.
+*/
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QUrl &authenticateUrl,
                                                            const QUrl &accessTokenUrl,
                                                            QNetworkAccessManager *manager,
@@ -172,6 +218,13 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QUrl &authentic
                     parent)
 {}
 
+/*!
+    Constructs a QOAuth2AuthorizationCodeFlow object using \a parent
+    as parent and sets \a manager as the network access manager. The
+    client identifier is set to \a clientIdentifier the authenticate
+    URL is set to \a authenticateUrl and the access token URL is set
+    to \a accessTokenUrl.
+*/
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &clientIdentifier,
                                                            const QUrl &authenticateUrl,
                                                            const QUrl &accessTokenUrl,
@@ -182,20 +235,38 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
                     parent)
 {}
 
+/*!
+    Destroys the QOAuth2AuthorizationCodeFlow instance.
+*/
 QOAuth2AuthorizationCodeFlow::~QOAuth2AuthorizationCodeFlow()
 {}
 
+/*!
+    Returns the \l {https://tools.ietf.org/html/rfc6749#section-3.1.1}
+    {response_type} used in QOAuth2AuthorizationCodeFlow; this is
+    fixed to "code" as required in
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1.1}{The OAuth
+    2.0 RFC}
+*/
 QString QOAuth2AuthorizationCodeFlow::responseType() const
 {
     return QStringLiteral("code");
 }
 
+/*!
+    Returns the URL used to request the access token.
+    \sa setAccessTokenUrl()
+*/
 QUrl QOAuth2AuthorizationCodeFlow::accessTokenUrl() const
 {
     Q_D(const QOAuth2AuthorizationCodeFlow);
     return d->accessTokenUrl;
 }
 
+/*!
+    Sets the URL used to request the access token to
+    \a accessTokenUrl.
+*/
 void QOAuth2AuthorizationCodeFlow::setAccessTokenUrl(const QUrl &accessTokenUrl)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
@@ -205,6 +276,11 @@ void QOAuth2AuthorizationCodeFlow::setAccessTokenUrl(const QUrl &accessTokenUrl)
     }
 }
 
+/*!
+    Starts the authentication flow as described in
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1}{The OAuth
+    2.0 Authorization Framework}
+*/
 void QOAuth2AuthorizationCodeFlow::grant()
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
@@ -220,6 +296,15 @@ void QOAuth2AuthorizationCodeFlow::grant()
     resourceOwnerAuthorization(d->authorizationUrl);
 }
 
+/*!
+    Call this function to refresh the token. Access tokens are not
+    permanent. After a time specified along with the access token
+    when it was obtained, the access token will become invalid.
+
+    \b {See also}:
+    \l {https://tools.ietf.org/html/rfc6749#section-1.5}{Refresh
+    Token}
+*/
 void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
@@ -262,6 +347,11 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
                             Qt::UniqueConnection);
 }
 
+/*!
+    Generates an authentication URL to be used in the
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1.1}
+    {Authorization Request} using \a parameters.
+*/
 QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QVariantMap &parameters)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
@@ -289,6 +379,11 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QVariantMap &param
     return url;
 }
 
+/*!
+    Requests an access token from the received \a code. The \a code
+    is received as a response when the user completes a successful
+    authentication in the browser.
+*/
 void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
@@ -323,6 +418,11 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
                             Qt::UniqueConnection);
 }
 
+/*!
+    Builds an authentication URL using \a url and \a parameters. This
+    function emits an authorizeWithBrowser() signal to require user
+    interaction.
+*/
 void QOAuth2AuthorizationCodeFlow::resourceOwnerAuthorization(const QUrl &url,
                                                               const QVariantMap &parameters)
 {
