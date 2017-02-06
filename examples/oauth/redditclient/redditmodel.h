@@ -34,7 +34,7 @@
 
 #include <QtCore>
 
-class QNetworkReply;
+QT_FORWARD_DECLARE_CLASS(QNetworkReply)
 
 class RedditModel : public QAbstractTableModel
 {
