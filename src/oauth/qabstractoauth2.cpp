@@ -3,9 +3,9 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtNetwork module of the Qt Toolkit.
+** This file is part of the Qt Network Auth module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:GPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -14,24 +14,14 @@
 ** and conditions see https://www.qt.io/terms-conditions. For further
 ** information use the contact form at https://www.qt.io/contact-us.
 **
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
-**
 ** GNU General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or (at your option) the GNU General
-** Public license version 3 or any later version approved by the KDE Free
-** Qt Foundation. The licenses are as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** General Public License version 3 or (at your option) any later version
+** approved by the KDE Free Qt Foundation. The licenses are as published by
+** the Free Software Foundation and appearing in the file LICENSE.GPL3
 ** included in the packaging of this file. Please review the following
 ** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-2.0.html and
-** https://www.gnu.org/licenses/gpl-3.0.html.
+** be met: https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -162,17 +152,20 @@ QString QAbstractOAuth2Private::generateRandomState()
     return QString::fromUtf8(QAbstractOAuthPrivate::generateRandomString(8));
 }
 
-QNetworkRequest QAbstractOAuth2Private::createRequest(const QUrl &url, const QVariantMap &parameters)
+QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMap *parameters)
 {
     QUrlQuery query(url.query());
 
-    for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it)
-        query.addQueryItem(it.key(), it.value().toString());
+    QNetworkRequest request;
+    if (parameters) {
+        for (auto it = parameters->begin(), end = parameters->end(); it != end; ++it)
+            query.addQueryItem(it.key(), it.value().toString());
+        url.setQuery(query);
+    } else { // POST, PUT request
+        addContentTypeHeaders(&request);
+    }
 
-    QUrl u(url);
-    u.setQuery(query);
-
-    QNetworkRequest request(u);
+    request.setUrl(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
     const QString bearer = bearerFormat.arg(token);
     request.setRawHeader("Authorization", bearer.toUtf8());
@@ -235,7 +228,7 @@ QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap 
 QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
-    QNetworkReply *reply = d->networkAccessManager()->head(d->createRequest(url, parameters));
+    QNetworkReply *reply = d->networkAccessManager()->head(d->createRequest(url, &parameters));
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
@@ -251,8 +244,7 @@ QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &paramet
 QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
-    QNetworkReply *reply = d->networkAccessManager()->get(
-                d->createRequest(url, parameters));
+    QNetworkReply *reply = d->networkAccessManager()->get(d->createRequest(url, &parameters));
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
@@ -268,8 +260,8 @@ QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &paramete
 QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QAbstractOAuth2);
-    QNetworkReply *reply = d->networkAccessManager()->post(
-                d->createRequest(url, parameters), QByteArray());
+    const auto data = d->convertParameters(parameters);
+    QNetworkReply *reply = d->networkAccessManager()->post(d->createRequest(url), data);
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }
@@ -286,7 +278,7 @@ QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMa
 {
     Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->deleteResource(
-                d->createRequest(url, parameters));
+                d->createRequest(url, &parameters));
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }

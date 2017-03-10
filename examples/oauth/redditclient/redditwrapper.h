@@ -27,47 +27,38 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTOAUTHREPLYHANDLER_H
-#define QABSTRACTOAUTHREPLYHANDLER_H
+#ifndef REDDITWRAPPER_H
+#define REDDITWRAPPER_H
 
-#ifndef QT_NO_HTTP
+#include <QtCore>
+#include <QtNetwork>
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qabstractoauth.h>
+#include <QOAuth2AuthorizationCodeFlow>
 
-#include <QtCore/qobject.h>
-
-QT_BEGIN_NAMESPACE
-
-class Q_OAUTH_EXPORT QAbstractOAuthReplyHandler : public QObject
+class RedditWrapper : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit QAbstractOAuthReplyHandler(QObject *parent = nullptr);
-    virtual ~QAbstractOAuthReplyHandler();
+    RedditWrapper(QObject *parent = nullptr);
+    RedditWrapper(const QString &clientIdentifier, QObject *parent = nullptr);
 
-    virtual QString callback() const = 0;
+    QNetworkReply *requestHotThreads();
 
-public Q_SLOTS:
-    virtual void networkReplyFinished(QNetworkReply *reply) = 0;
+    bool isPermanent() const;
+    void setPermanent(bool value);
 
-Q_SIGNALS:
-    void callbackReceived(const QVariantMap &values);
-    void tokensReceived(const QVariantMap &tokens);
+public slots:
+    void grant();
+    void subscribeToLiveUpdates();
 
-    void replyDataReceived(const QByteArray &data);
-    void callbackDataReceived(const QByteArray &data);
-
-protected:
-    QAbstractOAuthReplyHandler(QObjectPrivate &d, QObject *parent = nullptr);
+signals:
+    void authenticated();
+    void subscribed(const QUrl &url);
 
 private:
-    Q_DISABLE_COPY(QAbstractOAuthReplyHandler)
+    QOAuth2AuthorizationCodeFlow oauth2;
+    bool permanent = false;
 };
 
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QABSTRACTOAUTHREPLYHANDLER_H
+#endif // REDDITWRAPPER_H

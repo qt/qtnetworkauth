@@ -27,47 +27,26 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTOAUTHREPLYHANDLER_H
-#define QABSTRACTOAUTHREPLYHANDLER_H
+#include <QtCore>
+#include <QtNetwork>
+#include <QtNetworkAuth>
 
-#ifndef QT_NO_HTTP
-
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qabstractoauth.h>
-
-#include <QtCore/qobject.h>
-
-QT_BEGIN_NAMESPACE
-
-class Q_OAUTH_EXPORT QAbstractOAuthReplyHandler : public QObject
+class Twitter : public QOAuth1
 {
     Q_OBJECT
 
 public:
-    explicit QAbstractOAuthReplyHandler(QObject *parent = nullptr);
-    virtual ~QAbstractOAuthReplyHandler();
+    Twitter(QObject *parent = nullptr);
+    Twitter(const QPair<QString, QString> &clientCredentials, QObject *parent = nullptr);
+    Twitter(const QString &screenName,
+            const QPair<QString, QString> &clientCredentials,
+            QObject *parent = nullptr);
 
-    virtual QString callback() const = 0;
-
-public Q_SLOTS:
-    virtual void networkReplyFinished(QNetworkReply *reply) = 0;
-
-Q_SIGNALS:
-    void callbackReceived(const QVariantMap &values);
-    void tokensReceived(const QVariantMap &tokens);
-
-    void replyDataReceived(const QByteArray &data);
-    void callbackDataReceived(const QByteArray &data);
-
-protected:
-    QAbstractOAuthReplyHandler(QObjectPrivate &d, QObject *parent = nullptr);
+signals:
+    void authenticated();
 
 private:
-    Q_DISABLE_COPY(QAbstractOAuthReplyHandler)
+    Q_DISABLE_COPY(Twitter)
+
+    QOAuthHttpServerReplyHandler *replyHandler = nullptr;
 };
-
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QABSTRACTOAUTHREPLYHANDLER_H
