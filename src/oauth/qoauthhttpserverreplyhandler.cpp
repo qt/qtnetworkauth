@@ -118,11 +118,11 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
             receivedData.insert(it->first, it->second);
         Q_EMIT q->callbackReceived(receivedData);
 
-        const QString html = QLatin1String("<html><head><title>") +
-                qApp->applicationName() +
-                QLatin1String("</title></head><body>") +
-                text +
-                QLatin1String("</body></html>");
+        const QByteArray html = QByteArrayLiteral("<html><head><title>") +
+                qApp->applicationName().toUtf8() +
+                QByteArrayLiteral("</title></head><body>") +
+                text.toUtf8() +
+                QByteArrayLiteral("</body></html>");
 
         const QByteArray htmlSize = QString::number(html.size()).toUtf8();
         const QByteArray replyMessage = QByteArrayLiteral("HTTP/1.0 200 OK \r\n"
@@ -130,7 +130,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
                                                           "charset=\"utf-8\"\r\n"
                                                           "Content-Length: ") + htmlSize +
                 QByteArrayLiteral("\r\n\r\n") +
-                html.toUtf8();
+                html;
 
         socket->write(replyMessage);
     }
