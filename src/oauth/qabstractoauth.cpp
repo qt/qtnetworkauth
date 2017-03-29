@@ -469,7 +469,7 @@ void QAbstractOAuth::setModifyParametersFunction(
 
 /*!
     Returns the current Content-Type used in authenticated calls.
-    \sa setContentType(), \sa post()
+    \sa setContentType(), post()
 */
 QAbstractOAuth::ContentType QAbstractOAuth::contentType() const
 {

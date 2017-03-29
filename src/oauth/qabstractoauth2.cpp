@@ -103,7 +103,7 @@ QT_BEGIN_NAMESPACE
     \fn QAbstractOAuth2::error(const QString &error, const QString &errorDescription, const QUrl &uri)
 
     Signal emitted when the server responds to the request with an
-    error: \a error is the name of the error; \a description describes
+    error: \a error is the name of the error; \a errorDescription describes
     the error and \a uri is an optional URI containing more
     information about the error.
 */
