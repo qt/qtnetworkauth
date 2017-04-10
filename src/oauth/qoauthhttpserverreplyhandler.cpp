@@ -107,7 +107,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_readData(QTcpSocket *socket)
 void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, const QUrl &url)
 {
     Q_Q(QOAuthHttpServerReplyHandler);
-    if (!url.path().startsWith(QStringLiteral("/cb"))) {
+    if (!url.path().startsWith(QLatin1String("/") + path)) {
         qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_answerClient: Invalid request: %s",
                  qPrintable(url.toString()));
     } else {
@@ -274,8 +274,26 @@ QString QOAuthHttpServerReplyHandler::callback() const
     Q_D(const QOAuthHttpServerReplyHandler);
 
     Q_ASSERT(d->httpServer.isListening());
-    const QUrl url(QString::fromLatin1("http://localhost:%1/cb").arg(d->httpServer.serverPort()));
+    const QUrl url(QString::fromLatin1("http://localhost:%1/%2")
+                   .arg(d->httpServer.serverPort()).arg(d->path));
     return url.toString(QUrl::EncodeDelimiters);
+}
+
+QString QOAuthHttpServerReplyHandler::callbackPath() const
+{
+    Q_D(const QOAuthHttpServerReplyHandler);
+    return d->path;
+}
+
+void QOAuthHttpServerReplyHandler::setCallbackPath(const QString &path)
+{
+    Q_D(QOAuthHttpServerReplyHandler);
+
+    QString copy = path;
+    while (copy.startsWith('/'))
+        copy = copy.mid(1);
+
+    d->path = copy;
 }
 
 QString QOAuthHttpServerReplyHandler::callbackText() const
