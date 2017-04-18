@@ -55,6 +55,9 @@ public:
 
     QString callback() const override;
 
+    QString callbackPath() const;
+    void setCallbackPath(const QString &path);
+
     QString callbackText() const;
     void setCallbackText(const QString &text);
 
