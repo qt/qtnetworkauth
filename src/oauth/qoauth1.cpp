@@ -262,6 +262,15 @@ void QOAuth1Private::_q_tokensReceived(const QVariantMap &tokens)
 {
     Q_Q(QOAuth1);
 
+    if (!tokenRequested && status == QAbstractOAuth::Status::TemporaryCredentialsReceived) {
+        // We didn't request a token yet, but in the "TemporaryCredentialsReceived" state _any_
+        // new tokens received will count as a successful authentication and we move to the
+        // 'Granted' state. To avoid this, 'status' will be temporarily set to 'NotAuthenticated'.
+        status = QAbstractOAuth::Status::NotAuthenticated;
+    }
+    if (tokenRequested) // 'Reset' tokenRequested now that we've gotten new tokens
+        tokenRequested = false;
+
     QPair<QString, QString> credential(tokens.value(Key::oauthToken).toString(),
                                        tokens.value(Key::oauthTokenSecret).toString());
     switch (status) {
@@ -675,6 +684,7 @@ QNetworkReply *QOAuth1::requestTokenCredentials(QNetworkAccessManager::Operation
                                                 const QVariantMap &parameters)
 {
     Q_D(QOAuth1);
+    d->tokenRequested = true;
     return d->requestToken(operation, url, temporaryToken, parameters);
 }
 
@@ -786,7 +796,7 @@ void QOAuth1::grant()
         qCWarning(d->loggingCategory, "authorizationGrantUrl is empty");
         return;
     }
-    if (!d->token.isEmpty()) {
+    if (!d->token.isEmpty() && status() == Status::Granted) {
         qCWarning(d->loggingCategory, "Already authenticated");
         return;
     }
