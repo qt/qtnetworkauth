@@ -27,53 +27,39 @@
 **
 ****************************************************************************/
 
-#ifndef QOAUTHHTTPSERVERREPLYHANDLER_H
-#define QOAUTHHTTPSERVERREPLYHANDLER_H
+#ifndef REDDITMODEL_H
+#define REDDITMODEL_H
 
-#ifndef QT_NO_HTTP
+#include "redditwrapper.h"
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qoauthoobreplyhandler.h>
+#include <QtCore>
 
-#include <QtNetwork/qhostaddress.h>
+QT_FORWARD_DECLARE_CLASS(QNetworkReply)
 
-QT_BEGIN_NAMESPACE
-
-class QUrlQuery;
-
-class QOAuthHttpServerReplyHandlerPrivate;
-class Q_OAUTH_EXPORT QOAuthHttpServerReplyHandler : public QOAuthOobReplyHandler
+class RedditModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit QOAuthHttpServerReplyHandler(QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(const QHostAddress &address, quint16 port,
-                                          QObject *parent = nullptr);
-    ~QOAuthHttpServerReplyHandler();
+    RedditModel(QObject *parent = nullptr);
+    RedditModel(const QString &clientId, QObject *parent = nullptr);
 
-    QString callback() const override;
+    virtual int rowCount(const QModelIndex &parent) const override;
+    virtual int columnCount(const QModelIndex &parent) const override;
+    virtual QVariant data(const QModelIndex &index, int role) const override;
 
-    QString callbackPath() const;
-    void setCallbackPath(const QString &path);
+    void grant();
 
-    QString callbackText() const;
-    void setCallbackText(const QString &text);
+signals:
+    void error(const QString &errorString);
 
-    quint16 port() const;
-
-    bool listen(const QHostAddress &address = QHostAddress::Any, quint16 port = 0);
-    void close();
-    bool isListening() const;
+private slots:
+    void update();
 
 private:
-    Q_DECLARE_PRIVATE(QOAuthHttpServerReplyHandler)
-    QScopedPointer<QOAuthHttpServerReplyHandlerPrivate> d_ptr;
+    RedditWrapper redditWrapper;
+    QPointer<QNetworkReply> liveThreadReply;
+    QList<QJsonObject> threads;
 };
 
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QOAUTHHTTPSERVERREPLYHANDLER_H
+#endif // REDDITMODEL_H

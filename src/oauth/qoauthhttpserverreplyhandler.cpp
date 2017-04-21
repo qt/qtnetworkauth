@@ -3,9 +3,9 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtNetwork module of the Qt Toolkit.
+** This file is part of the Qt Network Auth module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:GPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -14,24 +14,14 @@
 ** and conditions see https://www.qt.io/terms-conditions. For further
 ** information use the contact form at https://www.qt.io/contact-us.
 **
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
-**
 ** GNU General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or (at your option) the GNU General
-** Public license version 3 or any later version approved by the KDE Free
-** Qt Foundation. The licenses are as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** General Public License version 3 or (at your option) any later version
+** approved by the KDE Free Qt Foundation. The licenses are as published by
+** the Free Software Foundation and appearing in the file LICENSE.GPL3
 ** included in the packaging of this file. Please review the following
 ** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-2.0.html and
-** https://www.gnu.org/licenses/gpl-3.0.html.
+** be met: https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -117,7 +107,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_readData(QTcpSocket *socket)
 void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, const QUrl &url)
 {
     Q_Q(QOAuthHttpServerReplyHandler);
-    if (!url.path().startsWith(QStringLiteral("/cb"))) {
+    if (!url.path().startsWith(QLatin1String("/") + path)) {
         qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_answerClient: Invalid request: %s",
                  qPrintable(url.toString()));
     } else {
@@ -128,11 +118,11 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
             receivedData.insert(it->first, it->second);
         Q_EMIT q->callbackReceived(receivedData);
 
-        const QString html = QLatin1String("<html><head><title>") +
-                qApp->applicationName() +
-                QLatin1String("</title></head><body>") +
-                text +
-                QLatin1String("</body></html>");
+        const QByteArray html = QByteArrayLiteral("<html><head><title>") +
+                qApp->applicationName().toUtf8() +
+                QByteArrayLiteral("</title></head><body>") +
+                text.toUtf8() +
+                QByteArrayLiteral("</body></html>");
 
         const QByteArray htmlSize = QString::number(html.size()).toUtf8();
         const QByteArray replyMessage = QByteArrayLiteral("HTTP/1.0 200 OK \r\n"
@@ -140,7 +130,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
                                                           "charset=\"utf-8\"\r\n"
                                                           "Content-Length: ") + htmlSize +
                 QByteArrayLiteral("\r\n\r\n") +
-                html.toUtf8();
+                html;
 
         socket->write(replyMessage);
     }
@@ -284,8 +274,26 @@ QString QOAuthHttpServerReplyHandler::callback() const
     Q_D(const QOAuthHttpServerReplyHandler);
 
     Q_ASSERT(d->httpServer.isListening());
-    const QUrl url(QString::fromLatin1("http://localhost:%1/cb").arg(d->httpServer.serverPort()));
+    const QUrl url(QString::fromLatin1("http://localhost:%1/%2")
+                   .arg(d->httpServer.serverPort()).arg(d->path));
     return url.toString(QUrl::EncodeDelimiters);
+}
+
+QString QOAuthHttpServerReplyHandler::callbackPath() const
+{
+    Q_D(const QOAuthHttpServerReplyHandler);
+    return d->path;
+}
+
+void QOAuthHttpServerReplyHandler::setCallbackPath(const QString &path)
+{
+    Q_D(QOAuthHttpServerReplyHandler);
+
+    QString copy = path;
+    while (copy.startsWith('/'))
+        copy = copy.mid(1);
+
+    d->path = copy;
 }
 
 QString QOAuthHttpServerReplyHandler::callbackText() const

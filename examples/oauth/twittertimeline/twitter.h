@@ -27,53 +27,26 @@
 **
 ****************************************************************************/
 
-#ifndef QOAUTHHTTPSERVERREPLYHANDLER_H
-#define QOAUTHHTTPSERVERREPLYHANDLER_H
+#include <QtCore>
+#include <QtNetwork>
+#include <QtNetworkAuth>
 
-#ifndef QT_NO_HTTP
-
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qoauthoobreplyhandler.h>
-
-#include <QtNetwork/qhostaddress.h>
-
-QT_BEGIN_NAMESPACE
-
-class QUrlQuery;
-
-class QOAuthHttpServerReplyHandlerPrivate;
-class Q_OAUTH_EXPORT QOAuthHttpServerReplyHandler : public QOAuthOobReplyHandler
+class Twitter : public QOAuth1
 {
     Q_OBJECT
 
 public:
-    explicit QOAuthHttpServerReplyHandler(QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(const QHostAddress &address, quint16 port,
-                                          QObject *parent = nullptr);
-    ~QOAuthHttpServerReplyHandler();
+    Twitter(QObject *parent = nullptr);
+    Twitter(const QPair<QString, QString> &clientCredentials, QObject *parent = nullptr);
+    Twitter(const QString &screenName,
+            const QPair<QString, QString> &clientCredentials,
+            QObject *parent = nullptr);
 
-    QString callback() const override;
-
-    QString callbackPath() const;
-    void setCallbackPath(const QString &path);
-
-    QString callbackText() const;
-    void setCallbackText(const QString &text);
-
-    quint16 port() const;
-
-    bool listen(const QHostAddress &address = QHostAddress::Any, quint16 port = 0);
-    void close();
-    bool isListening() const;
+signals:
+    void authenticated();
 
 private:
-    Q_DECLARE_PRIVATE(QOAuthHttpServerReplyHandler)
-    QScopedPointer<QOAuthHttpServerReplyHandlerPrivate> d_ptr;
+    Q_DISABLE_COPY(Twitter)
+
+    QOAuthHttpServerReplyHandler *replyHandler = nullptr;
 };
-
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QOAUTHHTTPSERVERREPLYHANDLER_H

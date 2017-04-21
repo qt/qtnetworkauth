@@ -30,8 +30,8 @@ headerdirs  += ..
 sourcedirs  += ..
 #imagedirs  += images
 
-#examplesinstallpath     = oauth
-#exampledirs += ../../../examples/oauth
+examplesinstallpath     = oauth
+exampledirs += ../../../examples/oauth
 
 navigation.landingpage = "Qt Network Authorization"
 navigation.cppclassespage = "Qt Network Authorization C++ Classes"

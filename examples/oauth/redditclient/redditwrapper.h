@@ -27,53 +27,38 @@
 **
 ****************************************************************************/
 
-#ifndef QOAUTHHTTPSERVERREPLYHANDLER_H
-#define QOAUTHHTTPSERVERREPLYHANDLER_H
+#ifndef REDDITWRAPPER_H
+#define REDDITWRAPPER_H
 
-#ifndef QT_NO_HTTP
+#include <QtCore>
+#include <QtNetwork>
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qoauthoobreplyhandler.h>
+#include <QOAuth2AuthorizationCodeFlow>
 
-#include <QtNetwork/qhostaddress.h>
-
-QT_BEGIN_NAMESPACE
-
-class QUrlQuery;
-
-class QOAuthHttpServerReplyHandlerPrivate;
-class Q_OAUTH_EXPORT QOAuthHttpServerReplyHandler : public QOAuthOobReplyHandler
+class RedditWrapper : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit QOAuthHttpServerReplyHandler(QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(const QHostAddress &address, quint16 port,
-                                          QObject *parent = nullptr);
-    ~QOAuthHttpServerReplyHandler();
+    RedditWrapper(QObject *parent = nullptr);
+    RedditWrapper(const QString &clientIdentifier, QObject *parent = nullptr);
 
-    QString callback() const override;
+    QNetworkReply *requestHotThreads();
 
-    QString callbackPath() const;
-    void setCallbackPath(const QString &path);
+    bool isPermanent() const;
+    void setPermanent(bool value);
 
-    QString callbackText() const;
-    void setCallbackText(const QString &text);
+public slots:
+    void grant();
+    void subscribeToLiveUpdates();
 
-    quint16 port() const;
-
-    bool listen(const QHostAddress &address = QHostAddress::Any, quint16 port = 0);
-    void close();
-    bool isListening() const;
+signals:
+    void authenticated();
+    void subscribed(const QUrl &url);
 
 private:
-    Q_DECLARE_PRIVATE(QOAuthHttpServerReplyHandler)
-    QScopedPointer<QOAuthHttpServerReplyHandlerPrivate> d_ptr;
+    QOAuth2AuthorizationCodeFlow oauth2;
+    bool permanent = false;
 };
 
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QOAUTHHTTPSERVERREPLYHANDLER_H
+#endif // REDDITWRAPPER_H

@@ -3,9 +3,9 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtNetwork module of the Qt Toolkit.
+** This file is part of the Qt Network Auth module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:GPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -14,24 +14,14 @@
 ** and conditions see https://www.qt.io/terms-conditions. For further
 ** information use the contact form at https://www.qt.io/contact-us.
 **
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
-**
 ** GNU General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or (at your option) the GNU General
-** Public license version 3 or any later version approved by the KDE Free
-** Qt Foundation. The licenses are as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** General Public License version 3 or (at your option) any later version
+** approved by the KDE Free Qt Foundation. The licenses are as published by
+** the Free Software Foundation and appearing in the file LICENSE.GPL3
 ** included in the packaging of this file. Please review the following
 ** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-2.0.html and
-** https://www.gnu.org/licenses/gpl-3.0.html.
+** be met: https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -49,6 +39,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qurlquery.h>
+#include <QtCore/qjsondocument.h>
 #include <QtCore/qmessageauthenticationcode.h>
 
 #include <QtNetwork/qnetworkrequest.h>
@@ -139,6 +130,19 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \enum QAbstractOAuth::ContentType
+
+    Indicates the MIME Content-Type of the POST methods in
+    authenticated calls.
+
+    \value WwwFormUrlEncoded                Uses
+    application/x-www-form-urlencoded format.
+
+    \value Json                             Uses
+    application/json format.
+*/
+
+/*!
     \property QAbstractOAuth::status
     \brief This property holds the current authentication status.
 */
@@ -155,6 +159,15 @@ QT_BEGIN_NAMESPACE
     Owner Authorization as described in:
     \l{https://tools.ietf.org/html/rfc5849#section-2.2}{The OAuth
     1.0 Protocol: Resource Owner Authorization}
+*/
+
+/*!
+    \property QAbstractOAuth::contentType
+    \brief The Content-Type to use when sending authorization
+    parameters.
+
+    This property controls how parameters are formatted when sent
+    with a POST request.  A suitable header is also added.
 */
 
 /*!
@@ -271,6 +284,40 @@ QByteArray QAbstractOAuthPrivate::generateRandomString(quint8 length)
     for (quint8 i = 0; i < length; ++i)
         data.append(characters[distribution(randomEngine)]);
     return data;
+}
+
+QByteArray QAbstractOAuthPrivate::convertParameters(const QVariantMap &parameters)
+{
+    QByteArray data;
+    switch (contentType) {
+    case QAbstractOAuth::ContentType::Json:
+        data = QJsonDocument::fromVariant(QVariant(parameters)).toJson();
+        break;
+    case QAbstractOAuth::ContentType::WwwFormUrlEncoded: {
+        QUrlQuery query;
+        for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it)
+            query.addQueryItem(it.key(), it->toString());
+        data = query.toString(QUrl::FullyEncoded).toUtf8();
+        break;
+    }
+    }
+    return data;
+}
+
+void QAbstractOAuthPrivate::addContentTypeHeaders(QNetworkRequest *request)
+{
+    Q_ASSERT(request);
+
+    switch (contentType) {
+    case QAbstractOAuth::ContentType::WwwFormUrlEncoded:
+        request->setHeader(QNetworkRequest::ContentTypeHeader,
+                           QStringLiteral("application/x-www-form-urlencoded"));
+        break;
+    case QAbstractOAuth::ContentType::Json:
+        request->setHeader(QNetworkRequest::ContentTypeHeader,
+                           QStringLiteral("application/json"));
+        break;
+    }
 }
 
 QUrlQuery QAbstractOAuthPrivate::createQuery(const QVariantMap &parameters)
@@ -418,6 +465,28 @@ void QAbstractOAuth::setModifyParametersFunction(
 {
     Q_D(QAbstractOAuth);
     d->modifyParametersFunction = modifyParametersFunction;
+}
+
+/*!
+    Returns the current Content-Type used in authenticated calls.
+    \sa setContentType(), post()
+*/
+QAbstractOAuth::ContentType QAbstractOAuth::contentType() const
+{
+    Q_D(const QAbstractOAuth);
+    return d->contentType;
+}
+
+/*!
+    Sets the current Content-Type to \a contentType.
+*/
+void QAbstractOAuth::setContentType(QAbstractOAuth::ContentType contentType)
+{
+    Q_D(QAbstractOAuth);
+    if (d->contentType != contentType) {
+        d->contentType = contentType;
+        Q_EMIT contentTypeChanged(contentType);
+    }
 }
 
 /*!

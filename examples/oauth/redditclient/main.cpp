@@ -27,53 +27,29 @@
 **
 ****************************************************************************/
 
-#ifndef QOAUTHHTTPSERVERREPLYHANDLER_H
-#define QOAUTHHTTPSERVERREPLYHANDLER_H
+#include "redditmodel.h"
 
-#ifndef QT_NO_HTTP
+#include <QtCore>
+#include <QtWidgets>
 
-#include <QtNetworkAuth/qoauthglobal.h>
-#include <QtNetworkAuth/qoauthoobreplyhandler.h>
-
-#include <QtNetwork/qhostaddress.h>
-
-QT_BEGIN_NAMESPACE
-
-class QUrlQuery;
-
-class QOAuthHttpServerReplyHandlerPrivate;
-class Q_OAUTH_EXPORT QOAuthHttpServerReplyHandler : public QOAuthOobReplyHandler
+int main(int argc, char **argv)
 {
-    Q_OBJECT
+    QApplication app(argc, argv);
+    QCommandLineParser parser;
+    const QCommandLineOption clientId(QStringList() << "i" << "client-id",
+                                      "Specifies the application client id", "client_id");
 
-public:
-    explicit QOAuthHttpServerReplyHandler(QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
-    explicit QOAuthHttpServerReplyHandler(const QHostAddress &address, quint16 port,
-                                          QObject *parent = nullptr);
-    ~QOAuthHttpServerReplyHandler();
+    parser.addOptions({clientId});
+    parser.process(app);
 
-    QString callback() const override;
-
-    QString callbackPath() const;
-    void setCallbackPath(const QString &path);
-
-    QString callbackText() const;
-    void setCallbackText(const QString &text);
-
-    quint16 port() const;
-
-    bool listen(const QHostAddress &address = QHostAddress::Any, quint16 port = 0);
-    void close();
-    bool isListening() const;
-
-private:
-    Q_DECLARE_PRIVATE(QOAuthHttpServerReplyHandler)
-    QScopedPointer<QOAuthHttpServerReplyHandlerPrivate> d_ptr;
-};
-
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
-
-#endif // QOAUTHHTTPSERVERREPLYHANDLER_H
+    if (parser.isSet(clientId)) {
+        QListView view;
+        RedditModel model(parser.value(clientId));
+        view.setModel(&model);
+        view.show();
+        return app.exec();
+    } else {
+        parser.showHelp();
+    }
+    return 0;
+}
