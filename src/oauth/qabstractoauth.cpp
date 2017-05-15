@@ -103,6 +103,9 @@ QT_BEGIN_NAMESPACE
 
     \value RequestingAccessToken            Preparing the token
     request.
+
+    \value RefreshingAccessToken            Preparing the access
+    token refresh.
 */
 
 /*!

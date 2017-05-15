@@ -328,6 +328,8 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     parameters.insert(Key::grantType, QStringLiteral("refresh_token"));
     parameters.insert(Key::refreshToken, d->refreshToken);
     parameters.insert(Key::redirectUri, QUrl::toPercentEncoding(callback()));
+    if (d->modifyParametersFunction)
+        d->modifyParametersFunction(Stage::RefreshingAccessToken, &parameters);
     query = QAbstractOAuthPrivate::createQuery(parameters);
     request.setHeader(QNetworkRequest::ContentTypeHeader,
                       QStringLiteral("application/x-www-form-urlencoded"));

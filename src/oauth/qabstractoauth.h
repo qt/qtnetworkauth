@@ -80,7 +80,8 @@ public:
     enum class Stage {
         RequestingTemporaryCredentials,
         RequestingAuthorization,
-        RequestingAccessToken
+        RequestingAccessToken,
+        RefreshingAccessToken
     };
 
     enum class Error {
