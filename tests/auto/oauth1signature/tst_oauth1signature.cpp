@@ -55,16 +55,16 @@ QOAuth1Signature tst_OAuth1Signature::createTwitterSignature()
     const QString body = QUrl::fromPercentEncoding("status=Hello%20Ladies%20%2b%20Gentlemen%2c%20a"
                                                    "%20signed%20OAuth%20request%21");
 
-    signature.insert(QStringLiteral("oauth_consumer_key"),
+    signature.insert(oauthConsumerKey,
                      QStringLiteral("xvz1evFS4wEEPTGEFPHBog"));
-    signature.insert(QStringLiteral("oauth_nonce"),
+    signature.insert(oauthNonce,
                      QStringLiteral("kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"));
-    signature.insert(QStringLiteral("oauth_signature_method"),
+    signature.insert(oauthSignatureMethod,
                      QStringLiteral("HMAC-SHA1"));
-    signature.insert(QStringLiteral("oauth_timestamp"), QStringLiteral("1318622958"));
-    signature.insert(QStringLiteral("oauth_token"),
+    signature.insert(oauthTimestamp, QStringLiteral("1318622958"));
+    signature.insert(oauthToken,
                      QStringLiteral("370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"));
-    signature.insert(QStringLiteral("oauth_version"), QStringLiteral("1.0"));
+    signature.insert(oauthVersion, QStringLiteral("1.0"));
     signature.addRequestBody(QUrlQuery(body));
     return signature;
 }
