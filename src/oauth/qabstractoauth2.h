@@ -63,14 +63,14 @@ public:
 
     Q_INVOKABLE virtual QUrl createAuthenticatedUrl(const QUrl &url,
                                                     const QVariantMap &parameters = QVariantMap());
-    Q_INVOKABLE virtual QNetworkReply *head(const QUrl &url,
-                                const QVariantMap &parameters = QVariantMap()) override;
-    Q_INVOKABLE virtual QNetworkReply *get(const QUrl &url,
-                               const QVariantMap &parameters = QVariantMap()) override;
-    Q_INVOKABLE virtual QNetworkReply *post(const QUrl &url,
-                                const QVariantMap &parameters = QVariantMap()) override;
-    Q_INVOKABLE virtual QNetworkReply *deleteResource(const QUrl &url,
-                                          const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE QNetworkReply *head(const QUrl &url,
+                                    const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE QNetworkReply *get(const QUrl &url,
+                                   const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE QNetworkReply *post(const QUrl &url,
+                                    const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE QNetworkReply *deleteResource(const QUrl &url,
+                                              const QVariantMap &parameters = QVariantMap()) override;
 
     QString scope() const;
     void setScope(const QString &scope);

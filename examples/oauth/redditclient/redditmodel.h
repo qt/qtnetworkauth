@@ -44,9 +44,9 @@ public:
     RedditModel(QObject *parent = nullptr);
     RedditModel(const QString &clientId, QObject *parent = nullptr);
 
-    virtual int rowCount(const QModelIndex &parent) const override;
-    virtual int columnCount(const QModelIndex &parent) const override;
-    virtual QVariant data(const QModelIndex &index, int role) const override;
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
 
     void grant();
 
