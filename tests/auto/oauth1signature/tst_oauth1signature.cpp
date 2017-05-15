@@ -31,6 +31,8 @@
 
 #include <QtNetworkAuth/qoauth1signature.h>
 
+Q_DECLARE_METATYPE(QOAuth1Signature::HttpRequestMethod)
+
 class tst_OAuth1Signature : public QObject
 {
     Q_OBJECT
@@ -39,9 +41,19 @@ public:
     QOAuth1Signature createTwitterSignature();
 
 private Q_SLOTS:
-    void signature();
+    void twitterSignatureExample();
     void copyAndModify();
+
+    void signatures_data();
+    void signatures();
 };
+
+const auto oauthVersion = QStringLiteral("oauth_version");
+const auto oauthConsumerKey = QStringLiteral("oauth_consumer_key");
+const auto oauthNonce = QStringLiteral("oauth_nonce");
+const auto oauthSignatureMethod = QStringLiteral("oauth_signature_method");
+const auto oauthTimestamp = QStringLiteral("oauth_timestamp");
+const auto oauthToken = QStringLiteral("oauth_token");
 
 QOAuth1Signature tst_OAuth1Signature::createTwitterSignature()
 {
@@ -69,7 +81,7 @@ QOAuth1Signature tst_OAuth1Signature::createTwitterSignature()
     return signature;
 }
 
-void tst_OAuth1Signature::signature()
+void tst_OAuth1Signature::twitterSignatureExample()
 {
     const QOAuth1Signature signature = createTwitterSignature();
     QByteArray signatureData = signature.hmacSha1();
@@ -83,6 +95,131 @@ void tst_OAuth1Signature::copyAndModify()
     QCOMPARE(signature.hmacSha1(), copy.hmacSha1());
     copy.insert(QStringLiteral("signature"), QStringLiteral("modified"));
     QVERIFY(signature.hmacSha1() != copy.hmacSha1());
+}
+
+void tst_OAuth1Signature::signatures_data()
+{
+    QTest::addColumn<QUrl>("url");
+    QTest::addColumn<QOAuth1Signature::HttpRequestMethod>("method");
+    QTest::addColumn<QString>("version");
+    QTest::addColumn<QString>("consumerKey");
+    QTest::addColumn<QString>("consumerSecret");
+    QTest::addColumn<QString>("token");
+    QTest::addColumn<QString>("tokenSecret");
+    QTest::addColumn<QString>("nonce");
+    QTest::addColumn<QString>("timestamp");
+    QTest::addColumn<QVariantMap>("parameters");
+    QTest::addColumn<QString>("result");
+
+    QTest::newRow("standard") << QUrl("http://example.net")
+                              << QOAuth1Signature::HttpRequestMethod::Get
+                              << "1.0"
+                              << "key"
+                              << "secret"
+                              << "accesskey"
+                              << "accesssecret"
+                              << "468167367"
+                              << "1494852816"
+                              << QVariantMap()
+                              << "mQaARxv7pqJyViuwNGtUfm6QSIQ=";
+    QTest::newRow("post") << QUrl("http://example.net")
+                          << QOAuth1Signature::HttpRequestMethod::Post
+                          << "1.0"
+                          << "key"
+                          << "secret"
+                          << "accesskey"
+                          << "accesssecret"
+                          << "468167367"
+                          << "1494852816"
+                          << QVariantMap()
+                          << "L4blJKqYMTSNUEt32rCgDLhxQxM=";
+    QTest::newRow("put") << QUrl("http://example.net")
+                         << QOAuth1Signature::HttpRequestMethod::Put
+                         << "1.0"
+                         << "key"
+                         << "secret"
+                         << "accesskey"
+                         << "accesssecret"
+                         << "468167367"
+                         << "1494852816"
+                         << QVariantMap()
+                         << "+eiZ+phNoYnETf6SqI+XSE43JSY=";
+    QTest::newRow("delete") << QUrl("http://example.net")
+                            << QOAuth1Signature::HttpRequestMethod::Delete
+                            << "1.0"
+                            << "key"
+                            << "secret"
+                            << "accesskey"
+                            << "accesssecret"
+                            << "468167367"
+                            << "1494852816"
+                            << QVariantMap()
+                            << "enbOVNG7/vGliie2/L44NdccMaw=";
+    QTest::newRow("head") << QUrl("http://example.net")
+                          << QOAuth1Signature::HttpRequestMethod::Head
+                          << "1.0"
+                          << "key"
+                          << "secret"
+                          << "accesskey"
+                          << "accesssecret"
+                          << "468167367"
+                          << "1494852816"
+                          << QVariantMap()
+                          << "6v74w0rRsVibJsJ796Nj8cJPqEU=";
+    QTest::newRow("no-hmac-key") << QUrl("http://example.net")
+                                 << QOAuth1Signature::HttpRequestMethod::Get
+                                 << "1.0"
+                                 << "key"
+                                 << QString()
+                                 << "accesskey"
+                                 << QString()
+                                 << "468167367"
+                                 << "1494852816"
+                                 << QVariantMap()
+                                 << "N2qP+LJdLbjalZq71M7oxPdeUjc=";
+    QTest::newRow("custom-values") << QUrl("http://example.net")
+                                   << QOAuth1Signature::HttpRequestMethod::Get
+                                   << "1.0"
+                                   << "key"
+                                   << "secret"
+                                   << "accesskey"
+                                   << "accesssecret"
+                                   << "468167367"
+                                   << "1494852816"
+                                   << QVariantMap {
+                                        { "firstKey", "firstValue" },
+                                        { "secondKey", "secondValue" }
+                                    }
+                                   << "xNXgQaO0LrQMbJZGSfKFUmWwGDw=";
+}
+
+void tst_OAuth1Signature::signatures()
+{
+    // Should match the reference implementation at
+    // http://bettiolo.github.io/oauth-reference-page/
+
+    QFETCH(QUrl, url);
+    QFETCH(QOAuth1Signature::HttpRequestMethod, method);
+    QFETCH(QString, version);
+    QFETCH(QString, consumerKey);
+    QFETCH(QString, consumerSecret);
+    QFETCH(QString, token);
+    QFETCH(QString, tokenSecret);
+    QFETCH(QString, nonce);
+    QFETCH(QString, timestamp);
+    QFETCH(QVariantMap, parameters);
+    QFETCH(QString, result);
+
+    parameters.insert(oauthVersion, version);
+    parameters.insert(oauthConsumerKey, consumerKey);
+    parameters.insert(oauthNonce, nonce);
+    parameters.insert(oauthSignatureMethod, "HMAC-SHA1");
+    parameters.insert(oauthTimestamp, timestamp);
+    parameters.insert(oauthToken, token);
+
+    QOAuth1Signature signature(url, consumerSecret, tokenSecret, method, parameters);
+    const auto signatureData = signature.hmacSha1();
+    QCOMPARE(signatureData.toBase64(), result);
 }
 
 QTEST_MAIN(tst_OAuth1Signature)
