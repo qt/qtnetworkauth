@@ -267,6 +267,23 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
 }
 
 /*!
+    Sends an authenticated PUT request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: PUT}
+*/
+QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QVariantMap &parameters)
+{
+    Q_D(QAbstractOAuth2);
+    const auto data = d->convertParameters(parameters);
+    QNetworkReply *reply = d->networkAccessManager()->put(d->createRequest(url), data);
+    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    return reply;
+}
+
+/*!
     Sends an authenticated DELETE request and returns a new
     QNetworkReply. The \a url and \a parameters are used to create
     the request.

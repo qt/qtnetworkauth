@@ -99,6 +99,7 @@ public:
     QNetworkReply *get(const QUrl &url, const QVariantMap &parameters = QVariantMap()) override;
 
     QNetworkReply *post(const QUrl &url, const QVariantMap &parameters = QVariantMap()) override;
+    QNetworkReply *put(const QUrl &url, const QVariantMap &parameters = QVariantMap()) override;
     QNetworkReply *deleteResource(const QUrl &url,
                                   const QVariantMap &parameters = QVariantMap()) override;
 

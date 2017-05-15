@@ -50,6 +50,7 @@ private:
         QNetworkReply *head(const QUrl &, const QVariantMap &) override { return nullptr; }
         QNetworkReply *get(const QUrl &, const QVariantMap &) override { return nullptr; }
         QNetworkReply *post(const QUrl &, const QVariantMap &) override { return nullptr; }
+        QNetworkReply *put(const QUrl &, const QVariantMap &) override { return nullptr; }
         QNetworkReply *deleteResource(const QUrl &, const QVariantMap &) override
         {
             return nullptr;

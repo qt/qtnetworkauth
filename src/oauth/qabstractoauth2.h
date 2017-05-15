@@ -69,6 +69,8 @@ public:
                                    const QVariantMap &parameters = QVariantMap()) override;
     Q_INVOKABLE QNetworkReply *post(const QUrl &url,
                                     const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE QNetworkReply *put(const QUrl &url,
+                                   const QVariantMap &parameters = QVariantMap()) override;
     Q_INVOKABLE QNetworkReply *deleteResource(const QUrl &url,
                                               const QVariantMap &parameters = QVariantMap()) override;
 

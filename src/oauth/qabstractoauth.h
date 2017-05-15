@@ -127,6 +127,8 @@ public:
                                            const QVariantMap &parameters = QVariantMap()) = 0;
     Q_INVOKABLE virtual QNetworkReply *post(const QUrl &url,
                                             const QVariantMap &parameters = QVariantMap()) = 0;
+    Q_INVOKABLE virtual QNetworkReply *put(const QUrl &url,
+                                           const QVariantMap &parameters = QVariantMap()) = 0;
     Q_INVOKABLE virtual QNetworkReply *deleteResource(
             const QUrl &url, const QVariantMap &parameters = QVariantMap()) = 0;
 

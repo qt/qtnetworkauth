@@ -219,6 +219,17 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \fn QNetworkReply *put(const QUrl &url, const QVariantMap &parameters)
+
+    Sends an authenticated PUT request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: PUT}
+*/
+
+/*!
     \fn QNetworkReply *deleteResource(const QUrl &url, const QVariantMap &parameters)
 
     Sends an authenticated DELETE request and returns a new

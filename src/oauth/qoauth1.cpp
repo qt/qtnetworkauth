@@ -438,6 +438,31 @@ QNetworkReply *QOAuth1::post(const QUrl &url, const QVariantMap &parameters)
     return reply;
 }
 
+/*!
+    Sends an authenticated PUT request and returns a new
+    QNetworkReply. The \a url and \a parameters are used to create
+    the request.
+
+    \b {See also}: \l {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: PUT}
+*/
+QNetworkReply *QOAuth1::put(const QUrl &url, const QVariantMap &parameters)
+{
+    Q_D(QOAuth1);
+    if (!d->networkAccessManager()) {
+        qWarning("QOAuth1::put: QNetworkAccessManager not available");
+        return nullptr;
+    }
+    QNetworkRequest request(url);
+    setup(&request, parameters, QNetworkAccessManager::PutOperation);
+    d->addContentTypeHeaders(&request);
+
+    const QByteArray data = d->convertParameters(parameters);
+    QNetworkReply *reply = d->networkAccessManager()->put(request, data);
+    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    return reply;
+}
+
 QNetworkReply *QOAuth1::deleteResource(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QOAuth1);
@@ -516,7 +541,8 @@ void QOAuth1::setup(QNetworkRequest *request,
 
     request->setRawHeader("Authorization", generateAuthorizationHeader(oauthParams));
 
-    if (operation == QNetworkAccessManager::PostOperation)
+    if (operation == QNetworkAccessManager::PostOperation
+            || operation == QNetworkAccessManager::PutOperation)
         request->setHeader(QNetworkRequest::ContentTypeHeader,
                            QStringLiteral("application/x-www-form-urlencoded"));
 }
