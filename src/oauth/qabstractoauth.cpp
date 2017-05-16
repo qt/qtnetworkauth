@@ -188,7 +188,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QNetworkReply *head(const QUrl &url, const QVariantMap &parameters)
 
-    Posts an authenticated HEAD request and returns a new
+    Sends an authenticated HEAD request and returns a new
     QNetworkReply. The \a url and \a parameters are used to create
     the request.
 
@@ -199,7 +199,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QNetworkReply *get(const QUrl &url, const QVariantMap &parameters)
 
-    Posts an authenticated GET request and returns a new
+    Sends an authenticated GET request and returns a new
     QNetworkReply. The \a url and \a parameters are used to create
     the request.
 
@@ -210,7 +210,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QNetworkReply *post(const QUrl &url, const QVariantMap &parameters)
 
-    Posts an authenticated POST request and returns a new
+    Sends an authenticated POST request and returns a new
     QNetworkReply. The \a url and \a parameters are used to create
     the request.
 
@@ -221,7 +221,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QNetworkReply *deleteResource(const QUrl &url, const QVariantMap &parameters)
 
-    Posts an authenticated DELETE request and returns a new
+    Sends an authenticated DELETE request and returns a new
     QNetworkReply. The \a url and \a parameters are used to create
     the request.
 
