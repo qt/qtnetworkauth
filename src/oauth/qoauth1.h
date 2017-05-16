@@ -64,9 +64,6 @@ public:
 
     ~QOAuth1();
 
-    // Client credentials
-    QString clientIdentifier() const override;
-    void setClientIdentifier(const QString &clientIdentifier) override;
     QString clientSharedSecret() const;
     void setClientSharedSecret(const QString &clientSharedSecret);
     QPair<QString, QString> clientCredentials() const;
@@ -74,8 +71,6 @@ public:
     void setClientCredentials(const QString &clientIdentifier, const QString &clientSharedSecret);
 
     // Token credentials: https://tools.ietf.org/html/rfc5849#section-2.3
-    QString token() const override;
-    void setToken(const QString &token) override;
     QString tokenSecret() const;
     void setTokenSecret(const QString &tokenSecret);
     QPair<QString, QString> tokenCredentials() const;

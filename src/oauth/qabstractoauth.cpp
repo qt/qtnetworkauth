@@ -258,6 +258,13 @@ QAbstractOAuthPrivate::QAbstractOAuthPrivate(QNetworkAccessManager *manager) :
 
 QAbstractOAuthPrivate::QAbstractOAuthPrivate(const QUrl &authorizationUrl,
                                              QNetworkAccessManager *manager) :
+    QAbstractOAuthPrivate(authorizationUrl, QString(), manager)
+{}
+
+QAbstractOAuthPrivate::QAbstractOAuthPrivate(const QUrl &authorizationUrl,
+                                             const QString &clientIdentifier,
+                                             QNetworkAccessManager *manager) :
+    clientIdentifier(clientIdentifier),
     authorizationUrl(authorizationUrl),
     defaultReplyHandler(new QOAuthOobReplyHandler),
     networkAccessManagerPointer(manager)
@@ -350,6 +357,57 @@ QAbstractOAuth::QAbstractOAuth(QAbstractOAuthPrivate &dd, QObject *parent)
 */
 QAbstractOAuth::~QAbstractOAuth()
 {}
+
+/*!
+    Returns the current client identifier used in the authentication
+    process.
+
+    \sa setClientIdentifier()
+*/
+QString QAbstractOAuth::clientIdentifier() const
+{
+    Q_D(const QAbstractOAuth);
+    return d->clientIdentifier;
+}
+
+/*!
+    Sets the current client identifier to \a clientIdentifier.
+
+    \sa clientIdentifier()
+*/
+void QAbstractOAuth::setClientIdentifier(const QString &clientIdentifier)
+{
+    Q_D(QAbstractOAuth);
+    if (d->clientIdentifier != clientIdentifier) {
+        d->clientIdentifier = clientIdentifier;
+        Q_EMIT clientIdentifierChanged(clientIdentifier);
+    }
+}
+
+/*!
+    Returns the token used to sign the authenticated requests.
+
+    \sa setToken()
+*/
+QString QAbstractOAuth::token() const
+{
+    Q_D(const QAbstractOAuth);
+    return d->token;
+}
+
+/*!
+    Sets the token used to sign authenticated requests to \a token.
+
+    \sa token()
+*/
+void QAbstractOAuth::setToken(const QString &token)
+{
+    Q_D(QAbstractOAuth);
+    if (d->token != token) {
+        d->token = token;
+        Q_EMIT tokenChanged(token);
+    }
+}
 
 /*!
     Returns the current network access manager used to send the

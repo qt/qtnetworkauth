@@ -86,8 +86,8 @@ public:
     void _q_onTokenRequestError(QNetworkReply::NetworkError error);
     void _q_tokensReceived(const QVariantMap &tokens);
 
-    QPair<QString, QString> clientCredentials;
-    QPair<QString, QString> tokenCredentials;
+    QString clientIdentifierSharedKey;
+    QString tokenSecret;
     QString verifier;
     QUrl temporaryCredentialsUrl;
     QUrl tokenCredentialsUrl;

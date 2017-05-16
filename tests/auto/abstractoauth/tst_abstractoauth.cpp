@@ -43,10 +43,6 @@ private:
     struct AbstractOAuth : QAbstractOAuth {
         AbstractOAuth() : QAbstractOAuth(*new QAbstractOAuthPrivate(QUrl(), nullptr), nullptr) {}
 
-        QString clientIdentifier() const override { return QString(); }
-        void setClientIdentifier(const QString &) override {}
-        QString token() const override { return QString(); }
-        void setToken(const QString &) override {}
         QNetworkReply *head(const QUrl &, const QVariantMap &) override { return nullptr; }
         QNetworkReply *get(const QUrl &, const QVariantMap &) override { return nullptr; }
         QNetworkReply *post(const QUrl &, const QVariantMap &) override { return nullptr; }

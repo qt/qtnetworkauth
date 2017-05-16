@@ -167,7 +167,7 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate(QNetworkReply *reply,
     if (reply == currentReply){
         const auto url = reply->url();
         if (url == accessTokenUrl) {
-            authenticator->setUser(clientCredentials.first);
+            authenticator->setUser(clientIdentifier);
             authenticator->setPassword(QString());
         }
     }
@@ -233,25 +233,15 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
     QAbstractOAuth2(*new QOAuth2AuthorizationCodeFlowPrivate(authenticateUrl, accessTokenUrl,
                                                              clientIdentifier, manager),
                     parent)
-{}
+{
+    setResponseType(QStringLiteral("code"));
+}
 
 /*!
     Destroys the QOAuth2AuthorizationCodeFlow instance.
 */
 QOAuth2AuthorizationCodeFlow::~QOAuth2AuthorizationCodeFlow()
 {}
-
-/*!
-    Returns the \l {https://tools.ietf.org/html/rfc6749#section-3.1.1}
-    {response_type} used in QOAuth2AuthorizationCodeFlow; this is
-    fixed to "code" as required in
-    \l {https://tools.ietf.org/html/rfc6749#section-4.1.1}{The OAuth
-    2.0 RFC}
-*/
-QString QOAuth2AuthorizationCodeFlow::responseType() const
-{
-    return QStringLiteral("code");
-}
 
 /*!
     Returns the URL used to request the access token.
@@ -365,7 +355,7 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QVariantMap &param
     QVariantMap p(parameters);
     QUrl url(d->authorizationUrl);
     p.insert(Key::responseType, responseType());
-    p.insert(Key::clientIdentifier, d->clientCredentials.first);
+    p.insert(Key::clientIdentifier, d->clientIdentifier);
     p.insert(Key::redirectUri, callback());
     p.insert(Key::scope, d->scope);
     p.insert(Key::state, state);
@@ -395,9 +385,9 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     parameters.insert(Key::grantType, QStringLiteral("authorization_code"));
     parameters.insert(Key::code, QUrl::toPercentEncoding(code));
     parameters.insert(Key::redirectUri, QUrl::toPercentEncoding(callback()));
-    parameters.insert(Key::clientIdentifier, QUrl::toPercentEncoding(d->clientCredentials.first));
-    if (!d->clientCredentials.second.isEmpty())
-        parameters.insert(Key::clientSharedSecret, d->clientCredentials.second);
+    parameters.insert(Key::clientIdentifier, QUrl::toPercentEncoding(d->clientIdentifier));
+    if (!d->clientIdentifierSharedKey.isEmpty())
+        parameters.insert(Key::clientSharedSecret, d->clientIdentifierSharedKey);
     if (d->modifyParametersFunction)
         d->modifyParametersFunction(Stage::RequestingAccessToken, &parameters);
     query = QAbstractOAuthPrivate::createQuery(parameters);

@@ -45,10 +45,6 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
     Q_OBJECT
     Q_PROPERTY(QString scope READ scope WRITE setScope NOTIFY scopeChanged)
     Q_PROPERTY(QString userAgent READ userAgent WRITE setUserAgent NOTIFY userAgentChanged)
-    Q_PROPERTY(QString clientIdentifier
-               READ clientIdentifier
-               WRITE setClientIdentifier
-               NOTIFY clientIdentifierChanged)
     Q_PROPERTY(QString clientIdentifierSharedKey
                READ clientIdentifierSharedKey
                WRITE setClientIdentifierSharedKey
@@ -80,15 +76,10 @@ public:
     QString userAgent() const;
     void setUserAgent(const QString &userAgent);
 
-    virtual QString responseType() const = 0;
+    QString responseType() const;
 
-    QString clientIdentifier() const override;
-    void setClientIdentifier(const QString &clientIdentifier) override;
     QString clientIdentifierSharedKey() const;
     void setClientIdentifierSharedKey(const QString &clientIdentifierSharedKey);
-
-    QString token() const override;
-    void setToken(const QString &token) override;
 
     QString state() const;
     void setState(const QString &state);
@@ -98,7 +89,7 @@ public:
 Q_SIGNALS:
     void scopeChanged(const QString &scope);
     void userAgentChanged(const QString &userAgent);
-    void clientIdentifierChanged(const QString &clientIdentifier);
+    void responseTypeChanged(const QString &responseType);
     void clientIdentifierSharedKeyChanged(const QString &clientIdentifierSharedKey);
     void stateChanged(const QString &state);
     void expirationAtChanged(const QDateTime &expiration);
@@ -108,6 +99,8 @@ Q_SIGNALS:
 
 protected:
     explicit QAbstractOAuth2(QAbstractOAuth2Private &, QObject *parent = nullptr);
+
+    void setResponseType(const QString &responseType);
 
 private:
     Q_DECLARE_PRIVATE(QAbstractOAuth2)

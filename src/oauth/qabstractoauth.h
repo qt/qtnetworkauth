@@ -58,6 +58,11 @@ class Q_OAUTH_EXPORT  QAbstractOAuth : public QObject
     Q_ENUMS(Status)
     Q_ENUMS(Stage)
     Q_ENUMS(Error)
+    Q_PROPERTY(QString clientIdentifier
+               READ clientIdentifier
+               WRITE setClientIdentifier
+               NOTIFY clientIdentifierChanged)
+    Q_PROPERTY(QString token READ token WRITE setToken NOTIFY tokenChanged)
     Q_PROPERTY(Status status  READ status NOTIFY statusChanged)
     Q_PROPERTY(QVariantMap extraTokens READ extraTokens NOTIFY extraTokensChanged)
     Q_PROPERTY(QUrl authorizationUrl
@@ -102,11 +107,11 @@ public:
 
     virtual ~QAbstractOAuth();
 
-    virtual QString clientIdentifier() const = 0;
-    virtual void setClientIdentifier(const QString &clientIdentifier) = 0;
+    QString clientIdentifier() const;
+    void setClientIdentifier(const QString &clientIdentifier);
 
-    virtual QString token() const = 0;
-    virtual void setToken(const QString &token) = 0;
+    QString token() const;
+    void setToken(const QString &token);
 
     QNetworkAccessManager *networkAccessManager() const;
     void setNetworkAccessManager(QNetworkAccessManager *networkAccessManager);

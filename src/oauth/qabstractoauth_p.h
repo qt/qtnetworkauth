@@ -68,11 +68,17 @@ class Q_AUTOTEST_EXPORT QAbstractOAuthPrivate : public QObjectPrivate
 public:
     QAbstractOAuthPrivate(QNetworkAccessManager *manager);
     QAbstractOAuthPrivate(const QUrl &authorizationUrl, QNetworkAccessManager *manager);
+    QAbstractOAuthPrivate(const QUrl &authorizationUrl,
+                          const QString &clientIdentifier,
+                          QNetworkAccessManager *manager);
     ~QAbstractOAuthPrivate();
 
     QNetworkAccessManager *networkAccessManager();
     void setStatus(QAbstractOAuth::Status status);
     static QByteArray generateRandomString(quint8 length);
+
+    QString clientIdentifier;
+    QString token;
 
     // Resource Owner Authorization: https://tools.ietf.org/html/rfc5849#section-2.2
     QUrl authorizationUrl;

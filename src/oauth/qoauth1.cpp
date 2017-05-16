@@ -64,8 +64,8 @@ const QString Key::oauthVersion =            QStringLiteral("oauth_version");
 
 QOAuth1Private::QOAuth1Private(const QPair<QString, QString> &clientCredentials,
                                QNetworkAccessManager *networkAccessManager) :
-    QAbstractOAuthPrivate(networkAccessManager),
-    clientCredentials(clientCredentials)
+    QAbstractOAuthPrivate(QUrl(), clientCredentials.first, networkAccessManager),
+    clientIdentifierSharedKey(clientCredentials.second)
 {
     qRegisterMetaType<QNetworkReply::NetworkError>("QNetworkReply::NetworkError");
     qRegisterMetaType<QOAuth1::SignatureMethod>("QOAuth1::SignatureMethod");
@@ -76,7 +76,7 @@ void QOAuth1Private::appendCommonHeaders(QVariantMap *headers)
     const auto currentDateTime = QDateTime::currentDateTimeUtc();
 
     headers->insert(Key::oauthNonce, QOAuth1::nonce());
-    headers->insert(Key::oauthConsumerKey, clientCredentials.first);
+    headers->insert(Key::oauthConsumerKey, clientIdentifier);
     headers->insert(Key::oauthTimestamp, QString::number(currentDateTime.toTime_t()));
     headers->insert(Key::oauthVersion, oauthVersion);
     headers->insert(Key::oauthSignatureMethod, signatureMethodString().toUtf8());
@@ -183,8 +183,8 @@ QByteArray QOAuth1Private::generateSignature(const QVariantMap &parameters,
                                              QNetworkAccessManager::Operation operation) const
 {
     const QOAuth1Signature signature(url,
-                                     clientCredentials.second,
-                                     tokenCredentials.second,
+                                     clientIdentifierSharedKey,
+                                     tokenSecret,
                                      static_cast<QOAuth1Signature::HttpRequestMethod>(operation),
                                      parameters);
 
@@ -192,7 +192,7 @@ QByteArray QOAuth1Private::generateSignature(const QVariantMap &parameters,
     case QOAuth1::SignatureMethod::Hmac_Sha1:
         return signature.hmacSha1().toBase64();
     case QOAuth1::SignatureMethod::PlainText:
-        return signature.plainText(clientCredentials.first);
+        return signature.plainText(clientIdentifier);
     default:
         qFatal("QOAuth1Private::generateSignature: Signature method not supported");
         return QByteArray();
@@ -255,32 +255,17 @@ QOAuth1::QOAuth1(const QString &clientIdentifier,
 QOAuth1::~QOAuth1()
 {}
 
-QString QOAuth1::clientIdentifier() const
-{
-    Q_D(const QOAuth1);
-    return d->clientCredentials.first;
-}
-
-void QOAuth1::setClientIdentifier(const QString &clientIdentifier)
-{
-    Q_D(QOAuth1);
-    if (d->clientCredentials.first != clientIdentifier) {
-        d->clientCredentials.first = clientIdentifier;
-        Q_EMIT clientIdentifierChanged(clientIdentifier);
-    }
-}
-
 QString QOAuth1::clientSharedSecret() const
 {
     Q_D(const QOAuth1);
-    return d->clientCredentials.second;
+    return d->clientIdentifierSharedKey;
 }
 
 void QOAuth1::setClientSharedSecret(const QString &clientSharedSecret)
 {
     Q_D(QOAuth1);
-    if (d->clientCredentials.second != clientSharedSecret) {
-        d->clientCredentials.second = clientSharedSecret;
+    if (d->clientIdentifierSharedKey != clientSharedSecret) {
+        d->clientIdentifierSharedKey = clientSharedSecret;
         Q_EMIT clientSharedSecretChanged(clientSharedSecret);
     }
 }
@@ -288,7 +273,7 @@ void QOAuth1::setClientSharedSecret(const QString &clientSharedSecret)
 QPair<QString, QString> QOAuth1::clientCredentials() const
 {
     Q_D(const QOAuth1);
-    return d->clientCredentials;
+    return qMakePair(d->clientIdentifier, d->clientIdentifierSharedKey);
 }
 
 void QOAuth1::setClientCredentials(const QPair<QString, QString> &clientCredentials)
@@ -303,32 +288,17 @@ void QOAuth1::setClientCredentials(const QString &clientIdentifier,
     setClientSharedSecret(clientSharedSecret);
 }
 
-QString QOAuth1::token() const
-{
-    Q_D(const QOAuth1);
-    return d->tokenCredentials.first;
-}
-
-void QOAuth1::setToken(const QString &token)
-{
-    Q_D(QOAuth1);
-    if (d->tokenCredentials.first != token) {
-        d->tokenCredentials.first = token;
-        Q_EMIT tokenChanged(token);
-    }
-}
-
 QString QOAuth1::tokenSecret() const
 {
     Q_D(const QOAuth1);
-    return d->tokenCredentials.second;
+    return d->clientIdentifierSharedKey;
 }
 
 void QOAuth1::setTokenSecret(const QString &tokenSecret)
 {
     Q_D(QOAuth1);
-    if (d->tokenCredentials.second != tokenSecret) {
-        d->tokenCredentials.second = tokenSecret;
+    if (d->tokenSecret != tokenSecret) {
+        d->tokenSecret = tokenSecret;
         Q_EMIT tokenSecretChanged(tokenSecret);
     }
 }
@@ -336,7 +306,7 @@ void QOAuth1::setTokenSecret(const QString &tokenSecret)
 QPair<QString, QString> QOAuth1::tokenCredentials() const
 {
     Q_D(const QOAuth1);
-    return d->tokenCredentials;
+    return qMakePair(d->token, d->tokenSecret);
 }
 
 void QOAuth1::setTokenCredentials(const QPair<QString, QString> &tokenCredentials)
@@ -483,8 +453,9 @@ QNetworkReply *QOAuth1::requestTemporaryCredentials(QNetworkAccessManager::Opera
 {
     // https://tools.ietf.org/html/rfc5849#section-2.1
     Q_D(QOAuth1);
-    d->tokenCredentials = QPair<QString, QString>();
-    return d->requestToken(operation, url, d->tokenCredentials, parameters);
+    d->token.clear();
+    d->tokenSecret.clear();
+    return d->requestToken(operation, url, qMakePair(d->token, d->tokenSecret), parameters);
 }
 
 QNetworkReply *QOAuth1::requestTokenCredentials(QNetworkAccessManager::Operation operation,
@@ -513,9 +484,9 @@ void QOAuth1::setup(QNetworkRequest *request,
 
     const auto currentDateTime = QDateTime::currentDateTimeUtc();
 
-    oauthParams.insert(Key::oauthConsumerKey, d->clientCredentials.first);
+    oauthParams.insert(Key::oauthConsumerKey, d->clientIdentifier);
     oauthParams.insert(Key::oauthVersion, QStringLiteral("1.0"));
-    oauthParams.insert(Key::oauthToken, d->tokenCredentials.first);
+    oauthParams.insert(Key::oauthToken, d->token);
     oauthParams.insert(Key::oauthSignatureMethod, d->signatureMethodString());
     oauthParams.insert(Key::oauthNonce, QOAuth1::nonce());
     oauthParams.insert(Key::oauthTimestamp, QString::number(currentDateTime.toTime_t()));
@@ -598,7 +569,7 @@ void QOAuth1::grant()
         qWarning("QOAuth1::grant: authorizationGrantUrl is empty");
         return;
     }
-    if (!d->tokenCredentials.first.isEmpty()) {
+    if (!d->token.isEmpty()) {
         qWarning("QOAuth1::grant: Already authenticated");
         return;
     }
@@ -612,11 +583,11 @@ void QOAuth1::grant()
                 // try upgrading token without verifier
                 auto reply = requestTokenCredentials(QNetworkAccessManager::PostOperation,
                                                      d->tokenCredentialsUrl,
-                                                     d->tokenCredentials);
+                                                     qMakePair(d->token, d->tokenSecret));
                 connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
             } else {
                 QVariantMap parameters;
-                parameters.insert(Key::oauthToken, d->tokenCredentials.first);
+                parameters.insert(Key::oauthToken, d->token);
                 if (d->modifyParametersFunction)
                     d->modifyParametersFunction(Stage::RequestingAuthorization, &parameters);
 
@@ -660,7 +631,7 @@ void QOAuth1::continueGrantWithVerifier(const QString &verifier)
     parameters.insert(Key::oauthVerifier, verifier);
     auto reply = requestTokenCredentials(QNetworkAccessManager::PostOperation,
                                          d->tokenCredentialsUrl,
-                                         d->tokenCredentials,
+                                         qMakePair(d->token, d->tokenSecret),
                                          parameters);
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
 }

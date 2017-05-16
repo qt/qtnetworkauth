@@ -137,7 +137,8 @@ const QString Key::tokenType =          QStringLiteral("token_type");
 QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
                                                QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(authorizationUrl, manager), clientCredentials(clientCredentials)
+    QAbstractOAuthPrivate(authorizationUrl, clientCredentials.first, manager),
+    clientIdentifierSharedKey(clientCredentials.second)
 {}
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(QNetworkAccessManager *manager) :
@@ -190,6 +191,15 @@ QAbstractOAuth2::QAbstractOAuth2(QNetworkAccessManager *manager, QObject *parent
 QAbstractOAuth2::QAbstractOAuth2(QAbstractOAuth2Private &dd, QObject *parent) :
     QAbstractOAuth(dd, parent)
 {}
+
+void QAbstractOAuth2::setResponseType(const QString &responseType)
+{
+    Q_D(QAbstractOAuth2);
+    if (d->responseType != responseType) {
+        d->responseType = responseType;
+        Q_EMIT responseTypeChanged(responseType);
+    }
+}
 
 /*!
     Destroys the QAbstractOAuth2 instance.
@@ -330,48 +340,28 @@ void QAbstractOAuth2::setUserAgent(const QString &userAgent)
     }
 }
 
-QString QAbstractOAuth2::clientIdentifier() const
+/*!
+    Returns the \l {https://tools.ietf.org/html/rfc6749#section-3.1.1}
+    {response_type} used.
+*/
+QString QAbstractOAuth2::responseType() const
 {
     Q_D(const QAbstractOAuth2);
-    return d->clientCredentials.first;
-}
-
-void QAbstractOAuth2::setClientIdentifier(const QString &clientIdentifier)
-{
-    Q_D(QAbstractOAuth2);
-    if (d->clientCredentials.first != clientIdentifier) {
-        d->clientCredentials.first = clientIdentifier;
-        Q_EMIT clientIdentifierChanged(clientIdentifier);
-    }
+    return d->responseType;
 }
 
 QString QAbstractOAuth2::clientIdentifierSharedKey() const
 {
     Q_D(const QAbstractOAuth2);
-    return d->clientCredentials.second;
+    return d->clientIdentifierSharedKey;
 }
 
 void QAbstractOAuth2::setClientIdentifierSharedKey(const QString &clientIdentifierSharedKey)
 {
     Q_D(QAbstractOAuth2);
-    if (d->clientCredentials.second != clientIdentifierSharedKey) {
-        d->clientCredentials.second = clientIdentifierSharedKey;
+    if (d->clientIdentifierSharedKey != clientIdentifierSharedKey) {
+        d->clientIdentifierSharedKey = clientIdentifierSharedKey;
         Q_EMIT clientIdentifierSharedKeyChanged(clientIdentifierSharedKey);
-    }
-}
-
-QString QAbstractOAuth2::token() const
-{
-    Q_D(const QAbstractOAuth2);
-    return d->token;
-}
-
-void QAbstractOAuth2::setToken(const QString &token)
-{
-    Q_D(QAbstractOAuth2);
-    if (d->token != token) {
-        d->token = token;
-        Q_EMIT tokenChanged(token);
     }
 }
 
