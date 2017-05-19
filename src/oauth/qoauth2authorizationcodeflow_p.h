@@ -62,7 +62,6 @@ public:
                                         const QUrl &accessTokenUrl,
                                         const QString &clientIdentifier,
                                         QNetworkAccessManager *manager = nullptr);
-    QOAuth2AuthorizationCodeFlowPrivate(QNetworkAccessManager *manager = nullptr);
 
     void _q_handleCallback(const QVariantMap &data);
     void _q_accessTokenRequestFinished(const QVariantMap &values);

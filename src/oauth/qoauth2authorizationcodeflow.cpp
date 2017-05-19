@@ -79,10 +79,6 @@ QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
     accessTokenUrl(accessTokenUrl)
 {}
 
-QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
-        QNetworkAccessManager *manager) : QAbstractOAuth2Private(manager)
-{}
-
 void QOAuth2AuthorizationCodeFlowPrivate::_q_handleCallback(const QVariantMap &data)
 {
     Q_Q(QOAuth2AuthorizationCodeFlow);
@@ -178,7 +174,8 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate(QNetworkReply *reply,
     object \a parent.
 */
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(QObject *parent) :
-    QAbstractOAuth2(*new QOAuth2AuthorizationCodeFlowPrivate, parent)
+    QOAuth2AuthorizationCodeFlow(nullptr,
+                                 parent)
 {}
 
 /*!
@@ -187,7 +184,9 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(QObject *parent) :
 */
 QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(QNetworkAccessManager *manager,
                                                            QObject *parent) :
-    QAbstractOAuth2(*new QOAuth2AuthorizationCodeFlowPrivate(manager), parent)
+    QOAuth2AuthorizationCodeFlow(QString(),
+                                 manager,
+                                 parent)
 {}
 
 /*!
