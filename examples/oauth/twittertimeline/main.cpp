@@ -54,7 +54,6 @@
 #include <functional>
 
 #include <QUrl>
-#include <QProcess>
 #include <QApplication>
 #include <QNetworkReply>
 #include <QNetworkRequest>
