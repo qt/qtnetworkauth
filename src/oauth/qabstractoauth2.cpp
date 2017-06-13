@@ -229,7 +229,7 @@ QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &paramet
 {
     Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->head(d->createRequest(url, &parameters));
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
@@ -245,7 +245,7 @@ QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &paramete
 {
     Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->get(d->createRequest(url, &parameters));
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
@@ -262,7 +262,7 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
     Q_D(QAbstractOAuth2);
     const auto data = d->convertParameters(parameters);
     QNetworkReply *reply = d->networkAccessManager()->post(d->createRequest(url), data);
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
@@ -279,7 +279,7 @@ QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMa
     Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->deleteResource(
                 d->createRequest(url, &parameters));
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
