@@ -30,7 +30,6 @@
 #include "qoauth1signature.h"
 #include "qoauth1signature_p.h"
 
-#include <QtCore/qdebug.h>
 #include <QtCore/qurlquery.h>
 #include <QtCore/qmessageauthenticationcode.h>
 
