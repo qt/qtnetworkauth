@@ -77,7 +77,9 @@ QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
         QNetworkAccessManager *manager) :
     QAbstractOAuth2Private(qMakePair(clientIdentifier, QString()), authorizationUrl, manager),
     accessTokenUrl(accessTokenUrl)
-{}
+{
+    responseType = QStringLiteral("code");
+}
 
 void QOAuth2AuthorizationCodeFlowPrivate::_q_handleCallback(const QVariantMap &data)
 {
@@ -232,9 +234,7 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
     QAbstractOAuth2(*new QOAuth2AuthorizationCodeFlowPrivate(authenticateUrl, accessTokenUrl,
                                                              clientIdentifier, manager),
                     parent)
-{
-    setResponseType(QStringLiteral("code"));
-}
+{}
 
 /*!
     Destroys the QOAuth2AuthorizationCodeFlow instance.
