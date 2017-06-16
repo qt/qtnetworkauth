@@ -40,7 +40,9 @@ class tst_AbstractOAuth : public QObject
 
 private:
     struct AbstractOAuth : QAbstractOAuth {
-        AbstractOAuth() : QAbstractOAuth(*new QAbstractOAuthPrivate(QUrl(), nullptr), nullptr) {}
+        AbstractOAuth() : QAbstractOAuth(*new QAbstractOAuthPrivate(QUrl(), QString(), nullptr),
+                                         nullptr)
+        {}
 
         QNetworkReply *head(const QUrl &, const QVariantMap &) override { return nullptr; }
         QNetworkReply *get(const QUrl &, const QVariantMap &) override { return nullptr; }

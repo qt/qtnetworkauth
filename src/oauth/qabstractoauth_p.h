@@ -66,8 +66,6 @@ class Q_AUTOTEST_EXPORT QAbstractOAuthPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QAbstractOAuth)
 
 public:
-    QAbstractOAuthPrivate(QNetworkAccessManager *manager);
-    QAbstractOAuthPrivate(const QUrl &authorizationUrl, QNetworkAccessManager *manager);
     QAbstractOAuthPrivate(const QUrl &authorizationUrl,
                           const QString &clientIdentifier,
                           QNetworkAccessManager *manager);

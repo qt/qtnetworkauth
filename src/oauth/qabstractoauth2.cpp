@@ -141,10 +141,6 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
     clientIdentifierSharedKey(clientCredentials.second)
 {}
 
-QAbstractOAuth2Private::QAbstractOAuth2Private(QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(manager)
-{}
-
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
 {}
 
@@ -185,7 +181,10 @@ QAbstractOAuth2::QAbstractOAuth2(QObject *parent) :
     sets \a manager as the network access manager.
 */
 QAbstractOAuth2::QAbstractOAuth2(QNetworkAccessManager *manager, QObject *parent) :
-    QAbstractOAuth(*new QAbstractOAuth2Private(manager), parent)
+    QAbstractOAuth(*new QAbstractOAuth2Private(qMakePair(QString(), QString()),
+                                               QUrl(),
+                                               manager),
+                   parent)
 {}
 
 QAbstractOAuth2::QAbstractOAuth2(QAbstractOAuth2Private &dd, QObject *parent) :

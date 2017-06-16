@@ -252,15 +252,6 @@ QT_BEGIN_NAMESPACE
     be used in authenticated calls.
 */
 
-QAbstractOAuthPrivate::QAbstractOAuthPrivate(QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(QUrl(), manager)
-{}
-
-QAbstractOAuthPrivate::QAbstractOAuthPrivate(const QUrl &authorizationUrl,
-                                             QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(authorizationUrl, QString(), manager)
-{}
-
 QAbstractOAuthPrivate::QAbstractOAuthPrivate(const QUrl &authorizationUrl,
                                              const QString &clientIdentifier,
                                              QNetworkAccessManager *manager) :

@@ -65,7 +65,6 @@ class QAbstractOAuth2Private : public QAbstractOAuthPrivate
 public:
     QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                            const QUrl &authorizationUrl, QNetworkAccessManager *manager = nullptr);
-    QAbstractOAuth2Private(QNetworkAccessManager *manager = nullptr);
     ~QAbstractOAuth2Private();
 
     static QString generateRandomState();
