@@ -252,9 +252,11 @@ QT_BEGIN_NAMESPACE
     be used in authenticated calls.
 */
 
-QAbstractOAuthPrivate::QAbstractOAuthPrivate(const QUrl &authorizationUrl,
+QAbstractOAuthPrivate::QAbstractOAuthPrivate(const char *loggingCategory,
+                                             const QUrl &authorizationUrl,
                                              const QString &clientIdentifier,
                                              QNetworkAccessManager *manager) :
+    loggingCategory(loggingCategory),
     clientIdentifier(clientIdentifier),
     authorizationUrl(authorizationUrl),
     defaultReplyHandler(new QOAuthOobReplyHandler),

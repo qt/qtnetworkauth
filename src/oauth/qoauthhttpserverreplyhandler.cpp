@@ -37,6 +37,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qurlquery.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <QtNetwork/qtcpsocket.h>
 #include <QtNetwork/qnetworkreply.h>
@@ -80,19 +81,19 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_readData(QTcpSocket *socket)
 
     if (Q_LIKELY(request->state == QHttpRequest::State::ReadingMethod))
         if (Q_UNLIKELY(error = !request->readMethod(socket)))
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_readData: Invalid Method");
+            qCWarning(lcReplyHandler, "Invalid Method");
 
     if (Q_LIKELY(!error && request->state == QHttpRequest::State::ReadingUrl))
         if (Q_UNLIKELY(error = !request->readUrl(socket)))
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_readData: Invalid URL");
+            qCWarning(lcReplyHandler, "Invalid URL");
 
     if (Q_LIKELY(!error && request->state == QHttpRequest::State::ReadingStatus))
         if (Q_UNLIKELY(error = !request->readStatus(socket)))
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_readData: Invalid Status");
+            qCWarning(lcReplyHandler, "Invalid Status");
 
     if (Q_LIKELY(!error && request->state == QHttpRequest::State::ReadingHeader))
         if (Q_UNLIKELY(error = !request->readHeader(socket)))
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_readData: Invalid Header");
+            qCWarning(lcReplyHandler, "Invalid Header");
 
     if (error) {
         socket->disconnectFromHost();
@@ -108,8 +109,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
 {
     Q_Q(QOAuthHttpServerReplyHandler);
     if (!url.path().startsWith(QLatin1String("/") + path)) {
-        qWarning("QOAuthHttpServerReplyHandlerPrivate::_q_answerClient: Invalid request: %s",
-                 qPrintable(url.toString()));
+        qCWarning(lcReplyHandler, "Invalid request: %s", qPrintable(url.toString()));
     } else {
         QVariantMap receivedData;
         const QUrlQuery query(url.query());
@@ -159,8 +159,7 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readMethod(QTcpSocket *s
         else if (fragment == "DELETE")
             method = Method::Delete;
         else
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readMethod: Invalid "
-                     "operation %s", fragment.data());
+            qCWarning(lcReplyHandler, "Invalid operation %s", fragment.data());
 
         state = State::ReadingUrl;
         fragment.clear();
@@ -182,16 +181,14 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl(QTcpSocket *sock
     }
     if (finished) {
         if (!fragment.startsWith("/")) {
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl: Invalid "
-                     "URL path %s", fragment.constData());
+            qCWarning(lcReplyHandler, "Invalid URL path %s", fragment.constData());
             return false;
         }
         url.setUrl(QStringLiteral("http://localhost:") + QString::number(port) +
                    QString::fromUtf8(fragment));
         state = State::ReadingStatus;
         if (!url.isValid()) {
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl: Invalid "
-                     "URL %s", fragment.constData());
+            qCWarning(lcReplyHandler, "Invalid URL %s", fragment.constData());
             return false;
         }
         fragment.clear();
@@ -213,8 +210,7 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readStatus(QTcpSocket *s
     if (finished) {
         if (!std::isdigit(fragment.at(fragment.size() - 3)) ||
                 !std::isdigit(fragment.at(fragment.size() - 1))) {
-            qWarning("QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readStatus: Invalid "
-                     "version");
+            qCWarning(lcReplyHandler, "Invalid version");
             return false;
         }
         version = qMakePair(fragment.at(fragment.size() - 3) - '0',

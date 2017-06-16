@@ -64,7 +64,10 @@ const QString Key::oauthVersion =            QStringLiteral("oauth_version");
 
 QOAuth1Private::QOAuth1Private(const QPair<QString, QString> &clientCredentials,
                                QNetworkAccessManager *networkAccessManager) :
-    QAbstractOAuthPrivate(QUrl(), clientCredentials.first, networkAccessManager),
+    QAbstractOAuthPrivate("qt.networkauth.oauth1",
+                          QUrl(),
+                          clientCredentials.first,
+                          networkAccessManager),
     clientIdentifierSharedKey(clientCredentials.second)
 {
     qRegisterMetaType<QNetworkReply::NetworkError>("QNetworkReply::NetworkError");
@@ -105,16 +108,16 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
 {
     Q_Q(QOAuth1);
     if (Q_UNLIKELY(!networkAccessManager())) {
-        qWarning("QOAuth1Private::requestToken: QNetworkAccessManager not available");
+        qCWarning(loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
     }
     if (Q_UNLIKELY(url.isEmpty())) {
-        qWarning("QOAuth1Private::requestToken: Request Url not set");
+        qCWarning(loggingCategory, "Request Url not set");
         return nullptr;
     }
     if (Q_UNLIKELY(operation != QNetworkAccessManager::GetOperation &&
                    operation != QNetworkAccessManager::PostOperation)) {
-        qWarning("QOAuth1Private::requestToken: Operation not supported");
+        qCWarning(loggingCategory, "Operation not supported");
         return nullptr;
     }
 
@@ -369,7 +372,7 @@ QNetworkReply *QOAuth1::head(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QOAuth1);
     if (!d->networkAccessManager()) {
-        qWarning("QOAuth1::head: QNetworkAccessManager not available");
+        qCWarning(d->loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
     }
     QNetworkRequest request(url);
@@ -381,7 +384,7 @@ QNetworkReply *QOAuth1::get(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QOAuth1);
     if (!d->networkAccessManager()) {
-        qWarning("QOAuth1::get: QNetworkAccessManager not available");
+        qCWarning(d->loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
     }
     QNetworkRequest request(url);
@@ -395,7 +398,7 @@ QNetworkReply *QOAuth1::post(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QOAuth1);
     if (!d->networkAccessManager()) {
-        qWarning("QOAuth1::post: QNetworkAccessManager not available");
+        qCWarning(d->loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
     }
     QNetworkRequest request(url);
@@ -420,7 +423,7 @@ QNetworkReply *QOAuth1::put(const QUrl &url, const QVariantMap &parameters)
 {
     Q_D(QOAuth1);
     if (!d->networkAccessManager()) {
-        qWarning("QOAuth1::put: QNetworkAccessManager not available");
+        qCWarning(d->loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
     }
     QNetworkRequest request(url);
@@ -437,7 +440,7 @@ QNetworkReply *QOAuth1::deleteResource(const QUrl &url, const QVariantMap &param
 {
     Q_D(QOAuth1);
     if (!d->networkAccessManager()) {
-        qWarning("QOAuth1::deleteResource: QNetworkAccessManager not available");
+        qCWarning(d->loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
     }
     QNetworkRequest request(url);
@@ -555,15 +558,15 @@ void QOAuth1::grant()
     using Key = QOAuth1Private::OAuth1KeyString;
 
     if (d->temporaryCredentialsUrl.isEmpty()) {
-        qWarning("QOAuth1::grant: requestTokenUrl is empty");
+        qCWarning(d->loggingCategory, "requestTokenUrl is empty");
         return;
     }
     if (d->tokenCredentialsUrl.isEmpty()) {
-        qWarning("QOAuth1::grant: authorizationGrantUrl is empty");
+        qCWarning(d->loggingCategory, "authorizationGrantUrl is empty");
         return;
     }
     if (!d->token.isEmpty()) {
-        qWarning("QOAuth1::grant: Already authenticated");
+        qCWarning(d->loggingCategory, "Already authenticated");
         return;
     }
 
@@ -602,7 +605,8 @@ void QOAuth1::grant()
                 const QVariantMap &values) {
             QString verifier = values.value(Key::oauthVerifier).toString();
             if (verifier.isEmpty()) {
-                qWarning("%s not found in the callback", qPrintable(Key::oauthVerifier));
+                qCWarning(d->loggingCategory, "%s not found in the callback",
+                          qPrintable(Key::oauthVerifier));
                 return;
             }
             continueGrantWithVerifier(verifier);

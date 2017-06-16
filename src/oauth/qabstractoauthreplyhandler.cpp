@@ -31,6 +31,8 @@
 
 #include "qabstractoauthreplyhandler.h"
 
+Q_LOGGING_CATEGORY(lcReplyHandler, "qt.networkauth.replyhandler")
+
 QT_BEGIN_NAMESPACE
 
 QAbstractOAuthReplyHandler::QAbstractOAuthReplyHandler(QObject *parent)

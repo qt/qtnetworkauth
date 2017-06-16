@@ -40,7 +40,7 @@ class tst_AbstractOAuth : public QObject
 
 private:
     struct AbstractOAuth : QAbstractOAuth {
-        AbstractOAuth() : QAbstractOAuth(*new QAbstractOAuthPrivate(QUrl(), QString(), nullptr),
+        AbstractOAuth() : QAbstractOAuth(*new QAbstractOAuthPrivate("", QUrl(), QString(), nullptr),
                                          nullptr)
         {}
 

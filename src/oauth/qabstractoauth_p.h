@@ -53,6 +53,7 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qscopedpointer.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <QtNetwork/qtcpserver.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -66,7 +67,8 @@ class Q_AUTOTEST_EXPORT QAbstractOAuthPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QAbstractOAuth)
 
 public:
-    QAbstractOAuthPrivate(const QUrl &authorizationUrl,
+    QAbstractOAuthPrivate(const char *loggingCategory,
+                          const QUrl &authorizationUrl,
                           const QString &clientIdentifier,
                           QNetworkAccessManager *manager);
     ~QAbstractOAuthPrivate();
@@ -75,6 +77,7 @@ public:
     void setStatus(QAbstractOAuth::Status status);
     static QByteArray generateRandomString(quint8 length);
 
+    const QLoggingCategory loggingCategory;
     QString clientIdentifier;
     QString token;
 

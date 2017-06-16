@@ -31,6 +31,7 @@
 #include "qoauth1signature_p.h"
 
 #include <QtCore/qurlquery.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qmessageauthenticationcode.h>
 
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -39,6 +40,8 @@
 #include <type_traits>
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")
 
 static_assert(static_cast<int>(QOAuth1Signature::HttpRequestMethod::Head) ==
               static_cast<int>(QNetworkAccessManager::HeadOperation) &&
@@ -88,7 +91,7 @@ QByteArray QOAuth1SignaturePrivate::signatureBaseString() const
         base.append("DELETE");
         break;
     default:
-        qCritical("QOAuth1Signature: HttpRequestMethod not supported");
+        qCCritical(loggingCategory, "QOAuth1Signature: HttpRequestMethod not supported");
     }
     base.append('&');
     base.append(QUrl::toPercentEncoding(url.toString(QUrl::RemoveQuery)) + "&");
@@ -119,7 +122,7 @@ QByteArray QOAuth1SignaturePrivate::parameterString(const QVariantMap &parameter
     for (auto it = parameters.begin(), end = parameters.end(); it != end; previous = it++) {
         if (previous != parameters.end()) {
             if (Q_UNLIKELY(previous.key() == it.key()))
-                qWarning("QOAuth: duplicated key %s", qPrintable(it.key()));
+                qCWarning(loggingCategory, "duplicated key %s", qPrintable(it.key()));
             ret.append("&");
         }
         ret.append(QUrl::toPercentEncoding(it.key()));
@@ -243,7 +246,7 @@ QByteArray QOAuth1Signature::hmacSha1() const
 
 QByteArray QOAuth1Signature::rsaSha1() const
 {
-    qCritical("QOAuth1Signature::rsaSha1: RSA-SHA1 signing method not supported");
+    qCCritical(loggingCategory, "RSA-SHA1 signing method not supported");
     return QByteArray();
 }
 

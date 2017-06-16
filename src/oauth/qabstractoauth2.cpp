@@ -137,7 +137,10 @@ const QString Key::tokenType =          QStringLiteral("token_type");
 QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
                                                QNetworkAccessManager *manager) :
-    QAbstractOAuthPrivate(authorizationUrl, clientCredentials.first, manager),
+    QAbstractOAuthPrivate("qt.networkauth.oauth2",
+                          authorizationUrl,
+                          clientCredentials.first,
+                          manager),
     clientIdentifierSharedKey(clientCredentials.second)
 {}
 
@@ -214,7 +217,7 @@ QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap 
 {
     Q_D(const QAbstractOAuth2);
     if (Q_UNLIKELY(d->token.isEmpty())) {
-        qWarning("QAbstractOAuth2::createAuthenticatedUrl: Empty access token");
+        qCWarning(d->loggingCategory, "Empty access token");
         return QUrl();
     }
     QUrl ret = url;
