@@ -564,6 +564,14 @@ void tst_OAuth1::authenticatedCalls_data()
                                     << QUrl("http://term.ie/oauth/example/echo_api.php")
                                     << parameters
                                     << QNetworkAccessManager::PostOperation;
+        QTest::newRow("term.ie_percent_encoded_query")
+            << "key"
+            << "secret"
+            << "accesskey"
+            << "accesssecret"
+            << QUrl("http://term.ie/oauth/example/echo_api.php?key=%40value+1%2B2=3")
+            << parameters
+            << QNetworkAccessManager::GetOperation;
     }
     if (hostReachable(QLatin1String("oauthbin.com"))) {
         QTest::newRow("oauthbin.com_get") << "key"
@@ -580,6 +588,14 @@ void tst_OAuth1::authenticatedCalls_data()
                                         << QUrl("http://oauthbin.com/v1/echo")
                                         << parameters
                                         << QNetworkAccessManager::PostOperation;
+        QTest::newRow("oauthbin.com_percent_encoded_query")
+            << "key"
+            << "secret"
+            << "accesskey"
+            << "accesssecret"
+            << QUrl("http://oauthbin.com/v1/echo?key=%40value+1%2B2=3")
+            << parameters
+            << QNetworkAccessManager::GetOperation;
     }
 }
 
@@ -598,6 +614,11 @@ void tst_OAuth1::authenticatedCalls()
     QString receivedData;
     QString parametersString;
     {
+        if (url.hasQuery()) {
+            parametersString = url.query(QUrl::FullyDecoded);
+            if (!parameters.empty())
+                parametersString.append(QLatin1Char('&'));
+        }
         bool first = true;
         for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it) {
             if (first)

@@ -133,11 +133,11 @@ void TwitterTimelineModel::updateTimeline()
         QMessageBox::warning(nullptr, qApp->applicationName(), "Not authenticated");
 
     QUrl url("https://api.twitter.com/1.1/statuses/home_timeline.json");
-    QUrlQuery query;
+    QVariantMap parameters;
     if (tweets.size()) {
         // Tweets are time-ordered, newest first.  Pass the most recent
         // ID we have to request everything more recent than it:
-        query.addQueryItem("since_id", QString::number(tweets.first().id));
+        parameters.insert("since_id", QString::number(tweets.first().id));
         // From https://dev.twitter.com/rest/reference/get/search/tweets:
         // Returns results with an ID greater than (that is, more recent than)
         // the specified ID. There are limits to the number of Tweets which can
@@ -145,8 +145,7 @@ void TwitterTimelineModel::updateTimeline()
         // since the since_id, the since_id will be forced to the oldest ID
         // available.
     }
-    url.setQuery(query);
-    QNetworkReply *reply = twitter.get(url);
+    QNetworkReply *reply = twitter.get(url, parameters);
     connect(reply, &QNetworkReply::finished, this, &TwitterTimelineModel::parseJson);
 }
 

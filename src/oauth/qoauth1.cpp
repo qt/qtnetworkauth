@@ -505,7 +505,7 @@ void QOAuth1::setup(QNetworkRequest *request,
     if (operation == QNetworkAccessManager::GetOperation) {
         if (signingParameters.size()) {
             QUrl url = request->url();
-            QUrlQuery query;
+            QUrlQuery query = QUrlQuery(url.query());
             for (auto it = signingParameters.begin(), end = signingParameters.end(); it != end;
                  ++it)
                 query.addQueryItem(it.key(), it.value().toString());
