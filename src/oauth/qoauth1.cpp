@@ -474,13 +474,6 @@ void QOAuth1::setup(QNetworkRequest *request,
     Q_D(const QOAuth1);
 
     QVariantMap oauthParams;
-    QVariantMap otherParams = signingParameters;
-    // Adding parameters located in the query
-    {
-        auto queryItems = QUrlQuery(request->url().query()).queryItems();
-        for (auto it = queryItems.begin(), end = queryItems.end(); it != end; ++it)
-            otherParams.insert(it->first, it->second);
-    }
 
     const auto currentDateTime = QDateTime::currentDateTimeUtc();
 
