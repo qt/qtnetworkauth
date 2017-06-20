@@ -255,9 +255,6 @@ QOAuth1::QOAuth1(const QString &clientIdentifier,
                      parent)
 {}
 
-QOAuth1::~QOAuth1()
-{}
-
 QString QOAuth1::clientSharedSecret() const
 {
     Q_D(const QOAuth1);

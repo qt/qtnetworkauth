@@ -62,8 +62,6 @@ public:
             QNetworkAccessManager *manager,
             QObject *parent = nullptr);
 
-    ~QOAuth1();
-
     QString clientSharedSecret() const;
     void setClientSharedSecret(const QString &clientSharedSecret);
     QPair<QString, QString> clientCredentials() const;
