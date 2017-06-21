@@ -654,7 +654,6 @@ QNetworkReply *QOAuth1::requestTemporaryCredentials(QNetworkAccessManager::Opera
                                                     const QUrl &url,
                                                     const QVariantMap &parameters)
 {
-    // https://tools.ietf.org/html/rfc5849#section-2.1
     Q_D(QOAuth1);
     d->token.clear();
     d->tokenSecret.clear();
@@ -735,7 +734,6 @@ void QOAuth1::setup(QNetworkRequest *request,
 */
 QByteArray QOAuth1::nonce()
 {
-    // https://tools.ietf.org/html/rfc5849#section-3.3
     return QAbstractOAuth::generateRandomString(8);
 }
 
@@ -747,7 +745,6 @@ QByteArray QOAuth1::nonce()
 */
 QByteArray QOAuth1::generateAuthorizationHeader(const QVariantMap &oauthParams)
 {
-    // https://tools.ietf.org/html/rfc5849#section-3.5.1
     // TODO Add realm parameter support
     bool first = true;
     QString ret(QStringLiteral("OAuth "));
@@ -779,7 +776,6 @@ QByteArray QOAuth1::generateAuthorizationHeader(const QVariantMap &oauthParams)
 */
 void QOAuth1::grant()
 {
-    // https://tools.ietf.org/html/rfc5849#section-2
     Q_D(QOAuth1);
     using Key = QOAuth1Private::OAuth1KeyString;
 
