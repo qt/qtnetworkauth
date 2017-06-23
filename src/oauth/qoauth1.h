@@ -124,13 +124,6 @@ protected:
     static QByteArray nonce();
     static QByteArray generateAuthorizationHeader(const QVariantMap &oauthParams);
 
-    // Signature: https://tools.ietf.org/html/rfc5849#section-3.4
-    static QByteArray signature(const QVariantMap &parameters,
-                                const QUrl &url,
-                                QNetworkAccessManager::Operation op,
-                                const QString &clientSharedSecret,
-                                const QString &tokenSecret);
-
 private:
     Q_DISABLE_COPY(QOAuth1)
     Q_DECLARE_PRIVATE(QOAuth1)

@@ -517,17 +517,6 @@ QByteArray QOAuth1::nonce()
     return QAbstractOAuth::generateRandomString(8);
 }
 
-QByteArray QOAuth1::signature(const QVariantMap &parameters,
-                              const QUrl &url,
-                              QNetworkAccessManager::Operation op,
-                              const QString &clientSharedSecret,
-                              const QString &tokenSecret)
-{
-    auto method = static_cast<QOAuth1Signature::HttpRequestMethod>(op);
-    QOAuth1Signature signature(url, clientSharedSecret, tokenSecret, method, parameters);
-    return signature.hmacSha1().toBase64();
-}
-
 QByteArray QOAuth1::generateAuthorizationHeader(const QVariantMap &oauthParams)
 {
     // https://tools.ietf.org/html/rfc5849#section-3.5.1
