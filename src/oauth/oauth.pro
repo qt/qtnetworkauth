@@ -1,7 +1,7 @@
 TARGET = QtNetworkAuth
 MODULE = networkauth
 
-QT += core core-private network
+QT = core core-private network
 
 PUBLIC_HEADERS += \
     qoauth1.h \
