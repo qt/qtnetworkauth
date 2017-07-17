@@ -100,6 +100,7 @@ void RedditModel::update()
     auto reply = redditWrapper.requestHotThreads();
 
     connect(reply, &QNetworkReply::finished, [=]() {
+        reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
             emit error(reply->errorString());
             return;

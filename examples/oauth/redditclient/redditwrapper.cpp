@@ -111,6 +111,7 @@ void RedditWrapper::subscribeToLiveUpdates()
     qDebug() << "Susbscribing...";
     QNetworkReply *reply = oauth2.get(liveThreadsUrl);
     connect(reply, &QNetworkReply::finished, [=]() {
+        reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
             qCritical() << "Reddit error:" << reply->errorString();
             return;
