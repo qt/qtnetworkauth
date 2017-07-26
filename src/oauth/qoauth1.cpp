@@ -91,8 +91,7 @@ QT_BEGIN_NAMESPACE
 
     \value Rsa_Sha1
     \l {https://tools.ietf.org/html/rfc5849#section-3.4.3}
-    {RSA-SHA1} signature method.
-    \note Not supported
+    {RSA-SHA1} signature method (not supported).
 
     \value PlainText
     \l {https://tools.ietf.org/html/rfc5849#section-3.4.4}
