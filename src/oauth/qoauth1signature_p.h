@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 class QOAuth1SignaturePrivate : public QSharedData
 {
 public:
-    QOAuth1SignaturePrivate();
+    QOAuth1SignaturePrivate() = default;
     QOAuth1SignaturePrivate(const QUrl &url, QOAuth1Signature::HttpRequestMethod method,
                             const QVariantMap &parameters,
                             const QString &clientSharedKey = QString(),

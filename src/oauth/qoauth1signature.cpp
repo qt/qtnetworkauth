@@ -57,9 +57,6 @@ static_assert(static_cast<int>(QOAuth1Signature::HttpRequestMethod::Head) ==
 
 QOAuth1SignaturePrivate QOAuth1SignaturePrivate::shared_null;
 
-QOAuth1SignaturePrivate::QOAuth1SignaturePrivate()
-{}
-
 QOAuth1SignaturePrivate::QOAuth1SignaturePrivate(const QUrl &url,
                                                  QOAuth1Signature::HttpRequestMethod method,
                                                  const QVariantMap &parameters,
