@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Network Auth module of the Qt Toolkit.
@@ -247,22 +247,17 @@ QByteArray QOAuth1Signature::rsaSha1() const
     return QByteArray();
 }
 
-QByteArray QOAuth1Signature::plainText(const QString &clientIdentifier) const
+QByteArray QOAuth1Signature::plainText() const
 {
-    return plainText(clientIdentifier, d->clientSharedKey);
+    return plainText(d->clientSharedKey, d->tokenSecret);
 }
 
-QByteArray QOAuth1Signature::plainText(const QString &clientIdentifier,
-                                       const QString clientSharedKey)
+QByteArray QOAuth1Signature::plainText(const QString &clientSharedKey,
+                                       const QString &tokenSecret)
 {
     QByteArray ret;
-    ret += clientIdentifier.toUtf8() + '&' + clientSharedKey.toUtf8();
+    ret += clientSharedKey.toUtf8() + '&' + tokenSecret.toUtf8();
     return ret;
-}
-
-QByteArray QOAuth1Signature::plainText(const QPair<QString, QString> &clientCredentials)
-{
-    return plainText(clientCredentials.first, clientCredentials.second);
 }
 
 void QOAuth1Signature::swap(QOAuth1Signature &other)

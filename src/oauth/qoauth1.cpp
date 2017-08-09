@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Network Auth module of the Qt Toolkit.
@@ -244,7 +244,7 @@ QByteArray QOAuth1Private::generateSignature(const QVariantMap &parameters,
     case QOAuth1::SignatureMethod::Hmac_Sha1:
         return signature.hmacSha1().toBase64();
     case QOAuth1::SignatureMethod::PlainText:
-        return signature.plainText(clientIdentifier);
+        return signature.plainText();
     default:
         qFatal("QOAuth1Private::generateSignature: Signature method not supported");
         return QByteArray();
