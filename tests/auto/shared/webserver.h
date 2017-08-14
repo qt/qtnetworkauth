@@ -31,6 +31,7 @@
 #define WEBSERVER_H
 
 #include <functional>
+#include <cctype>
 #include <QtNetwork/qtcpserver.h>
 
 class WebServer : public QTcpServer
