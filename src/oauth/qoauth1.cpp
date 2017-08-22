@@ -208,7 +208,7 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
     QAbstractOAuthReplyHandler *handler = replyHandler ? replyHandler.data()
                                                        : defaultReplyHandler.data();
     QObject::connect(reply, &QNetworkReply::finished,
-                     std::bind(&QAbstractOAuthReplyHandler::networkReplyFinished, handler, reply));
+                     [handler, reply]() { handler->networkReplyFinished(reply); });
     connect(handler, &QAbstractOAuthReplyHandler::tokensReceived, this,
             &QOAuth1Private::_q_tokensReceived);
 
@@ -565,7 +565,7 @@ QNetworkReply *QOAuth1::get(const QUrl &url, const QVariantMap &parameters)
     QNetworkRequest request(url);
     setup(&request, parameters, QNetworkAccessManager::GetOperation);
     QNetworkReply *reply = d->networkAccessManager()->get(request);
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
@@ -590,7 +590,7 @@ QNetworkReply *QOAuth1::post(const QUrl &url, const QVariantMap &parameters)
 
     const QByteArray data = d->convertParameters(parameters);
     QNetworkReply *reply = d->networkAccessManager()->post(request, data);
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
@@ -637,7 +637,7 @@ QNetworkReply *QOAuth1::deleteResource(const QUrl &url, const QVariantMap &param
     QNetworkRequest request(url);
     setup(&request, parameters, QNetworkAccessManager::DeleteOperation);
     QNetworkReply *reply = d->networkAccessManager()->deleteResource(request);
-    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
 
@@ -708,7 +708,7 @@ void QOAuth1::setup(QNetworkRequest *request,
     if (operation == QNetworkAccessManager::GetOperation) {
         if (signingParameters.size()) {
             QUrl url = request->url();
-            QUrlQuery query;
+            QUrlQuery query = QUrlQuery(url.query());
             for (auto it = signingParameters.begin(), end = signingParameters.end(); it != end;
                  ++it)
                 query.addQueryItem(it.key(), it.value().toString());

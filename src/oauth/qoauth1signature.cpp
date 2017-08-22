@@ -95,7 +95,9 @@ QByteArray QOAuth1SignaturePrivate::signatureBaseString() const
 
     QVariantMap p = parameters;
     {
-        const auto queryItems = QUrlQuery(url.query()).queryItems();
+        // replace '+' with spaces now before decoding so that '%2B' gets left as '+'
+        const QString query = url.query().replace(QLatin1Char('+'), QLatin1Char(' '));
+        const auto queryItems = QUrlQuery(query).queryItems(QUrl::FullyDecoded);
         for (auto it = queryItems.begin(), end = queryItems.end(); it != end; ++it)
             p.insert(it->first, it->second);
     }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Network Auth module of the Qt Toolkit.
@@ -316,6 +316,8 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     parameters.insert(Key::grantType, QStringLiteral("refresh_token"));
     parameters.insert(Key::refreshToken, d->refreshToken);
     parameters.insert(Key::redirectUri, QUrl::toPercentEncoding(callback()));
+    if (d->modifyParametersFunction)
+        d->modifyParametersFunction(Stage::RefreshingAccessToken, &parameters);
     query = QAbstractOAuthPrivate::createQuery(parameters);
     request.setHeader(QNetworkRequest::ContentTypeHeader,
                       QStringLiteral("application/x-www-form-urlencoded"));
@@ -324,11 +326,11 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     d->currentReply = d->networkAccessManager()->post(request, data.toUtf8());
     d->status = Status::RefreshingToken;
 
-    connect(d->currentReply.data(), &QNetworkReply::finished,
-            std::bind(&QAbstractOAuthReplyHandler::networkReplyFinished, replyHandler(),
-                      d->currentReply.data()));
-    connect(d->currentReply.data(), &QNetworkReply::finished, d->currentReply.data(),
-            &QNetworkReply::deleteLater);
+    QNetworkReply *reply = d->currentReply.data();
+    QAbstractOAuthReplyHandler *handler = replyHandler();
+    connect(reply, &QNetworkReply::finished,
+            [handler, reply]() { handler->networkReplyFinished(reply); });
+    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
     QObjectPrivate::connect(d->networkAccessManager(),
                             &QNetworkAccessManager::authenticationRequired,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate,
@@ -393,10 +395,11 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
                       QStringLiteral("application/x-www-form-urlencoded"));
 
     const QString data = query.toString(QUrl::FullyEncoded);
-    d->currentReply = d->networkAccessManager()->post(request, data.toUtf8());
-    QObject::connect(d->currentReply.data(), &QNetworkReply::finished,
-                     std::bind(&QAbstractOAuthReplyHandler::networkReplyFinished, replyHandler(),
-                               d->currentReply.data()));
+    QNetworkReply *reply = d->networkAccessManager()->post(request, data.toUtf8());
+    d->currentReply = reply;
+    QAbstractOAuthReplyHandler *handler = replyHandler();
+    QObject::connect(reply, &QNetworkReply::finished,
+                     [handler, reply] { handler->networkReplyFinished(reply); });
     QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,
                             &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished,
                             Qt::UniqueConnection);

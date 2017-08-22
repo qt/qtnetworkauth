@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Network Auth module of the Qt Toolkit.
@@ -75,7 +75,8 @@ void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
     if (contentType.startsWith(QStringLiteral("text/html")) ||
             contentType.startsWith(QStringLiteral("application/x-www-form-urlencoded"))) {
         ret = parseResponse(data);
-    } else if (contentType.startsWith(QStringLiteral("application/json"))) {
+    } else if (contentType.startsWith(QStringLiteral("application/json"))
+               || contentType.startsWith(QStringLiteral("text/javascript"))) {
         const QJsonDocument document = QJsonDocument::fromJson(data);
         if (!document.isObject()) {
             qCWarning(lcReplyHandler, "Received data is not a JSON object: %s",
