@@ -597,9 +597,7 @@ void QOAuth1::grant()
                 // https://tools.ietf.org/html/rfc5849#section-2.2
                 resourceOwnerAuthorization(d->authorizationUrl, parameters);
             }
-        } else if (status == Status::Granted) {
-            Q_EMIT granted();
-        } else {
+        } else if (status == Status::NotAuthenticated) {
             // Inherit class called QAbstractOAuth::setStatus(Status::NotAuthenticated);
             setTokenCredentials(QString(), QString());
             disconnect(connection);

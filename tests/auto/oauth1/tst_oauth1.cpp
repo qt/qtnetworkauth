@@ -525,11 +525,13 @@ void tst_OAuth1::grant()
 
     QEventLoop eventLoop;
 
+    QSignalSpy grantSignalSpy(&o1, &QOAuth1::granted);
     QTimer::singleShot(10000, &eventLoop, &QEventLoop::quit);
     connect(&o1, &QOAuth1::granted, &eventLoop, &QEventLoop::quit);
     o1.grant();
     eventLoop.exec();
     QVERIFY(tokenReceived);
+    QCOMPARE(grantSignalSpy.count(), 1);
     QCOMPARE(o1.status(), QAbstractOAuth::Status::Granted);
 }
 
