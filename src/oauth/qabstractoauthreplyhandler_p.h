@@ -27,36 +27,22 @@
 **
 ****************************************************************************/
 
-#ifndef QT_NO_HTTP
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists for the convenience
+// of the Network Access API.  This header file may change from
+// version to version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include "qabstractoauthreplyhandler.h"
-#include "qabstractoauthreplyhandler_p.h"
+#ifndef QABSTRACTOAUTHREPLYHANDLER_P_H
+#define QABSTRACTOAUTHREPLYHANDLER_P_H
 
-Q_LOGGING_CATEGORY(lcReplyHandler, "qt.networkauth.replyhandler")
+#include <QtCore/qloggingcategory.h>
 
-QT_BEGIN_NAMESPACE
+Q_DECLARE_LOGGING_CATEGORY(lcReplyHandler)
 
-QAbstractOAuthReplyHandler::QAbstractOAuthReplyHandler(QObject *parent)
-    : QObject(parent)
-{}
-
-QAbstractOAuthReplyHandler::~QAbstractOAuthReplyHandler()
-{}
-
-QAbstractOAuthReplyHandler::QAbstractOAuthReplyHandler(QObjectPrivate &d, QObject *parent)
-    : QObject(d, parent)
-{}
-
-/*!
-    \class QAbstractOAuthReplyHandler
-    \inmodule QtNetworkAuth
-    \ingroup oauth
-    \brief Handles replies to OAuth authentication requests
-    \since 5.8
-
-    The QAbstractOAuthReplyHandler class handles the answers
-    to all OAuth authentication requests
-*/
-QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
+#endif // QABSTRACTOAUTHREPLYHANDLER_P_H

@@ -36,9 +36,6 @@
 #include <QtNetworkAuth/qabstractoauth.h>
 
 #include <QtCore/qobject.h>
-#include <QtCore/qloggingcategory.h>
-
-Q_DECLARE_LOGGING_CATEGORY(lcReplyHandler)
 
 QT_BEGIN_NAMESPACE
 

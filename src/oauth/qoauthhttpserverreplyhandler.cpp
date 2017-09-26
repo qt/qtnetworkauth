@@ -31,6 +31,7 @@
 
 #include <qabstractoauth.h>
 #include <qoauthhttpserverreplyhandler.h>
+#include "qabstractoauthreplyhandler_p.h"
 
 #include <private/qoauthhttpserverreplyhandler_p.h>
 

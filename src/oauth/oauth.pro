@@ -20,6 +20,7 @@ PRIVATE_HEADERS += \
     qabstractoauth2_p.h \
     qoauth1signature_p.h \
     qoauth2authorizationcodeflow_p.h \
+    qabstractoauthreplyhandler_p.h \
     qoauthhttpserverreplyhandler_p.h
 
 SOURCES += \

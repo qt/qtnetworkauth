@@ -30,6 +30,7 @@
 #ifndef QT_NO_HTTP
 
 #include "qoauthoobreplyhandler.h"
+#include "qabstractoauthreplyhandler_p.h"
 
 #include <QtCore/qurlquery.h>
 #include <QtCore/qjsonobject.h>
