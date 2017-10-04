@@ -86,6 +86,9 @@ public:
 
     QDateTime expirationAt() const;
 
+    QString refreshToken() const;
+    void setRefreshToken(const QString &refreshToken);
+
 Q_SIGNALS:
     void scopeChanged(const QString &scope);
     void userAgentChanged(const QString &userAgent);
