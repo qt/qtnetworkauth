@@ -35,6 +35,3 @@ exampledirs += ../../../examples/oauth
 
 navigation.landingpage = "Qt Network Authorization"
 navigation.cppclassespage = "Qt Network Authorization C++ Classes"
-
-# TODO: Remove once out of technology preview
-navigation.homepage = "Qt Documentation (Technology Preview)"
