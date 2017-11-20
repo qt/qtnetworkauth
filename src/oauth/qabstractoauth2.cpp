@@ -388,6 +388,34 @@ QDateTime QAbstractOAuth2::expirationAt() const
     return d->expiresAt;
 }
 
+/*!
+    \brief Gets the current refresh token.
+
+    Refresh tokens usually have longer lifespans than access tokens,
+    so it makes sense to save them for later use.
+
+    Returns the current refresh token or an empty string, if
+    there is no refresh token available.
+*/
+QString QAbstractOAuth2::refreshToken() const
+{
+    Q_D(const QAbstractOAuth2);
+    return  d->refreshToken;
+}
+
+/*!
+   \brief Sets the new refresh token \a refreshToken to be used.
+
+    A custom refresh token can be used to refresh the access token via this method and then
+    the access token can be refreshed via QOAuth2AuthorizationCodeFlow::refreshAccessToken().
+
+*/
+void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)
+{
+    Q_D(QAbstractOAuth2);
+    d->refreshToken = refreshToken;
+}
+
 QT_END_NAMESPACE
 
 #endif // QT_NO_HTTP
