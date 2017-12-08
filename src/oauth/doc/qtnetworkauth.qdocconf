@@ -33,8 +33,7 @@ sourcedirs  += ..
 examplesinstallpath     = oauth
 exampledirs += ../../../examples/oauth
 
+manifestmeta.highlighted.names = "QtNetworkAuth/Twitter Timeline Example"
+
 navigation.landingpage = "Qt Network Authorization"
 navigation.cppclassespage = "Qt Network Authorization C++ Classes"
-
-# TODO: Remove once out of technology preview
-navigation.homepage = "Qt Documentation (Technology Preview)"
