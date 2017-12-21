@@ -145,6 +145,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void clientIdentifierSignal();
     void clientSharedSecretSignal();
+    void tokenSignal();
     void tokenSecretSignal();
     void temporaryCredentialsUrlSignal();
     void temporaryTokenCredentialsUrlSignal();
@@ -252,7 +253,7 @@ void tst_OAuth1::clientSharedSecretSignal()
     PropertyTester::run(&QOAuth1::clientSharedSecretChanged, setters);
 }
 
-void tst_OAuth1::tokenSecretSignal()
+void tst_OAuth1::tokenSignal()
 {
     using PropertyTester = PropertyTester<QString>;
     PropertyTester::SetterFunctions setters {
@@ -266,6 +267,22 @@ void tst_OAuth1::tokenSecretSignal()
         }
     };
     PropertyTester::run(&QOAuth1::tokenChanged, setters);
+}
+
+void tst_OAuth1::tokenSecretSignal()
+{
+    using PropertyTester = PropertyTester<QString>;
+    PropertyTester::SetterFunctions setters {
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setTokenSecret";
+            object->setTokenSecret(*expectedValue);
+        },
+        [](QString *expectedValue, QOAuth1 *object) {
+            *expectedValue = "setTokenCredentials";
+            object->setTokenCredentials(qMakePair(QString(), *expectedValue));
+        }
+    };
+    PropertyTester::run(&QOAuth1::tokenSecretChanged, setters);
 }
 
 void tst_OAuth1::temporaryCredentialsUrlSignal()

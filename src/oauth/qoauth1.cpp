@@ -391,7 +391,7 @@ void QOAuth1::setClientCredentials(const QString &clientIdentifier,
 QString QOAuth1::tokenSecret() const
 {
     Q_D(const QOAuth1);
-    return d->clientIdentifierSharedKey;
+    return d->tokenSecret;
 }
 /*!
     Sets \a tokenSecret as the current token secret used to sign
