@@ -40,6 +40,7 @@
 #include <QtNetwork/qnetworkreply.h>
 #include <QtNetwork/qnetworkrequest.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qhttpmultipart.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -273,7 +274,21 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
 {
     Q_D(QAbstractOAuth2);
     const auto data = d->convertParameters(parameters);
+    return post(url, data);
+}
+
+QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QByteArray &data)
+{
+    Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->post(d->createRequest(url), data);
+    connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
+    return reply;
+}
+
+QNetworkReply *QAbstractOAuth2::post(const QUrl &url, QHttpMultiPart *multiPart)
+{
+    Q_D(QAbstractOAuth2);
+    QNetworkReply *reply = d->networkAccessManager()->post(d->createRequest(url), multiPart);
     connect(reply, &QNetworkReply::finished, [this, reply]() { emit finished(reply); });
     return reply;
 }
@@ -290,7 +305,21 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QVariantMap &paramete
 {
     Q_D(QAbstractOAuth2);
     const auto data = d->convertParameters(parameters);
+    return put(url, data);
+}
+
+QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QByteArray &data)
+{
+    Q_D(QAbstractOAuth2);
     QNetworkReply *reply = d->networkAccessManager()->put(d->createRequest(url), data);
+    connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
+    return reply;
+}
+
+QNetworkReply *QAbstractOAuth2::put(const QUrl &url, QHttpMultiPart *multiPart)
+{
+    Q_D(QAbstractOAuth2);
+    QNetworkReply *reply = d->networkAccessManager()->put(d->createRequest(url), multiPart);
     connect(reply, &QNetworkReply::finished, std::bind(&QAbstractOAuth::finished, this, reply));
     return reply;
 }

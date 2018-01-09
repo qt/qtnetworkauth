@@ -39,6 +39,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QHttpMultiPart;
 class QAbstractOAuth2Private;
 class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
 {
@@ -65,8 +66,12 @@ public:
                                    const QVariantMap &parameters = QVariantMap()) override;
     Q_INVOKABLE QNetworkReply *post(const QUrl &url,
                                     const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE virtual QNetworkReply *post(const QUrl &url, const QByteArray &data);
+    Q_INVOKABLE virtual QNetworkReply *post(const QUrl &url, QHttpMultiPart *multiPart);
     Q_INVOKABLE QNetworkReply *put(const QUrl &url,
                                    const QVariantMap &parameters = QVariantMap()) override;
+    Q_INVOKABLE virtual QNetworkReply *put(const QUrl &url, const QByteArray &data);
+    Q_INVOKABLE virtual QNetworkReply *put(const QUrl &url, QHttpMultiPart *multiPart);
     Q_INVOKABLE QNetworkReply *deleteResource(const QUrl &url,
                                               const QVariantMap &parameters = QVariantMap()) override;
 
