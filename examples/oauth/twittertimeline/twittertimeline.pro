@@ -1,4 +1,5 @@
 QT = core widgets network networkauth
+requires(qtConfig(tableview))
 CONFIG -= app_bundle
 
 HEADERS += \
