@@ -75,12 +75,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \property QAbstractOAuth2::clientIdentifier
-    This property holds the client identifier used to identify the
-    application in the authentication process.
-*/
-
-/*!
     \property QAbstractOAuth2::clientIdentifierSharedKey
     This property holds the client shared key used as a password if
     the server requires authentication to request the token.
