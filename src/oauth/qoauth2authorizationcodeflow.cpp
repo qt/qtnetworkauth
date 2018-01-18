@@ -331,6 +331,9 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     connect(reply, &QNetworkReply::finished,
             [handler, reply]() { handler->networkReplyFinished(reply); });
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+    QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,
+                            &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished,
+                            Qt::UniqueConnection);
     QObjectPrivate::connect(d->networkAccessManager(),
                             &QNetworkAccessManager::authenticationRequired,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate,
