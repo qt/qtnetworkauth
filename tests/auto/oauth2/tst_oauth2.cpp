@@ -80,11 +80,11 @@ void tst_OAuth2::getToken()
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(webServer.url(QLatin1String("authorization")));
     oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));
-    auto replyHandler = new ReplyHandler;
-    oauth2.setReplyHandler(replyHandler);
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, [&](const QUrl &url) {
         const QUrlQuery query(url.query());
-        replyHandler->emitCallbackReceived(QVariantMap {
+        replyHandler.emitCallbackReceived(QVariantMap {
                                                { QLatin1String("code"), QLatin1String("test") },
                                                { QLatin1String("state"),
                                                  query.queryItemValue(QLatin1String("state")) }
