@@ -32,6 +32,7 @@
 
 #include <functional>
 #include <cctype>
+#include <QtCore/qcoreapplication.h>
 #include <QtNetwork/qtcpserver.h>
 
 class WebServer : public QTcpServer
@@ -268,8 +269,14 @@ bool WebServer::HttpRequest::readBody(QTcpSocket *socket)
             return false;
         fragment.resize(bytesLeft);
     }
-    while (socket->bytesAvailable() && bytesLeft)
-        bytesLeft -= socket->read(&fragment.data()[fragment.size() - bytesLeft], bytesLeft);
+    while (bytesLeft) {
+        int got = socket->read(&fragment.data()[fragment.size() - bytesLeft], bytesLeft);
+        if (got < 0)
+            return false; // error
+        bytesLeft -= got;
+        if (bytesLeft)
+            qApp->processEvents();
+    }
     fragment.swap(body);
     state = State::AllDone;
     return true;

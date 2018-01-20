@@ -1,4 +1,5 @@
 QT += widgets network networkauth
+requires(qtConfig(listview))
 
 TARGET = redditclient
 
