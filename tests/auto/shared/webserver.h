@@ -34,6 +34,7 @@
 #include <cctype>
 #include <QtCore/qcoreapplication.h>
 #include <QtNetwork/qtcpserver.h>
+#include <QTcpSocket>
 
 class WebServer : public QTcpServer
 {
