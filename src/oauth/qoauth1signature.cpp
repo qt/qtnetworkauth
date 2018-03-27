@@ -408,9 +408,6 @@ void QOAuth1Signature::swap(QOAuth1Signature &other)
     qSwap(d, other.d);
 }
 
-/*!
-    Copy-assignment operator.
-*/
 QOAuth1Signature &QOAuth1Signature::operator=(const QOAuth1Signature &other)
 {
     if (d != other.d) {
