@@ -142,7 +142,8 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
     int expiresIn = values.value(Key::expiresIn).toInt(&ok);
     if (!ok)
         expiresIn = -1;
-    refreshToken = values.value(Key::refreshToken).toString();
+    if (values.value(Key::refreshToken).isValid())
+        refreshToken = values.value(Key::refreshToken).toString();
     scope = values.value(Key::scope).toString();
     if (accessToken.isEmpty()) {
         qCWarning(loggingCategory, "Access token not received");
