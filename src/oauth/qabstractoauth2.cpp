@@ -436,7 +436,10 @@ QString QAbstractOAuth2::refreshToken() const
 void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)
 {
     Q_D(QAbstractOAuth2);
-    d->refreshToken = refreshToken;
+    if (d->refreshToken != refreshToken) {
+        d->refreshToken = refreshToken;
+        Q_EMIT refreshTokenChanged(refreshToken);
+    }
 }
 
 QT_END_NAMESPACE
