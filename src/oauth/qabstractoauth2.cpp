@@ -271,6 +271,18 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
     return post(url, data);
 }
 
+/*!
+    \since 5.10
+
+    \overload
+
+    Sends an authenticated POST request and returns a new
+    QNetworkReply. The \a url and \a data are used to create
+    the request.
+
+    \sa post(), {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: POST}
+*/
 QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QByteArray &data)
 {
     Q_D(QAbstractOAuth2);
@@ -279,6 +291,18 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QByteArray &data)
     return reply;
 }
 
+/*!
+    \since 5.10
+
+    \overload
+
+    Sends an authenticated POST request and returns a new
+    QNetworkReply. The \a url and \a multiPart are used to create
+    the request.
+
+    \sa post(), QHttpMultiPart, {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: POST}
+*/
 QNetworkReply *QAbstractOAuth2::post(const QUrl &url, QHttpMultiPart *multiPart)
 {
     Q_D(QAbstractOAuth2);
@@ -302,6 +326,18 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QVariantMap &paramete
     return put(url, data);
 }
 
+/*!
+    \since 5.10
+
+    \overload
+
+    Sends an authenticated PUT request and returns a new
+    QNetworkReply. The \a url and \a data are used to create
+    the request.
+
+    \sa put(), {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: PUT}
+*/
 QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QByteArray &data)
 {
     Q_D(QAbstractOAuth2);
@@ -310,6 +346,18 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QByteArray &data)
     return reply;
 }
 
+/*!
+    \since 5.10
+
+    \overload
+
+    Sends an authenticated PUT request and returns a new
+    QNetworkReply. The \a url and \a multiPart are used to create
+    the request.
+
+    \sa put(), QHttpMultiPart, {https://tools.ietf.org/html/rfc2616#section-9.6}
+    {Hypertext Transfer Protocol -- HTTP/1.1: PUT}
+*/
 QNetworkReply *QAbstractOAuth2::put(const QUrl &url, QHttpMultiPart *multiPart)
 {
     Q_D(QAbstractOAuth2);
