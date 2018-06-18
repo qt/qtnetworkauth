@@ -218,7 +218,7 @@ void tst_OAuth1::gotError()
 {
     if (loop)
         loop->exit(returnCode = Failure);
-    disconnect(QObject::sender(), SIGNAL(finished()), this, 0);
+    disconnect(QObject::sender(), SIGNAL(finished()), this, nullptr);
 }
 
 void tst_OAuth1::clientIdentifierSignal()
