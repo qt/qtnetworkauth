@@ -47,7 +47,7 @@ Q_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")
     \class QOAuth1Signature
     \inmodule QtNetworkAuth
     \ingroup oauth
-    \brief Implements OAuth 1 signature methods
+    \brief Implements OAuth 1 signature methods.
     \since 5.8
 
     OAuth-authenticated requests can have two sets of credentials:
