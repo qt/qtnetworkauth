@@ -450,7 +450,6 @@ void tst_OAuth1::getToken()
     });
     QVERIFY(waitForFinish(reply) == Success);
     QCOMPARE(tokenReceived, expectedToken);
-    QCOMPARE(oauthHeaders["oauth_callback"], "oob");
     QCOMPARE(oauthHeaders["oauth_consumer_key"], clientCredentials.first);
     QCOMPARE(oauthHeaders["oauth_version"], "1.0");
     QString expectedSignature;

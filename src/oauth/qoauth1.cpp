@@ -155,7 +155,6 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
                                             const QPair<QString, QString> &token,
                                             const QVariantMap &parameters)
 {
-    Q_Q(QOAuth1);
     if (Q_UNLIKELY(!networkAccessManager())) {
         qCWarning(loggingCategory, "QNetworkAccessManager not available");
         return nullptr;
@@ -175,27 +174,35 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
 
     QAbstractOAuth::Stage stage = QAbstractOAuth::Stage::RequestingTemporaryCredentials;
     QVariantMap headers;
+    QVariantMap remainingParameters;
     appendCommonHeaders(&headers);
-    headers.insert(Key::oauthCallback, q->callback());
+    for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it) {
+        const auto key = it.key();
+        const auto value = it.value();
+        if (key.startsWith(QStringLiteral("oauth_")))
+            headers.insert(key, value);
+        else
+            remainingParameters.insert(key, value);
+    }
     if (!token.first.isEmpty()) {
         headers.insert(Key::oauthToken, token.first);
         stage = QAbstractOAuth::Stage::RequestingAccessToken;
     }
-    appendSignature(stage, &headers, url, operation, parameters);
+    appendSignature(stage, &headers, url, operation, remainingParameters);
 
-    request.setRawHeader("Authorization", q->generateAuthorizationHeader(headers));
+    request.setRawHeader("Authorization", QOAuth1::generateAuthorizationHeader(headers));
 
     QNetworkReply *reply = nullptr;
     if (operation == QNetworkAccessManager::GetOperation) {
         if (parameters.size() > 0) {
             QUrl url = request.url();
-            url.setQuery(QOAuth1Private::createQuery(parameters));
+            url.setQuery(QOAuth1Private::createQuery(remainingParameters));
             request.setUrl(url);
         }
         reply = networkAccessManager()->get(request);
     }
     else if (operation == QNetworkAccessManager::PostOperation) {
-        QUrlQuery query = QOAuth1Private::createQuery(parameters);
+        QUrlQuery query = QOAuth1Private::createQuery(remainingParameters);
         const QByteArray data = query.toString(QUrl::FullyEncoded).toUtf8();
         request.setHeader(QNetworkRequest::ContentTypeHeader,
                           QStringLiteral("application/x-www-form-urlencoded"));
@@ -665,7 +672,9 @@ QNetworkReply *QOAuth1::requestTemporaryCredentials(QNetworkAccessManager::Opera
     Q_D(QOAuth1);
     d->token.clear();
     d->tokenSecret.clear();
-    return d->requestToken(operation, url, qMakePair(d->token, d->tokenSecret), parameters);
+    QVariantMap allParameters(parameters);
+    allParameters.insert(Key::oauthCallback, callback());
+    return d->requestToken(operation, url, qMakePair(d->token, d->tokenSecret), allParameters);
 }
 
 /*!
