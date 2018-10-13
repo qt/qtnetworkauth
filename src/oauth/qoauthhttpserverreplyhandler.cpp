@@ -27,6 +27,8 @@
 **
 ****************************************************************************/
 
+#include <QtNetwork/qtnetwork-config.h>
+
 #ifndef QT_NO_HTTP
 
 #include <qabstractoauth.h>
