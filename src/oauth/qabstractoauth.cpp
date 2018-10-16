@@ -44,6 +44,7 @@
 
 #include <QtNetwork/qnetworkrequest.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qnetworkreply.h>
 
 #include <random>
 
@@ -507,6 +508,23 @@ void QAbstractOAuth::setReplyHandler(QAbstractOAuthReplyHandler *handler)
 {
     Q_D(QAbstractOAuth);
     d->replyHandler = handler;
+}
+
+/*!
+    \since 5.13
+
+    Authorizes the given \a request by adding headers etc. to it required for
+    authenticated requests.
+
+    The \a verb must be a valid HTTP verb and the same as the one that will be
+    used to send the \a request.
+*/
+void QAbstractOAuth::prepareRequest(QNetworkRequest *request,
+                                    const QByteArray &verb,
+                                    const QByteArray &body)
+{
+    Q_D(QAbstractOAuth);
+    d->prepareRequestImpl(request, verb, body);
 }
 
 /*!
