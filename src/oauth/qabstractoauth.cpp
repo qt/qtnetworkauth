@@ -529,7 +529,7 @@ void QAbstractOAuth::prepareRequest(QNetworkRequest *request,
 
 /*!
     Returns the current parameter-modification function.
-    \sa QAbstractOAuth::ModifyParametersFunction, setModifyParametersFunction(), Stage
+    \sa setModifyParametersFunction(), Stage
 */
 QAbstractOAuth::ModifyParametersFunction QAbstractOAuth::modifyParametersFunction() const
 {
