@@ -224,9 +224,8 @@ QOAuth1Signature::QOAuth1Signature(const QOAuth1Signature &other) : d(other.d)
     Move-constructs a QOAuth1Signature instance, taking over the
     private data \a other was using.
 */
-QOAuth1Signature::QOAuth1Signature(QOAuth1Signature &&other) : d(other.d)
+QOAuth1Signature::QOAuth1Signature(QOAuth1Signature &&other) : d(std::move(other.d))
 {
-    other.d = &QOAuth1SignaturePrivate::shared_null;
 }
 
 /*!
