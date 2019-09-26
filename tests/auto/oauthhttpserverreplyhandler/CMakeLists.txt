@@ -15,5 +15,4 @@ add_qt_test(tst_oauthhttpserverreplyhandler
 )
 
 #### Keys ignored in scope 1:.:.:oauthhttpserverreplyhandler.pro:<TRUE>:
-# CONFIG = "testcase"
 # TEMPLATE = "app"

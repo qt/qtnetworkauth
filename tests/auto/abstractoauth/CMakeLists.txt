@@ -16,5 +16,4 @@ add_qt_test(tst_abstractoauth
 )
 
 #### Keys ignored in scope 1:.:.:abstractoauth.pro:<TRUE>:
-# CONFIG = "testcase"
 # TEMPLATE = "app"

@@ -14,5 +14,4 @@ add_qt_test(tst_oauth1signature
 )
 
 #### Keys ignored in scope 1:.:.:oauth1signature.pro:<TRUE>:
-# CONFIG = "testcase"
 # TEMPLATE = "app"

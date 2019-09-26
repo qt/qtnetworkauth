@@ -19,5 +19,4 @@ add_qt_test(tst_oauth2
 )
 
 #### Keys ignored in scope 1:.:.:oauth2.pro:<TRUE>:
-# CONFIG = "testcase"
 # TEMPLATE = "app"
