@@ -739,6 +739,8 @@ void tst_OAuth1::authenticatedCalls_data()
             << QUrl("http://term.ie/oauth/example/echo_api.php?key=%40value+1%2B2=3")
             << parameters
             << QNetworkAccessManager::GetOperation;
+    } else {
+        QSKIP("Skipping test due to unreacahble term.ie host");
     }
 }
 
@@ -832,6 +834,8 @@ void tst_OAuth1::prepareRequestCalls_data()
             << QUrl("http://term.ie/oauth/example/echo_api.php?key=%40value+1%2B2=3")
             << parameters
             << QByteArray("GET");
+    } else {
+        QSKIP("Skipping test due to unreacahble term.ie host");
     }
 }
 
