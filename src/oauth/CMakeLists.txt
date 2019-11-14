@@ -4,7 +4,7 @@
 ## NetworkAuth Module:
 #####################################################################
 
-add_qt_module(NetworkAuth
+qt_add_module(NetworkAuth
     SOURCES
         qabstractoauth.cpp qabstractoauth.h qabstractoauth_p.h
         qabstractoauth2.cpp qabstractoauth2.h qabstractoauth2_p.h
@@ -24,8 +24,7 @@ add_qt_module(NetworkAuth
 
 #### Keys ignored in scope 1:.:.:oauth.pro:<TRUE>:
 # MODULE = "networkauth"
-# _LOADED = "qt_module"
-add_qt_docs(NetworkAuth
+qt_add_docs(NetworkAuth
     doc/qtnetworkauth.qdocconf
 )
 

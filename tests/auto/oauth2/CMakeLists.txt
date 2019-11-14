@@ -4,7 +4,7 @@
 ## tst_oauth2 Test:
 #####################################################################
 
-add_qt_test(tst_oauth2
+qt_add_test(tst_oauth2
     SOURCES
         ../shared/webserver.h
         tst_oauth2.cpp
