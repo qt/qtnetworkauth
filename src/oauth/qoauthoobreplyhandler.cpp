@@ -52,7 +52,7 @@ QString QOAuthOobReplyHandler::callback() const
 
 void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
 {
-    if (reply->error() != QNetworkReply::NoError) {
+    if (reply->networkError() != QNetworkReply::NoError) {
         qCWarning(lcReplyHandler, "%s", qPrintable(reply->errorString()));
         return;
     }
