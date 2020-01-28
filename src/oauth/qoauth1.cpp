@@ -144,7 +144,8 @@ void QOAuth1Private::appendSignature(QAbstractOAuth::Stage stage,
 {
     QByteArray signature;
     {
-        QVariantMap allParameters = QVariantMap(*headers).unite(parameters);
+        QMultiMap<QString, QVariant> headerCopy = *headers;
+        QVariantMap allParameters = headerCopy.unite(parameters);
         if (modifyParametersFunction)
             modifyParametersFunction(stage, &allParameters);
         signature = generateSignature(allParameters, url, operation);
@@ -763,7 +764,8 @@ void QOAuth1::setup(QNetworkRequest *request,
 
     // Add signature parameter
     {
-        const auto parameters = QVariantMap(oauthParams).unite(signingParameters);
+        QMultiMap<QString, QVariant> oauthParamsCopy(oauthParams);
+        const auto parameters = oauthParamsCopy.unite(signingParameters);
         const auto signature = d->generateSignature(parameters, request->url(), operation);
         oauthParams.insert(Key::oauthSignature, signature);
     }
@@ -803,7 +805,8 @@ void QOAuth1::setup(QNetworkRequest *request, const QVariantMap &signingParamete
 
     // Add signature parameter
     {
-        const auto parameters = QVariantMap(oauthParams).unite(signingParameters);
+        QMultiMap<QString, QVariant> oauthParamsCopy(oauthParams);
+        const auto parameters = oauthParamsCopy.unite(signingParameters);
         const auto signature = d->generateSignature(parameters, request->url(), operationVerb);
         oauthParams.insert(Key::oauthSignature, signature);
     }
