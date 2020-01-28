@@ -468,7 +468,8 @@ void tst_OAuth1::getToken()
     QCOMPARE(oauthHeaders["oauth_version"], "1.0");
     QString expectedSignature;
     {
-        QVariantMap modifiedHeaders = oauthHeaders.unite(parameters);
+        QVariantMap modifiedHeaders = oauthHeaders;
+        modifiedHeaders.insert(parameters);
         modifiedHeaders.remove("oauth_signature");
         QOAuth1Signature signature(url,
                                    clientCredentials.second,
@@ -592,11 +593,13 @@ void tst_OAuth1::prepareRequestSignature()
     // verify the signature
     const auto sigString = QUrl::fromPercentEncoding(authArgs.take(oauthSignature)
                                                      .toByteArray()).toUtf8();
+
+    authArgs.insert(extraParams);
     QOAuth1Signature signature(request.url(),
                                consumerSecret,
                                accessKeySecret,
                                QOAuth1Signature::HttpRequestMethod::Custom,
-                               authArgs.unite(extraParams));
+                               authArgs);
     signature.setCustomMethodString(operation);
     const auto signatureData = signature.hmacSha1();
     QCOMPARE(signatureData.toBase64(), sigString);
