@@ -101,7 +101,7 @@ void RedditModel::update()
 
     connect(reply, &QNetworkReply::finished, [=]() {
         reply->deleteLater();
-        if (reply->networkError() != QNetworkReply::NoError) {
+        if (reply->error() != QNetworkReply::NoError) {
             emit error(reply->errorString());
             return;
         }
