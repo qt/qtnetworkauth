@@ -199,7 +199,7 @@ int tst_OAuth1::waitForFinish(QNetworkReplyPtr &reply)
     int count = 0;
 
     connect(reply, SIGNAL(finished()), SLOT(finished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(gotError()));
+    connect(reply, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(gotError()));
     returnCode = Success;
     loop = new QEventLoop;
     QSignalSpy spy(reply.data(), SIGNAL(downloadProgress(qint64,qint64)));
