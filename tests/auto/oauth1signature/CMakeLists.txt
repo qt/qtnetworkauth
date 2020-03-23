@@ -7,9 +7,8 @@
 qt_add_test(tst_oauth1signature
     SOURCES
         tst_oauth1signature.cpp
-    LIBRARIES
-        Qt::CorePrivate
     PUBLIC_LIBRARIES
+        Qt::CorePrivate
         Qt::NetworkAuth
 )
 

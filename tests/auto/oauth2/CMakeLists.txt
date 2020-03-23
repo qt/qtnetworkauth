@@ -10,12 +10,11 @@ qt_add_test(tst_oauth2
         tst_oauth2.cpp
     INCLUDE_DIRECTORIES
         ../shared
-    LIBRARIES
-        Qt::CorePrivate
-        Qt::NetworkAuthPrivate
     PUBLIC_LIBRARIES
+        Qt::CorePrivate
         Qt::Network
         Qt::NetworkAuth
+        Qt::NetworkAuthPrivate
 )
 
 #### Keys ignored in scope 1:.:.:oauth2.pro:<TRUE>:

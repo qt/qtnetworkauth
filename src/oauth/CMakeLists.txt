@@ -20,6 +20,8 @@ qt_add_module(NetworkAuth
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Network
+    PRIVATE_MODULE_INTERFACE
+        Qt::CorePrivate
 )
 
 #### Keys ignored in scope 1:.:.:oauth.pro:<TRUE>:
