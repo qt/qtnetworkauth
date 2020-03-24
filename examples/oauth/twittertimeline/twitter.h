@@ -48,6 +48,9 @@
 **
 ****************************************************************************/
 
+#ifndef TWITTERTIMELINE_TWITTER_H
+#define TWITTERTIMELINE_TWITTER_H
+
 #include <QtCore>
 #include <QtNetwork>
 #include <QtNetworkAuth>
@@ -71,3 +74,5 @@ private:
 
     QOAuthHttpServerReplyHandler *replyHandler = nullptr;
 };
+
+#endif // TWITTERTIMELINE_TWITTER_H
