@@ -212,7 +212,7 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
         reply = networkAccessManager()->post(request, data);
     }
 
-    connect(reply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+    connect(reply, &QNetworkReply::errorOccurred,
             this, &QOAuth1Private::_q_onTokenRequestError);
 
     QAbstractOAuthReplyHandler *handler = replyHandler ? replyHandler.data()
