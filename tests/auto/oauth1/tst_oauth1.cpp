@@ -639,6 +639,8 @@ void tst_OAuth1::grant_data()
                                     << QUrl("http://term.ie/oauth/example/access_token.php")
                                     << QUrl("http://term.ie/oauth/example/echo_api.php")
                                     << QNetworkAccessManager::PostOperation;
+    } else {
+        QSKIP("Skipping test due to unreachable term.ie host");
     }
 }
 
@@ -743,7 +745,7 @@ void tst_OAuth1::authenticatedCalls_data()
             << parameters
             << QNetworkAccessManager::GetOperation;
     } else {
-        QSKIP("Skipping test due to unreacahble term.ie host");
+        QSKIP("Skipping test due to unreachable term.ie host");
     }
 }
 
@@ -838,7 +840,7 @@ void tst_OAuth1::prepareRequestCalls_data()
             << parameters
             << QByteArray("GET");
     } else {
-        QSKIP("Skipping test due to unreacahble term.ie host");
+        QSKIP("Skipping test due to unreachable term.ie host");
     }
 }
 
