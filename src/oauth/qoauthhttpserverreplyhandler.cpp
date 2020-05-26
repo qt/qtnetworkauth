@@ -289,7 +289,7 @@ void QOAuthHttpServerReplyHandler::setCallbackPath(const QString &path)
     Q_D(QOAuthHttpServerReplyHandler);
 
     QString copy = path;
-    while (copy.startsWith('/'))
+    while (copy.startsWith(QLatin1Char('/')))
         copy = copy.mid(1);
 
     d->path = copy;
