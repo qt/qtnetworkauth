@@ -84,7 +84,7 @@ public:
         typedef Type InnerType;
         typedef void(QOAuth1::*ConstSignalType)(const Type &);
         typedef void(QOAuth1::*SignalType)(Type);
-        typedef QVector<std::function<void(Type *, QOAuth1 *object)>> SetterFunctions;
+        typedef QList<std::function<void(Type *, QOAuth1 *object)>> SetterFunctions;
 
     private:
         // Each entry in setters should set its first parameter to an expected value
