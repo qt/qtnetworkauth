@@ -98,6 +98,7 @@
     \module QtNetworkAuth
     \title Qt Network Authorization C++ Classes
     \ingroup modules
+    \qtcmakepackage Networkauth
     \qtvariable networkauth
     \brief Provides classes for network authorization support (OAuth).
 
