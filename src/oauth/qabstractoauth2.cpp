@@ -173,8 +173,8 @@ void QAbstractOAuth2Private::prepareRequestImpl(QNetworkRequest *request,
                                                 const QByteArray &verb,
                                                 const QByteArray &body)
 {
-    Q_UNUSED(verb)
-    Q_UNUSED(body)
+    Q_UNUSED(verb);
+    Q_UNUSED(body);
     request->setHeader(QNetworkRequest::UserAgentHeader, userAgent);
     const QString bearer = bearerFormat.arg(token);
     request->setRawHeader("Authorization", bearer.toUtf8());

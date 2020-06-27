@@ -65,7 +65,7 @@ int TwitterTimelineModel::rowCount(const QModelIndex &parent) const
 #if defined(QT_DEBUG)
     Q_ASSERT(!parent.isValid());
 #else
-    Q_UNUSED(parent)
+    Q_UNUSED(parent);
 #endif
     return tweets.size();
 }
