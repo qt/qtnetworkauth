@@ -582,8 +582,8 @@ void tst_OAuth1::prepareRequestSignature()
     }
 
     //compare known parameters
-    QCOMPARE(authArgs.value(oauthConsumerKey).toByteArray(), consumerKey);
-    QCOMPARE(authArgs.value(oauthToken).toByteArray(), accessKey);
+    QCOMPARE(authArgs.value(oauthConsumerKey).toByteArray(), consumerKey.toLatin1());
+    QCOMPARE(authArgs.value(oauthToken).toByteArray(), accessKey.toLatin1());
     QCOMPARE(authArgs.value(oauthSignatureMethod).toByteArray(), QByteArray("HMAC-SHA1"));
     QCOMPARE(authArgs.value(oauthVersion).toByteArray(), QByteArray("1.0"));
     QVERIFY(authArgs.contains(oauthNonce));

@@ -254,7 +254,7 @@ void tst_OAuth1Signature::signatures()
     if (method == QOAuth1Signature::HttpRequestMethod::Custom)
         signature.setCustomMethodString(customVerb);
     const auto signatureData = signature.hmacSha1();
-    QCOMPARE(signatureData.toBase64(), result);
+    QCOMPARE(signatureData.toBase64(), result.toLatin1());
 }
 
 QTEST_MAIN(tst_OAuth1Signature)
