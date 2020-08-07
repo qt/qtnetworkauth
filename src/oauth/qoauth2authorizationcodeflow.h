@@ -80,10 +80,10 @@ public Q_SLOTS:
     void refreshAccessToken();
 
 protected:
-    QUrl buildAuthenticateUrl(const QVariantMap &parameters = QVariantMap());
+    QUrl buildAuthenticateUrl(const QMultiMap<QString, QVariant> &parameters = {});
     void requestAccessToken(const QString &code);
     void resourceOwnerAuthorization(const QUrl &url,
-                                    const QVariantMap &parameters = QVariantMap()) override;
+                                    const QMultiMap<QString, QVariant> &parameters = {}) override;
 
 Q_SIGNALS:
     void accessTokenUrlChanged(const QUrl &accessTokenUrl);

@@ -99,7 +99,7 @@ public:
     QByteArray convertParameters(const QVariantMap &parameters);
     void addContentTypeHeaders(QNetworkRequest *request);
 
-    static QUrlQuery createQuery(const QVariantMap &parameters);
+    static QUrlQuery createQuery(const QMultiMap<QString, QVariant> &parameters);
 };
 
 QT_END_NAMESPACE

@@ -59,10 +59,10 @@ public:
 
     explicit QOAuth1Signature(const QUrl &url = QUrl(),
                               HttpRequestMethod method = HttpRequestMethod::Post,
-                              const QVariantMap &parameters = QVariantMap());
+                              const QMultiMap<QString, QVariant> &parameters = {});
     QOAuth1Signature(const QUrl &url, const QString &clientSharedKey, const QString &tokenSecret,
                      HttpRequestMethod method = HttpRequestMethod::Post,
-                     const QVariantMap &parameters = QVariantMap());
+                     const QMultiMap<QString, QVariant> &parameters = {});
     QOAuth1Signature(const QOAuth1Signature &other);
     QOAuth1Signature(QOAuth1Signature &&other);
     ~QOAuth1Signature();
@@ -76,8 +76,8 @@ public:
     QUrl url() const;
     void setUrl(const QUrl &url);
 
-    QVariantMap parameters() const;
-    void setParameters(const QVariantMap &parameters);
+    QMultiMap<QString, QVariant> parameters() const;
+    void setParameters(const QMultiMap<QString, QVariant> &parameters);
     void addRequestBody(const QUrlQuery &body);
 
     void insert(const QString &key, const QVariant &value);

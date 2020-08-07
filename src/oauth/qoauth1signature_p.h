@@ -55,14 +55,14 @@ class QOAuth1SignaturePrivate : public QSharedData
 public:
     QOAuth1SignaturePrivate() = default;
     QOAuth1SignaturePrivate(const QUrl &url, QOAuth1Signature::HttpRequestMethod method,
-                            const QVariantMap &parameters,
+                            const QMultiMap<QString, QVariant> &parameters,
                             const QString &clientSharedKey = QString(),
                             const QString &tokenSecret = QString());
 
     QByteArray signatureBaseString() const;
     QByteArray secret() const;
-    static QByteArray parameterString(const QVariantMap &parameters);
-    static QByteArray encodeHeaders(const QVariantMap &headers);
+    static QByteArray parameterString(const QMultiMap<QString, QVariant> &parameters);
+    static QByteArray encodeHeaders(const QMultiMap<QString, QVariant> &headers);
 
 
     QOAuth1Signature::HttpRequestMethod method = QOAuth1Signature::HttpRequestMethod::Post;

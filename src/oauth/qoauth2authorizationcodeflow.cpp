@@ -311,7 +311,7 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
 
     using Key = QAbstractOAuth2Private::OAuth2KeyString;
 
-    QVariantMap parameters;
+    QMultiMap<QString, QVariant> parameters;
     QNetworkRequest request(d->accessTokenUrl);
     QUrlQuery query;
     parameters.insert(Key::grantType, QStringLiteral("refresh_token"));
@@ -346,7 +346,7 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     \l {https://tools.ietf.org/html/rfc6749#section-4.1.1}
     {Authorization Request} using \a parameters.
 */
-QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QVariantMap &parameters)
+QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString, QVariant> &parameters)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
     using Key = QAbstractOAuth2Private::OAuth2KeyString;
@@ -356,7 +356,7 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QVariantMap &param
     Q_ASSERT(!d->state.isEmpty());
     const QString state = d->state;
 
-    QVariantMap p(parameters);
+    QMultiMap<QString, QVariant> p(parameters);
     QUrl url(d->authorizationUrl);
     p.insert(Key::responseType, responseType());
     p.insert(Key::clientIdentifier, d->clientIdentifier);
@@ -383,7 +383,7 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     Q_D(QOAuth2AuthorizationCodeFlow);
     using Key = QAbstractOAuth2Private::OAuth2KeyString;
 
-    QVariantMap parameters;
+    QMultiMap<QString, QVariant> parameters;
     QNetworkRequest request(d->accessTokenUrl);
     QUrlQuery query;
     parameters.insert(Key::grantType, QStringLiteral("authorization_code"));
@@ -419,7 +419,7 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     interaction.
 */
 void QOAuth2AuthorizationCodeFlow::resourceOwnerAuthorization(const QUrl &url,
-                                                              const QVariantMap &parameters)
+                                                              const QMultiMap<QString, QVariant> &parameters)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
     if (Q_UNLIKELY(url != d->authorizationUrl)) {

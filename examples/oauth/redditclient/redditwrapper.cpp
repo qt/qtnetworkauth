@@ -71,7 +71,7 @@ RedditWrapper::RedditWrapper(QObject *parent) : QObject(parent)
         if (status == QAbstractOAuth::Status::Granted)
             emit authenticated();
     });
-    oauth2.setModifyParametersFunction([&](QAbstractOAuth::Stage stage, QVariantMap *parameters) {
+    oauth2.setModifyParametersFunction([&](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         if (stage == QAbstractOAuth::Stage::RequestingAuthorization && isPermanent())
             parameters->insert("duration", "permanent");
     });

@@ -98,7 +98,7 @@ QOAuth1SignaturePrivate QOAuth1SignaturePrivate::shared_null;
 
 QOAuth1SignaturePrivate::QOAuth1SignaturePrivate(const QUrl &url,
                                                  QOAuth1Signature::HttpRequestMethod method,
-                                                 const QVariantMap &parameters,
+                                                 const QMultiMap<QString, QVariant> &parameters,
                                                  const QString &clientSharedKey,
                                                  const QString &tokenSecret) :
     method(method), url(url), clientSharedKey(clientSharedKey), tokenSecret(tokenSecret),
@@ -140,7 +140,7 @@ QByteArray QOAuth1SignaturePrivate::signatureBaseString() const
     base.append('&');
     base.append(QUrl::toPercentEncoding(url.toString(QUrl::RemoveQuery)) + "&");
 
-    QVariantMap p = parameters;
+    QMultiMap<QString, QVariant> p = parameters;
     {
         // replace '+' with spaces now before decoding so that '%2B' gets left as '+'
         const QString query = url.query().replace(QLatin1Char('+'), QLatin1Char(' '));
@@ -161,7 +161,7 @@ QByteArray QOAuth1SignaturePrivate::secret() const
     return secret;
 }
 
-QByteArray QOAuth1SignaturePrivate::parameterString(const QVariantMap &parameters)
+QByteArray QOAuth1SignaturePrivate::parameterString(const QMultiMap<QString, QVariant> &parameters)
 {
     QByteArray ret;
     auto previous = parameters.end();
@@ -178,7 +178,7 @@ QByteArray QOAuth1SignaturePrivate::parameterString(const QVariantMap &parameter
     return ret;
 }
 
-QByteArray QOAuth1SignaturePrivate::encodeHeaders(const QVariantMap &headers)
+QByteArray QOAuth1SignaturePrivate::encodeHeaders(const QMultiMap<QString, QVariant> &headers)
 {
     return QUrl::toPercentEncoding(QString::fromLatin1(parameterString(headers)));
 }
@@ -192,7 +192,7 @@ QByteArray QOAuth1SignaturePrivate::encodeHeaders(const QVariantMap &headers)
     \endlist
 */
 QOAuth1Signature::QOAuth1Signature(const QUrl &url, QOAuth1Signature::HttpRequestMethod method,
-                                   const QVariantMap &parameters) :
+                                   const QMultiMap<QString, QVariant> &parameters) :
     d(new QOAuth1SignaturePrivate(url, method, parameters))
 {}
 
@@ -210,7 +210,7 @@ QOAuth1Signature::QOAuth1Signature(const QUrl &url, QOAuth1Signature::HttpReques
 */
 QOAuth1Signature::QOAuth1Signature(const QUrl &url, const QString &clientSharedKey,
                                    const QString &tokenSecret, HttpRequestMethod method,
-                                   const QVariantMap &parameters) :
+                                   const QMultiMap<QString, QVariant> &parameters) :
     d(new QOAuth1SignaturePrivate(url, method, parameters, clientSharedKey, tokenSecret))
 {}
 
@@ -300,7 +300,7 @@ void QOAuth1Signature::setUrl(const QUrl &url)
 /*!
     Returns the parameters.
 */
-QVariantMap QOAuth1Signature::parameters() const
+QMultiMap<QString, QVariant> QOAuth1Signature::parameters() const
 {
     return d->parameters;
 }
@@ -308,7 +308,7 @@ QVariantMap QOAuth1Signature::parameters() const
 /*!
     Sets the \a parameters.
 */
-void QOAuth1Signature::setParameters(const QVariantMap &parameters)
+void QOAuth1Signature::setParameters(const QMultiMap<QString, QVariant> &parameters)
 {
     d->parameters.clear();
     for (auto it = parameters.cbegin(), end = parameters.cend(); it != end; ++it)

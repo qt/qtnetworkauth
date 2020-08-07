@@ -73,7 +73,7 @@ public:
                          QVariantMap *headers,
                          const QUrl &url,
                          QNetworkAccessManager::Operation operation,
-                         const QVariantMap parameters);
+                         const QMultiMap<QString, QVariant> parameters);
 
     QNetworkReply *requestToken(QNetworkAccessManager::Operation operation,
                                 const QUrl &url,
@@ -81,10 +81,10 @@ public:
                                 const QVariantMap &additionalParameters);
 
     QString signatureMethodString() const;
-    QByteArray generateSignature(const QVariantMap &parameters,
+    QByteArray generateSignature(const QMultiMap<QString, QVariant> &parameters,
                                  const QUrl &url,
                                  QNetworkAccessManager::Operation operation) const;
-    QByteArray generateSignature(const QVariantMap &parameters,
+    QByteArray generateSignature(const QMultiMap<QString, QVariant> &parameters,
                                  const QUrl &url,
                                  const QByteArray &verb) const;
     QByteArray formatSignature(const QOAuth1Signature &signature) const;

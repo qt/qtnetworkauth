@@ -121,10 +121,10 @@ public:
         }
     };
 
-    QVariantMap parseAuthorizationString(const QString &string)
+    QMultiMap<QString, QVariant> parseAuthorizationString(const QString &string)
     {
         const QString prefix = QStringLiteral("OAuth ");
-        QVariantMap ret;
+        QMultiMap<QString, QVariant> ret;
         Q_ASSERT(string.startsWith(prefix));
         QRegularExpression rx("(?<key>.[^=]*)=\"(?<value>.[^\"]*)\",?");
         auto globalMatch = rx.globalMatch(string, prefix.size());
@@ -427,7 +427,7 @@ void tst_OAuth1::getToken()
     StringPair tokenReceived;
     QNetworkAccessManager networkAccessManager;
     QNetworkReplyPtr reply;
-    QVariantMap oauthHeaders;
+    QMultiMap<QString, QVariant> oauthHeaders;
 
     WebServer webServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
         oauthHeaders = parseAuthorizationString(request.headers["Authorization"]);
@@ -464,12 +464,12 @@ void tst_OAuth1::getToken()
     });
     QVERIFY(waitForFinish(reply) == Success);
     QCOMPARE(tokenReceived, expectedToken);
-    QCOMPARE(oauthHeaders["oauth_consumer_key"], clientCredentials.first);
-    QCOMPARE(oauthHeaders["oauth_version"], "1.0");
+    QCOMPARE(oauthHeaders.value("oauth_consumer_key"), clientCredentials.first);
+    QCOMPARE(oauthHeaders.value("oauth_version"), "1.0");
     QString expectedSignature;
     {
-        QVariantMap modifiedHeaders = oauthHeaders;
-        modifiedHeaders.insert(parameters);
+        QMultiMap<QString, QVariant> modifiedHeaders = oauthHeaders;
+        modifiedHeaders.insert(QMultiMap<QString, QVariant>(parameters));
         modifiedHeaders.remove("oauth_signature");
         QOAuth1Signature signature(url,
                                    clientCredentials.second,
@@ -488,7 +488,7 @@ void tst_OAuth1::getToken()
             break;
         }
     }
-    QCOMPARE(oauthHeaders["oauth_signature"], expectedSignature);
+    QCOMPARE(oauthHeaders.value("oauth_signature"), expectedSignature);
 }
 
 void tst_OAuth1::prepareRequestSignature_data()
@@ -569,7 +569,7 @@ void tst_OAuth1::prepareRequestSignature()
     o1.prepareRequest(&request, operation, body);
 
     // extract oauth parameters from the headers
-    QVariantMap authArgs;
+    QMultiMap<QString, QVariant> authArgs;
     const auto authHeader = request.rawHeader("Authorization");
     QCOMPARE(authHeader.mid(0, 6), "OAuth ");
     const auto values = authHeader.mid(6).split(',');
@@ -594,7 +594,7 @@ void tst_OAuth1::prepareRequestSignature()
     const auto sigString = QUrl::fromPercentEncoding(authArgs.take(oauthSignature)
                                                      .toByteArray()).toUtf8();
 
-    authArgs.insert(extraParams);
+    authArgs.insert(QMultiMap<QString, QVariant>(extraParams));
     QOAuth1Signature signature(request.url(),
                                consumerSecret,
                                accessKeySecret,

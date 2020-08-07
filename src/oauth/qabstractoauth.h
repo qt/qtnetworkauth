@@ -104,7 +104,7 @@ public:
         Json
     };
 
-    typedef std::function<void(Stage, QVariantMap*)> ModifyParametersFunction;
+    typedef std::function<void(Stage, QMultiMap<QString, QVariant>*)> ModifyParametersFunction;
 
     virtual ~QAbstractOAuth();
 
@@ -173,7 +173,7 @@ protected:
 
     QString callback() const;
 
-    virtual void resourceOwnerAuthorization(const QUrl &url, const QVariantMap &parameters);
+    virtual void resourceOwnerAuthorization(const QUrl &url, const QMultiMap<QString, QVariant> &parameters);
     static QByteArray generateRandomString(quint8 length);
 
 private:

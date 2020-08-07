@@ -336,7 +336,7 @@ void QAbstractOAuthPrivate::addContentTypeHeaders(QNetworkRequest *request)
     }
 }
 
-QUrlQuery QAbstractOAuthPrivate::createQuery(const QVariantMap &parameters)
+QUrlQuery QAbstractOAuthPrivate::createQuery(const QMultiMap<QString, QVariant> &parameters)
 {
     QUrlQuery query;
     for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it)
@@ -606,7 +606,7 @@ QString QAbstractOAuth::callback() const
     URL.
     \sa authorizeWithBrowser()
 */
-void QAbstractOAuth::resourceOwnerAuthorization(const QUrl &url, const QVariantMap &parameters)
+void QAbstractOAuth::resourceOwnerAuthorization(const QUrl &url, const QMultiMap<QString, QVariant> &parameters)
 {
     QUrl u = url;
     u.setQuery(QAbstractOAuthPrivate::createQuery(parameters));
