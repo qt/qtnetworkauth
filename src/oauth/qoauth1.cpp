@@ -173,7 +173,6 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
     }
 
     QNetworkRequest request(url);
-    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
 
     QAbstractOAuth::Stage stage = QAbstractOAuth::Stage::RequestingTemporaryCredentials;
     QVariantMap headers;
