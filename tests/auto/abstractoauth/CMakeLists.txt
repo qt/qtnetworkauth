@@ -4,7 +4,7 @@
 ## tst_abstractoauth Test:
 #####################################################################
 
-qt_add_test(tst_abstractoauth
+qt_internal_add_test(tst_abstractoauth
     SOURCES
         tst_abstractoauth.cpp
     PUBLIC_LIBRARIES

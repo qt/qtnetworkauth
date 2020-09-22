@@ -4,7 +4,7 @@
 ## tst_oauthhttpserverreplyhandler Test:
 #####################################################################
 
-qt_add_test(tst_oauthhttpserverreplyhandler
+qt_internal_add_test(tst_oauthhttpserverreplyhandler
     SOURCES
         tst_oauthhttpserverreplyhandler.cpp
     PUBLIC_LIBRARIES

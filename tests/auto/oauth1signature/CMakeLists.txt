@@ -4,7 +4,7 @@
 ## tst_oauth1signature Test:
 #####################################################################
 
-qt_add_test(tst_oauth1signature
+qt_internal_add_test(tst_oauth1signature
     SOURCES
         tst_oauth1signature.cpp
     PUBLIC_LIBRARIES
