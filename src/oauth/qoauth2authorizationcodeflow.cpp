@@ -157,6 +157,14 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
         Q_EMIT q->expirationAtChanged(expiresAt);
     }
 
+    QVariantMap copy(values);
+    copy.remove(Key::accessToken);
+    copy.remove(Key::expiresIn);
+    copy.remove(Key::refreshToken);
+    copy.remove(Key::scope);
+    copy.remove(Key::tokenType);
+    extraTokens.insert(copy);
+
     setStatus(QAbstractOAuth::Status::Granted);
 }
 
