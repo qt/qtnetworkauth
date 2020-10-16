@@ -21,7 +21,7 @@ find_package(Qt6 COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS Network)
 find_package(Qt6 COMPONENTS NetworkAuth)
 
-add_qt_gui_executable(redditclient
+qt_add_executable(redditclient
     main.cpp
     redditmodel.cpp redditmodel.h
     redditwrapper.cpp redditwrapper.h

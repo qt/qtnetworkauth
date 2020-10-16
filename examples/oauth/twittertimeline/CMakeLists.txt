@@ -20,7 +20,7 @@ find_package(Qt6 COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS Network)
 find_package(Qt6 COMPONENTS NetworkAuth)
 
-add_executable(twittertimeline
+qt_add_executable(twittertimeline
     main.cpp
     twitter.cpp twitter.h
     twitterdialog.ui
