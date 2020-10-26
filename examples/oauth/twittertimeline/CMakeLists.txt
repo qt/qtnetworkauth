@@ -26,6 +26,10 @@ qt_add_executable(twittertimeline
     twitterdialog.ui
     twittertimelinemodel.cpp twittertimelinemodel.h
 )
+set_target_properties(twittertimeline PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE FALSE
+)
 target_link_libraries(twittertimeline PUBLIC
     Qt::Core
     Qt::Network

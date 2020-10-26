@@ -26,6 +26,10 @@ qt_add_executable(redditclient
     redditmodel.cpp redditmodel.h
     redditwrapper.cpp redditwrapper.h
 )
+set_target_properties(redditclient PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+)
 target_link_libraries(redditclient PUBLIC
     Qt::Core
     Qt::Gui
