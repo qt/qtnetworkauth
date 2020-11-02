@@ -127,7 +127,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
                 text.toUtf8() +
                 QByteArrayLiteral("</body></html>");
 
-        const QByteArray htmlSize = QString::number(html.size()).toUtf8();
+        const QByteArray htmlSize = QByteArray::number(html.size());
         const QByteArray replyMessage = QByteArrayLiteral("HTTP/1.0 200 OK \r\n"
                                                           "Content-Type: text/html; "
                                                           "charset=\"utf-8\"\r\n"
@@ -144,7 +144,8 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readMethod(QTcpSocket *s
 {
     bool finished = false;
     while (socket->bytesAvailable() && !finished) {
-        const auto c = socket->read(1).at(0);
+        char c;
+        socket->getChar(&c);
         if (std::isupper(c) && fragment.size() < 6)
             fragment += c;
         else
@@ -176,7 +177,8 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl(QTcpSocket *sock
 {
     bool finished = false;
     while (socket->bytesAvailable() && !finished) {
-        const auto c = socket->read(1).at(0);
+        char c;
+        socket->getChar(&c);
         if (std::isspace(c))
             finished = true;
         else
@@ -204,7 +206,9 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readStatus(QTcpSocket *s
 {
     bool finished = false;
     while (socket->bytesAvailable() && !finished) {
-        fragment += socket->read(1);
+        char c;
+        socket->getChar(&c);
+        fragment += c;
         if (fragment.endsWith("\r\n")) {
             finished = true;
             fragment.resize(fragment.size() - 2);
@@ -227,7 +231,9 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readStatus(QTcpSocket *s
 bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readHeader(QTcpSocket *socket)
 {
     while (socket->bytesAvailable()) {
-        fragment += socket->read(1);
+        char c;
+        socket->getChar(&c);
+        fragment += c;
         if (fragment.endsWith("\r\n")) {
             if (fragment == "\r\n") {
                 state = State::ReadingBody;
