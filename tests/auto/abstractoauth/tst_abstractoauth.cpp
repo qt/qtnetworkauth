@@ -42,10 +42,6 @@ private:
     struct AbstractOAuthPrivate : public QAbstractOAuthPrivate {
         AbstractOAuthPrivate() : QAbstractOAuthPrivate("", QUrl(), QString(), nullptr)
         {}
-
-        void prepareRequestImpl(QNetworkRequest *,
-                                const QByteArray &,
-                                const QByteArray &) override {}
     };
 
     struct AbstractOAuth : QAbstractOAuth {
@@ -62,6 +58,11 @@ private:
             return nullptr;
         }
         void grant() override {}
+
+        void prepareRequest(QNetworkRequest *, const QByteArray &,
+                            const QByteArray & = QByteArray()) override
+        {
+        }
     };
 
 private Q_SLOTS:

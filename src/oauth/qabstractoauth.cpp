@@ -511,6 +511,7 @@ void QAbstractOAuth::setReplyHandler(QAbstractOAuthReplyHandler *handler)
 }
 
 /*!
+    \fn QAbstractOAuth::prepareRequest(QNetworkRequest *request, const QByteArray &verb, const QByteArray &body)
     \since 5.13
 
     Authorizes the given \a request by adding a header and \a body to
@@ -519,13 +520,6 @@ void QAbstractOAuth::setReplyHandler(QAbstractOAuthReplyHandler *handler)
     The \a verb must be a valid HTTP verb and the same as the one that will be
     used to send the \a request.
 */
-void QAbstractOAuth::prepareRequest(QNetworkRequest *request,
-                                    const QByteArray &verb,
-                                    const QByteArray &body)
-{
-    Q_D(QAbstractOAuth);
-    d->prepareRequestImpl(request, verb, body);
-}
 
 /*!
     Returns the current parameter-modification function.

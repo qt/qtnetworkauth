@@ -138,10 +138,8 @@ public:
     Q_INVOKABLE virtual QNetworkReply *deleteResource(
             const QUrl &url, const QVariantMap &parameters = QVariantMap()) = 0;
 
-    // ### Qt 6: Make this method pure virtual and remove the private implementation
-    void prepareRequest(QNetworkRequest *request,
-                        const QByteArray &verb,
-                        const QByteArray &body = QByteArray());
+    virtual void prepareRequest(QNetworkRequest *request, const QByteArray &verb,
+                                const QByteArray &body = QByteArray()) = 0;
 
     ModifyParametersFunction modifyParametersFunction() const;
     void setModifyParametersFunction(const ModifyParametersFunction &modifyParametersFunction);

@@ -91,10 +91,6 @@ public:
 
     QVariantMap createOAuthBaseParams() const;
 
-    void prepareRequestImpl(QNetworkRequest *request,
-                            const QByteArray &verb,
-                            const QByteArray &body) override;
-
     void _q_onTokenRequestError(QNetworkReply::NetworkError error);
     void _q_tokensReceived(const QVariantMap &tokens);
 

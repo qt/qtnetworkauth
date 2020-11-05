@@ -98,6 +98,9 @@ public:
     QString refreshToken() const;
     void setRefreshToken(const QString &refreshToken);
 
+    void prepareRequest(QNetworkRequest *request, const QByteArray &verb,
+                        const QByteArray &body = QByteArray()) override;
+
 Q_SIGNALS:
     void scopeChanged(const QString &scope);
     void userAgentChanged(const QString &userAgent);

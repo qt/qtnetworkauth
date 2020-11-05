@@ -293,11 +293,12 @@ QVariantMap QOAuth1Private::createOAuthBaseParams() const
     return oauthParams;
 }
 
-void QOAuth1Private::prepareRequestImpl(QNetworkRequest *request,
-                                        const QByteArray &verb,
-                                        const QByteArray &body)
+/*!
+    \reimp
+*/
+void QOAuth1::prepareRequest(QNetworkRequest *request, const QByteArray &verb,
+                                 const QByteArray &body)
 {
-    Q_Q(QOAuth1);
     QVariantMap signingParams;
     if (verb == "POST" &&
         request->header(QNetworkRequest::ContentTypeHeader).toByteArray()
@@ -306,7 +307,7 @@ void QOAuth1Private::prepareRequestImpl(QNetworkRequest *request,
         for (const auto &item : query.queryItems(QUrl::FullyDecoded))
             signingParams.insert(item.first, item.second);
     }
-    q->setup(request, signingParams, verb);
+    setup(request, signingParams, verb);
 }
 
 void QOAuth1Private::_q_onTokenRequestError(QNetworkReply::NetworkError error)

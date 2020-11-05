@@ -169,14 +169,17 @@ QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMa
     return request;
 }
 
-void QAbstractOAuth2Private::prepareRequestImpl(QNetworkRequest *request,
-                                                const QByteArray &verb,
-                                                const QByteArray &body)
+/*!
+    \reimp
+*/
+void QAbstractOAuth2::prepareRequest(QNetworkRequest *request, const QByteArray &verb,
+                                     const QByteArray &body)
 {
+    Q_D(QAbstractOAuth2);
     Q_UNUSED(verb);
     Q_UNUSED(body);
-    request->setHeader(QNetworkRequest::UserAgentHeader, userAgent);
-    const QString bearer = bearerFormat.arg(token);
+    request->setHeader(QNetworkRequest::UserAgentHeader, d->userAgent);
+    const QString bearer = d->bearerFormat.arg(d->token);
     request->setRawHeader("Authorization", bearer.toUtf8());
 }
 

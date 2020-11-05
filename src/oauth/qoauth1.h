@@ -87,7 +87,9 @@ public:
     SignatureMethod signatureMethod() const;
     void setSignatureMethod(SignatureMethod value);
 
-public:
+    void prepareRequest(QNetworkRequest *request, const QByteArray &verb,
+                                const QByteArray &body = QByteArray()) override;
+
     QNetworkReply *head(const QUrl &url, const QVariantMap &parameters = QVariantMap()) override;
     QNetworkReply *get(const QUrl &url, const QVariantMap &parameters = QVariantMap()) override;
 
