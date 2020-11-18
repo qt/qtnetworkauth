@@ -30,7 +30,7 @@
     \title Twitter Timeline Example
     \ingroup examples-qtnetworkauth
     \brief Demonstrates authenticating with OAuth to access a Twitter timeline.
-
+    \excludefromcreator
     \image twittertimeline-example.png Screenshot of the example
 
     The \e {Twitter Timeline} example uses OAuth, as supported by
