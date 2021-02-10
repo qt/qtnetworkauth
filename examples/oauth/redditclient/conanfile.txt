@@ -1,0 +1,2 @@
+[requires]
+qtnetworkauth/6.2.0@qt/snapshot
