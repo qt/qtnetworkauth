@@ -129,7 +129,14 @@ class QtNetworkAuth(ConanFile):
     def package_info(self):
         self.cpp_info.libs = ["Qt6NetworkAuth"]  # used for the actual library filename, Ordered list with the library names
 
+        # Build and run environment for qmake, CMake
+        if tools.os_info.is_windows:
+            self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
+        self.env_info.QMAKEPATH.append(self.package_folder)
+        self.env_info.QT_ADDITIONAL_PACKAGES_PREFIX_PATH.append(self.package_folder)
+        self.env_info.Qt6NetworkAuth_DIR = os.path.join(self.package_folder,
+            os.path.normpath("lib/cmake/Qt6NetworkAuth"))
+
     def deploy(self):
         self.copy("*")  # copy from current package
         self.copy_deps("*")  # copy from dependencies
-
