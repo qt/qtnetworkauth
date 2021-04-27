@@ -445,4 +445,6 @@ void QOAuth2AuthorizationCodeFlow::resourceOwnerAuthorization(const QUrl &url,
 
 QT_END_NAMESPACE
 
+#include "moc_qoauth2authorizationcodeflow.cpp"
+
 #endif // QT_NO_HTTP

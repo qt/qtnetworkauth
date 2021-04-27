@@ -110,4 +110,6 @@ QVariantMap QOAuthOobReplyHandler::parseResponse(const QByteArray &response)
 
 QT_END_NAMESPACE
 
+#include "moc_qoauthoobreplyhandler.cpp"
+
 #endif // QT_NO_HTTP

@@ -339,4 +339,6 @@ bool QOAuthHttpServerReplyHandler::isListening() const
 
 QT_END_NAMESPACE
 
+#include "moc_qoauthhttpserverreplyhandler.cpp"
+
 #endif // QT_NO_HTTP
