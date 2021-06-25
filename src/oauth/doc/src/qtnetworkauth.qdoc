@@ -66,7 +66,6 @@
       \li \l {https://tools.ietf.org/html/rfc6749} {OAuth 2}
       \li \l {http://openid.net} {OpenID}
       \li \l {http://openid.net/connect/} {OpenID Connect}
-      \li \l {https://developer.mozilla.org/Persona} {Mozilla Persona}
     \endlist
 
     These systems allow the application developers to create applications which
