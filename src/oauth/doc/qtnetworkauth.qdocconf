@@ -14,10 +14,6 @@ qhp.QtNetworkAuth.virtualFolder       = qtnetworkauth
 qhp.QtNetworkAuth.indexTitle          = Qt Network Authorization
 qhp.QtNetworkAuth.indexRoot           =
 
-qhp.QtNetworkAuth.filterAttributes    = qtnetworkauth $QT_VERSION qtrefdoc
-qhp.QtNetworkAuth.customFilters.Qt.name = QtNetworkAuthorization $QT_VERSION
-qhp.QtNetworkAuth.customFilters.Qt.filterAttributes = qtnetworkauth $QT_VERSION
-
 qhp.QtNetworkAuth.subprojects         = classes
 qhp.QtNetworkAuth.subprojects.classes.title = C++ Classes
 qhp.QtNetworkAuth.subprojects.classes.indexTitle = Qt Network Authorization C++ Classes
