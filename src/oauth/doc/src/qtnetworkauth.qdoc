@@ -72,8 +72,8 @@
     There are several authentication systems, including:
 
     \list
-      \li \l {https://tools.ietf.org/html/rfc5849} {OAuth 1}
-      \li \l {https://tools.ietf.org/html/rfc6749} {OAuth 2}
+      \li \l {https://datatracker.ietf.org/doc/html/rfc5849} {OAuth 1}
+      \li \l {https://datatracker.ietf.org/doc/html/rfc6749} {OAuth 2}
       \li \l {http://openid.net} {OpenID}
       \li \l {http://openid.net/connect/} {OpenID Connect}
     \endlist
