@@ -55,9 +55,9 @@ QT_BEGIN_NAMESPACE
 
 class QOAuth2AuthorizationCodeFlowPrivate : public QAbstractOAuth2Private
 {
+public:
     Q_DECLARE_PUBLIC(QOAuth2AuthorizationCodeFlow)
 
-public:
     QOAuth2AuthorizationCodeFlowPrivate(const QUrl &authorizationUrl,
                                         const QUrl &accessTokenUrl,
                                         const QString &clientIdentifier,

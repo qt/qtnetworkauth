@@ -62,9 +62,9 @@ class QOAuth1Signature;
 
 class QOAuth1Private : public QAbstractOAuthPrivate
 {
+public:
     Q_DECLARE_PUBLIC(QOAuth1)
 
-public:
     QOAuth1Private(const QPair<QString, QString> &clientCredentials,
                    QNetworkAccessManager *networkAccessManager = nullptr);
 
