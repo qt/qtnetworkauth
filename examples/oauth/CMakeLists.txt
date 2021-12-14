@@ -1,6 +1,6 @@
 # Generated from oauth.pro.
 
 if(TARGET Qt::Widgets)
-    add_subdirectory(twittertimeline)
-    add_subdirectory(redditclient)
+    qt_internal_add_example(twittertimeline)
+    qt_internal_add_example(redditclient)
 endif()
