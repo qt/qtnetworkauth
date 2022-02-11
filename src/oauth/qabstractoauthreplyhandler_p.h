@@ -42,6 +42,7 @@
 #define QABSTRACTOAUTHREPLYHANDLER_P_H
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qglobal_p.h>
 
 Q_DECLARE_LOGGING_CATEGORY(lcReplyHandler)
 
