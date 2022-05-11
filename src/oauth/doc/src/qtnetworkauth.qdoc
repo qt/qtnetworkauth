@@ -49,7 +49,7 @@
     the Qt6 package:
 
     \badcode
-    find_package(Qt6 COMPONENTS NetworkAuth REQUIRED)
+    find_package(Qt6 REQUIRED COMPONENTS NetworkAuth)
     target_link_libraries(mytarget PRIVATE Qt6::NetworkAuth)
     \endcode
 
