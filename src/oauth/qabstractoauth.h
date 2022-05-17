@@ -38,6 +38,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
+#include <QtCore/qmap.h>
 
 #include <functional>
 
