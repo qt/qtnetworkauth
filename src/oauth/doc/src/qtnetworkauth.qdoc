@@ -85,10 +85,6 @@
     suspicious applications. Instead, the credentials are entered in a known
     and trusted web interface.
 
-    \section1 Module Evolution
-    \l{Changes to Qt Network Authorization} lists important changes in
-    the module API and functionality that were done for the Qt 6 series of Qt.
-
     \section1 Licenses
 
     Qt Network Authorization is available under commercial licenses from
