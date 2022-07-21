@@ -444,7 +444,7 @@ void tst_OAuth1::getToken()
     QString expectedSignature;
     {
         QMultiMap<QString, QVariant> modifiedHeaders = oauthHeaders;
-        modifiedHeaders.insert(QMultiMap<QString, QVariant>(parameters));
+        modifiedHeaders.unite(QMultiMap<QString, QVariant>(parameters));
         modifiedHeaders.remove("oauth_signature");
         QOAuth1Signature signature(url,
                                    clientCredentials.second,
@@ -569,7 +569,7 @@ void tst_OAuth1::prepareRequestSignature()
     const auto sigString = QUrl::fromPercentEncoding(authArgs.take(oauthSignature)
                                                      .toByteArray()).toUtf8();
 
-    authArgs.insert(QMultiMap<QString, QVariant>(extraParams));
+    authArgs.unite(QMultiMap<QString, QVariant>(extraParams));
     QOAuth1Signature signature(request.url(),
                                consumerSecret,
                                accessKeySecret,
