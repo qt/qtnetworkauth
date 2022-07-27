@@ -13,7 +13,7 @@ qt_internal_add_test(tst_oauth2
         tst_oauth2.cpp
     INCLUDE_DIRECTORIES
         ../shared
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::CorePrivate
         Qt::Network
         Qt::NetworkAuth
