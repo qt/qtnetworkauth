@@ -13,6 +13,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QSslConfiguration;
 class QHttpMultiPart;
 class QAbstractOAuth2Private;
 class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
@@ -72,6 +73,11 @@ public:
     QString refreshToken() const;
     void setRefreshToken(const QString &refreshToken);
 
+#ifndef QT_NO_SSL
+    QSslConfiguration sslConfiguration() const;
+    void setSslConfiguration(const QSslConfiguration &configuration);
+#endif
+
     void prepareRequest(QNetworkRequest *request, const QByteArray &verb,
                         const QByteArray &body = QByteArray()) override;
 
@@ -83,6 +89,9 @@ Q_SIGNALS:
     void stateChanged(const QString &state);
     void expirationAtChanged(const QDateTime &expiration);
     void refreshTokenChanged(const QString &refreshToken);
+#ifndef QT_NO_SSL
+    void sslConfigurationChanged(const QSslConfiguration &configuration);
+#endif
 
     void error(const QString &error, const QString &errorDescription, const QUrl &uri);
     void authorizationCallbackReceived(const QVariantMap &data);

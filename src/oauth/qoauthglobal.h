@@ -5,6 +5,7 @@
 #define QOAUTHGLOBAL_H
 
 #include <QtCore/qglobal.h>
+#include <QtNetwork/qtnetworkglobal.h>
 
 QT_BEGIN_NAMESPACE
 

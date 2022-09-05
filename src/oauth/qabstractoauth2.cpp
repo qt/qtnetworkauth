@@ -18,6 +18,10 @@
 #include <QtNetwork/qnetworkaccessmanager.h>
 #include <QtNetwork/qhttpmultipart.h>
 
+#ifndef QT_NO_SSL
+#include <QtNetwork/qsslconfiguration.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -480,6 +484,52 @@ void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)
     }
 }
 
+#ifndef QT_NO_SSL
+/*!
+    \since 6.5
+
+    Returns the TLS configuration which can be used to establish a mutual TLS
+    connection between the client and the Authorization Server.
+
+    \sa setSslConfiguration(), sslConfigurationChanged()
+*/
+QSslConfiguration QAbstractOAuth2::sslConfiguration() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->sslConfiguration.value_or(QSslConfiguration());
+}
+
+/*!
+    \since 6.5
+
+    Sets the TLS configuration \a configuration which can be used to establish
+    a mutual TLS connection between the client and the Authorization Server.
+
+    \sa sslConfiguration(), sslConfigurationChanged()
+*/
+void QAbstractOAuth2::setSslConfiguration(const QSslConfiguration &configuration)
+{
+    Q_D(QAbstractOAuth2);
+    const bool configChanged = !d->sslConfiguration || (*d->sslConfiguration != configuration);
+    if (configChanged) {
+        d->sslConfiguration = configuration;
+        Q_EMIT sslConfigurationChanged(configuration);
+    }
+}
+
+/*!
+    \fn void QAbstractOAuth2::sslConfigurationChanged(const QSslConfiguration &configuration)
+    \since 6.5
+
+    The signal is emitted when the TLS configuration has changed.
+    The \a configuration parameter contains the new TLS configuration.
+
+    \sa sslConfiguration(), setSslConfiguration()
+*/
+#endif // !QT_NO_SSL
+
 QT_END_NAMESPACE
+
+#include "moc_qabstractoauth2.cpp"
 
 #endif // QT_NO_HTTP

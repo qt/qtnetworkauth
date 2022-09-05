@@ -295,6 +295,10 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
 
     QMultiMap<QString, QVariant> parameters;
     QNetworkRequest request(d->accessTokenUrl);
+#ifndef QT_NO_SSL
+    if (d->sslConfiguration && !d->sslConfiguration->isNull())
+        request.setSslConfiguration(*d->sslConfiguration);
+#endif
     QUrlQuery query;
     parameters.insert(Key::grantType, QStringLiteral("refresh_token"));
     parameters.insert(Key::refreshToken, d->refreshToken);
@@ -369,6 +373,10 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
 
     QMultiMap<QString, QVariant> parameters;
     QNetworkRequest request(d->accessTokenUrl);
+#ifndef QT_NO_SSL
+    if (d->sslConfiguration && !d->sslConfiguration->isNull())
+        request.setSslConfiguration(*d->sslConfiguration);
+#endif
     QUrlQuery query;
     parameters.insert(Key::grantType, QStringLiteral("authorization_code"));
     parameters.insert(Key::code, QUrl::toPercentEncoding(code));

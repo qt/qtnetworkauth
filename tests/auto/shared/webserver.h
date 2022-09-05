@@ -15,6 +15,7 @@ class WebServer : public QTcpServer
 public:
     class HttpRequest {
         friend class WebServer;
+        friend class TlsWebServer;
 
         quint16 port = 0;
         enum class State {

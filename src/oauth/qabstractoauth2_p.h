@@ -17,6 +17,8 @@
 
 #ifndef QT_NO_HTTP
 
+#include <optional>
+
 #include <private/qabstractoauth_p.h>
 
 #include <QtNetworkAuth/qoauthglobal.h>
@@ -52,6 +54,9 @@ public:
     const QString bearerFormat = QStringLiteral("Bearer %1"); // Case sensitive
     QDateTime expiresAt;
     QString refreshToken;
+#ifndef QT_NO_SSL
+    std::optional<QSslConfiguration> sslConfiguration;
+#endif
 
     struct OAuth2KeyString
     {
