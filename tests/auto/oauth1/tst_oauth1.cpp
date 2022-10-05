@@ -80,7 +80,7 @@ public:
                 setter(&expectedValue, &obj);
                 QVERIFY(previous != expectedValue); // To check if the value was modified
             }
-            QCOMPARE(spy.count(), setters.size()); // The signal should be emitted
+            QCOMPARE(spy.size(), setters.size()); // The signal should be emitted
         }
 
     public:
@@ -180,11 +180,11 @@ int tst_OAuth1::waitForFinish(QNetworkReplyPtr &reply)
     QSignalSpy spy(reply.data(), SIGNAL(downloadProgress(qint64,qint64)));
     while (!reply->isFinished()) {
         QTimer::singleShot(5000, loop, SLOT(quit()));
-        if (loop->exec() == Timeout && count == spy.count() && !reply->isFinished()) {
+        if (loop->exec() == Timeout && count == spy.size() && !reply->isFinished()) {
             returnCode = Timeout;
             break;
         }
-        count = spy.count();
+        count = spy.size();
     }
     delete loop;
     loop = nullptr;
@@ -639,18 +639,18 @@ void tst_OAuth1::grant()
         QSignalSpy clientIdentifierSpy(&o1, &QOAuth1::clientIdentifierChanged);
         QSignalSpy clientSharedSecretSpy(&o1, &QOAuth1::clientSharedSecretChanged);
         o1.setClientCredentials(consumerKey, consumerSecret);
-        QCOMPARE(clientIdentifierSpy.count(), 1);
-        QCOMPARE(clientSharedSecretSpy.count(), 1);
+        QCOMPARE(clientIdentifierSpy.size(), 1);
+        QCOMPARE(clientSharedSecretSpy.size(), 1);
     }
     {
         QSignalSpy spy(&o1, &QOAuth1::temporaryCredentialsUrlChanged);
         o1.setTemporaryCredentialsUrl(requestTokenUrl);
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.size(), 1);
     }
     {
         QSignalSpy spy(&o1, &QOAuth1::tokenCredentialsUrlChanged);
         o1.setTokenCredentialsUrl(accessTokenUrl);
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.size(), 1);
     }
     connect(&o1, &QAbstractOAuth::statusChanged, [&](QAbstractOAuth::Status status) {
         if (status == QAbstractOAuth::Status::TemporaryCredentialsReceived) {
@@ -676,7 +676,7 @@ void tst_OAuth1::grant()
     o1.grant();
     eventLoop.exec();
     QVERIFY(tokenReceived);
-    QCOMPARE(grantSignalSpy.count(), 1);
+    QCOMPARE(grantSignalSpy.size(), 1);
     QCOMPARE(o1.status(), QAbstractOAuth::Status::Granted);
 }
 

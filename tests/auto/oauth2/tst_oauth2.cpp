@@ -92,7 +92,7 @@ void tst_OAuth2::getToken()
     });
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.grant();
-    QTRY_COMPARE(grantedSpy.count(), 1);
+    QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("token"));
 }
 
@@ -117,7 +117,7 @@ void tst_OAuth2::refreshToken()
     oauth2.setRefreshToken(QLatin1String("refresh_token"));
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.refreshAccessToken();
-    QTRY_COMPARE(grantedSpy.count(), 1);
+    QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("token"));
 }
 
@@ -155,11 +155,11 @@ void tst_OAuth2::getAndRefreshToken()
     });
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.grant();
-    QTRY_COMPARE(grantedSpy.count(), 1);
+    QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("authorization_code"));
     grantedSpy.clear();
     oauth2.refreshAccessToken();
-    QTRY_COMPARE(grantedSpy.count(), 1);
+    QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("refresh_token"));
 }
 
@@ -282,7 +282,7 @@ void tst_OAuth2::tlsAuthentication()
 
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.grant();
-    QTRY_COMPARE(grantedSpy.count(), 1);
+    QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("token"));
 }
 #endif // !QT_NO_SSL

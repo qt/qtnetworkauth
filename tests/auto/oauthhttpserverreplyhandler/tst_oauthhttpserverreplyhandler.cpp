@@ -43,7 +43,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     QNetworkReplyPtr reply;
     reply.reset(networkAccessManager.get(request));
     eventLoop.exec();
-    QCOMPARE(count, query.queryItems().count());
+    QCOMPARE(count, query.queryItems().size());
 }
 
 QTEST_MAIN(tst_QOAuthHttpServerReplyHandler)
