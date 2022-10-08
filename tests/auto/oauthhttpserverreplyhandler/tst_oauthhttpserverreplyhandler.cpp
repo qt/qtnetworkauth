@@ -33,7 +33,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
             QVERIFY(parameters.contains(item.first));
             QCOMPARE(parameters[item.first].toString(), item.second);
         }
-        count = parameters.count();
+        count = parameters.size();
         eventLoop.quit();
     });
 
