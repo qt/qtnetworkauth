@@ -74,7 +74,7 @@ void RedditModel::update()
             return;
 
         beginInsertRows(QModelIndex(), threads.size(), childrenArray.size() + threads.size() - 1);
-        for (const auto childValue : qAsConst(childrenArray)) {
+        for (const auto childValue : std::as_const(childrenArray)) {
             Q_ASSERT(childValue.isObject());
             threads.append(childValue.toObject());
         }
