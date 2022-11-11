@@ -33,7 +33,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
             QVERIFY(parameters.contains(item.first));
             QCOMPARE(parameters[item.first].toString(), item.second);
         }
-        count = parameters.count();
+        count = parameters.size();
         eventLoop.quit();
     });
 
@@ -43,7 +43,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     QNetworkReplyPtr reply;
     reply.reset(networkAccessManager.get(request));
     eventLoop.exec();
-    QCOMPARE(count, query.queryItems().count());
+    QCOMPARE(count, query.queryItems().size());
 }
 
 QTEST_MAIN(tst_QOAuthHttpServerReplyHandler)
