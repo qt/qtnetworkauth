@@ -488,7 +488,7 @@ void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)
 /*!
     \since 6.5
 
-    Returns the TLS configuration which can be used to establish a mutual TLS
+    Returns the TLS configuration to be used when establishing a mutual TLS
     connection between the client and the Authorization Server.
 
     \sa setSslConfiguration(), sslConfigurationChanged()
@@ -502,7 +502,7 @@ QSslConfiguration QAbstractOAuth2::sslConfiguration() const
 /*!
     \since 6.5
 
-    Sets the TLS configuration \a configuration which can be used to establish
+    Sets the TLS \a configuration to be used when establishing
     a mutual TLS connection between the client and the Authorization Server.
 
     \sa sslConfiguration(), sslConfigurationChanged()
