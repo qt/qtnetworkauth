@@ -25,6 +25,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 /*!
     \class QOAuth1
     \inmodule QtNetworkAuth
@@ -74,18 +76,18 @@ QT_BEGIN_NAMESPACE
     {PLAINTEXT} signature method.
 */
 
-using Key = QOAuth1Private::OAuth1KeyString;
-const QString Key::oauthCallback =           QStringLiteral("oauth_callback");
-const QString Key::oauthCallbackConfirmed =  QStringLiteral("oauth_callback_confirmed");
-const QString Key::oauthConsumerKey =        QStringLiteral("oauth_consumer_key");
-const QString Key::oauthNonce =              QStringLiteral("oauth_nonce");
-const QString Key::oauthSignature =          QStringLiteral("oauth_signature");
-const QString Key::oauthSignatureMethod =    QStringLiteral("oauth_signature_method");
-const QString Key::oauthTimestamp =          QStringLiteral("oauth_timestamp");
-const QString Key::oauthToken =              QStringLiteral("oauth_token");
-const QString Key::oauthTokenSecret =        QStringLiteral("oauth_token_secret");
-const QString Key::oauthVerifier =           QStringLiteral("oauth_verifier");
-const QString Key::oauthVersion =            QStringLiteral("oauth_version");
+using OAuth1 = QOAuth1Private::OAuth1KeyString;
+const QString OAuth1::oauthCallback =           u"oauth_callback"_s;
+const QString OAuth1::oauthCallbackConfirmed =  u"oauth_callback_confirmed"_s;
+const QString OAuth1::oauthConsumerKey =        u"oauth_consumer_key"_s;
+const QString OAuth1::oauthNonce =              u"oauth_nonce"_s;
+const QString OAuth1::oauthSignature =          u"oauth_signature"_s;
+const QString OAuth1::oauthSignatureMethod =    u"oauth_signature_method"_s;
+const QString OAuth1::oauthTimestamp =          u"oauth_timestamp"_s;
+const QString OAuth1::oauthToken =              u"oauth_token"_s;
+const QString OAuth1::oauthTokenSecret =        u"oauth_token_secret"_s;
+const QString OAuth1::oauthVerifier =           u"oauth_verifier"_s;
+const QString OAuth1::oauthVersion =            u"oauth_version"_s;
 
 QOAuth1Private::QOAuth1Private(const QPair<QString, QString> &clientCredentials,
                                QNetworkAccessManager *networkAccessManager) :
@@ -103,11 +105,11 @@ void QOAuth1Private::appendCommonHeaders(QVariantMap *headers)
 {
     const auto currentDateTime = QDateTime::currentDateTimeUtc();
 
-    headers->insert(Key::oauthNonce, QOAuth1::nonce());
-    headers->insert(Key::oauthConsumerKey, clientIdentifier);
-    headers->insert(Key::oauthTimestamp, QString::number(currentDateTime.toSecsSinceEpoch()));
-    headers->insert(Key::oauthVersion, oauthVersion);
-    headers->insert(Key::oauthSignatureMethod, signatureMethodString().toUtf8());
+    headers->insert(OAuth1::oauthNonce, QOAuth1::nonce());
+    headers->insert(OAuth1::oauthConsumerKey, clientIdentifier);
+    headers->insert(OAuth1::oauthTimestamp, QString::number(currentDateTime.toSecsSinceEpoch()));
+    headers->insert(OAuth1::oauthVersion, oauthVersion);
+    headers->insert(OAuth1::oauthSignatureMethod, signatureMethodString().toUtf8());
 }
 
 void QOAuth1Private::appendSignature(QAbstractOAuth::Stage stage,
@@ -124,7 +126,7 @@ void QOAuth1Private::appendSignature(QAbstractOAuth::Stage stage,
             modifyParametersFunction(stage, &allParameters);
         signature = generateSignature(allParameters, url, operation);
     }
-    headers->insert(Key::oauthSignature, signature);
+    headers->insert(OAuth1::oauthSignature, signature);
 }
 
 QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation operation,
@@ -161,7 +163,7 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
             remainingParameters.insert(key, value);
     }
     if (!token.first.isEmpty()) {
-        headers.insert(Key::oauthToken, token.first);
+        headers.insert(OAuth1::oauthToken, token.first);
         stage = QAbstractOAuth::Stage::RequestingAccessToken;
     }
     appendSignature(stage, &headers, url, operation, remainingParameters);
@@ -257,12 +259,12 @@ QVariantMap QOAuth1Private::createOAuthBaseParams() const
 
     const auto currentDateTime = QDateTime::currentDateTimeUtc();
 
-    oauthParams.insert(Key::oauthConsumerKey, clientIdentifier);
-    oauthParams.insert(Key::oauthVersion, QStringLiteral("1.0"));
-    oauthParams.insert(Key::oauthToken, token);
-    oauthParams.insert(Key::oauthSignatureMethod, signatureMethodString());
-    oauthParams.insert(Key::oauthNonce, QOAuth1::nonce());
-    oauthParams.insert(Key::oauthTimestamp, QString::number(currentDateTime.toSecsSinceEpoch()));
+    oauthParams.insert(OAuth1::oauthConsumerKey, clientIdentifier);
+    oauthParams.insert(OAuth1::oauthVersion, QStringLiteral("1.0"));
+    oauthParams.insert(OAuth1::oauthToken, token);
+    oauthParams.insert(OAuth1::oauthSignatureMethod, signatureMethodString());
+    oauthParams.insert(OAuth1::oauthNonce, QOAuth1::nonce());
+    oauthParams.insert(OAuth1::oauthTimestamp, QString::number(currentDateTime.toSecsSinceEpoch()));
 
     return oauthParams;
 }
@@ -304,11 +306,11 @@ void QOAuth1Private::_q_tokensReceived(const QVariantMap &tokens)
     if (tokenRequested) // 'Reset' tokenRequested now that we've gotten new tokens
         tokenRequested = false;
 
-    QPair<QString, QString> credential(tokens.value(Key::oauthToken).toString(),
-                                       tokens.value(Key::oauthTokenSecret).toString());
+    QPair<QString, QString> credential(tokens.value(OAuth1::oauthToken).toString(),
+                                       tokens.value(OAuth1::oauthTokenSecret).toString());
     switch (status) {
     case QAbstractOAuth::Status::NotAuthenticated:
-        if (tokens.value(Key::oauthCallbackConfirmed, true).toBool()) {
+        if (tokens.value(OAuth1::oauthCallbackConfirmed, true).toBool()) {
             q->setTokenCredentials(credential);
             setStatus(QAbstractOAuth::Status::TemporaryCredentialsReceived);
         } else {
@@ -699,7 +701,7 @@ QNetworkReply *QOAuth1::requestTemporaryCredentials(QNetworkAccessManager::Opera
     d->token.clear();
     d->tokenSecret.clear();
     QVariantMap allParameters(parameters);
-    allParameters.insert(Key::oauthCallback, callback());
+    allParameters.insert(OAuth1::oauthCallback, callback());
     return d->requestToken(operation, url, qMakePair(d->token, d->tokenSecret), allParameters);
 }
 
@@ -741,7 +743,7 @@ void QOAuth1::setup(QNetworkRequest *request,
         QMultiMap<QString, QVariant> parameters(oauthParams);
         parameters.unite(QMultiMap<QString, QVariant>(signingParameters));
         const auto signature = d->generateSignature(parameters, request->url(), operation);
-        oauthParams.insert(Key::oauthSignature, signature);
+        oauthParams.insert(OAuth1::oauthSignature, signature);
     }
 
     if (operation == QNetworkAccessManager::GetOperation) {
@@ -782,7 +784,7 @@ void QOAuth1::setup(QNetworkRequest *request, const QVariantMap &signingParamete
         QMultiMap<QString, QVariant> parameters(oauthParams);
         parameters.unite(QMultiMap<QString, QVariant>(signingParameters));
         const auto signature = d->generateSignature(parameters, request->url(), operationVerb);
-        oauthParams.insert(Key::oauthSignature, signature);
+        oauthParams.insert(OAuth1::oauthSignature, signature);
     }
 
     request->setRawHeader("Authorization", generateAuthorizationHeader(oauthParams));
@@ -839,8 +841,6 @@ QByteArray QOAuth1::generateAuthorizationHeader(const QVariantMap &oauthParams)
 void QOAuth1::grant()
 {
     Q_D(QOAuth1);
-    using Key = QOAuth1Private::OAuth1KeyString;
-
     if (d->temporaryCredentialsUrl.isEmpty()) {
         qCWarning(d->loggingCategory, "requestTokenUrl is empty");
         return;
@@ -867,7 +867,7 @@ void QOAuth1::grant()
                 connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
             } else {
                 QMultiMap<QString, QVariant> parameters;
-                parameters.insert(Key::oauthToken, d->token);
+                parameters.insert(OAuth1::oauthToken, d->token);
                 if (d->modifyParametersFunction)
                     d->modifyParametersFunction(Stage::RequestingAuthorization, &parameters);
 
@@ -885,10 +885,10 @@ void QOAuth1::grant()
     if (httpReplyHandler) {
         connect(httpReplyHandler, &QOAuthHttpServerReplyHandler::callbackReceived, [&](
                 const QVariantMap &values) {
-            QString verifier = values.value(Key::oauthVerifier).toString();
+            QString verifier = values.value(OAuth1::oauthVerifier).toString();
             if (verifier.isEmpty()) {
                 qCWarning(d->loggingCategory, "%s not found in the callback",
-                          qPrintable(Key::oauthVerifier));
+                          qPrintable(OAuth1::oauthVerifier));
                 return;
             }
             continueGrantWithVerifier(verifier);
@@ -912,7 +912,7 @@ void QOAuth1::continueGrantWithVerifier(const QString &verifier)
     Q_D(QOAuth1);
 
     QVariantMap parameters;
-    parameters.insert(Key::oauthVerifier, verifier);
+    parameters.insert(OAuth1::oauthVerifier, verifier);
     auto reply = requestTokenCredentials(QNetworkAccessManager::PostOperation,
                                          d->tokenCredentialsUrl,
                                          qMakePair(d->token, d->tokenSecret),

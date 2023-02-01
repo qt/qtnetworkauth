@@ -24,6 +24,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 /*!
     \class QAbstractOAuth2
     \inmodule QtNetworkAuth
@@ -91,23 +93,23 @@ QT_BEGIN_NAMESPACE
     from the server.
 */
 
-using Key = QAbstractOAuth2Private::OAuth2KeyString;
-const QString Key::accessToken =        QStringLiteral("access_token");
-const QString Key::apiKey =             QStringLiteral("api_key");
-const QString Key::clientIdentifier =   QStringLiteral("client_id");
-const QString Key::clientSharedSecret = QStringLiteral("client_secret");
-const QString Key::code =               QStringLiteral("code");
-const QString Key::error =              QStringLiteral("error");
-const QString Key::errorDescription =   QStringLiteral("error_description");
-const QString Key::errorUri =           QStringLiteral("error_uri");
-const QString Key::expiresIn =          QStringLiteral("expires_in");
-const QString Key::grantType =          QStringLiteral("grant_type");
-const QString Key::redirectUri =        QStringLiteral("redirect_uri");
-const QString Key::refreshToken =       QStringLiteral("refresh_token");
-const QString Key::responseType =       QStringLiteral("response_type");
-const QString Key::scope =              QStringLiteral("scope");
-const QString Key::state =              QStringLiteral("state");
-const QString Key::tokenType =          QStringLiteral("token_type");
+using OAuth2 = QAbstractOAuth2Private::OAuth2KeyString;
+const QString OAuth2::accessToken =        u"access_token"_s;
+const QString OAuth2::apiKey =             u"api_key"_s;
+const QString OAuth2::clientIdentifier =   u"client_id"_s;
+const QString OAuth2::clientSharedSecret = u"client_secret"_s;
+const QString OAuth2::code =               u"code"_s;
+const QString OAuth2::error =              u"error"_s;
+const QString OAuth2::errorDescription =   u"error_description"_s;
+const QString OAuth2::errorUri =           u"error_uri"_s;
+const QString OAuth2::expiresIn =          u"expires_in"_s;
+const QString OAuth2::grantType =          u"grant_type"_s;
+const QString OAuth2::redirectUri =        u"redirect_uri"_s;
+const QString OAuth2::refreshToken =       u"refresh_token"_s;
+const QString OAuth2::responseType =       u"response_type"_s;
+const QString OAuth2::scope =              u"scope"_s;
+const QString OAuth2::state =              u"state"_s;
+const QString OAuth2::tokenType =          u"token_type"_s;
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
@@ -211,7 +213,7 @@ QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap 
     }
     QUrl ret = url;
     QUrlQuery query(ret.query());
-    query.addQueryItem(Key::accessToken, d->token);
+    query.addQueryItem(OAuth2::accessToken, d->token);
     for (auto it = parameters.begin(), end = parameters.end(); it != end ;++it)
         query.addQueryItem(it.key(), it.value().toString());
     ret.setQuery(query);
