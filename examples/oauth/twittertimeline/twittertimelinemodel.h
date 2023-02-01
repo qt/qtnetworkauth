@@ -1,6 +1,9 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#ifndef TWITTERTIMELINEMODEL_H
+#define TWITTERTIMELINEMODEL_H
+
 #include "twitter.h"
 
 #include <QtCore>
@@ -42,3 +45,5 @@ private:
     QList<Tweet> tweets;
     Twitter twitter;
 };
+
+#endif // TWITTERTIMELINEMODEL_H
