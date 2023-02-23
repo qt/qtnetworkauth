@@ -376,10 +376,8 @@ void QOAuth1Signature::setTokenSecret(const QString &secret)
 */
 QByteArray QOAuth1Signature::hmacSha1() const
 {
-    QMessageAuthenticationCode code(QCryptographicHash::Sha1);
-    code.setKey(d->secret());
-    code.addData(d->signatureBaseString());
-    return code.result();
+    return QMessageAuthenticationCode::hash(d->signatureBaseString(), d->secret(),
+                                            QCryptographicHash::Sha1);
 }
 
 /*!
