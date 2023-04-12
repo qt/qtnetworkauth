@@ -15,6 +15,7 @@ project(QtNetworkAuth
 
 find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core Network) # special case
 find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Widgets) # special case
+qt_internal_project_setup()
 
 if(NOT TARGET Qt::Network)
     message(NOTICE "Skipping the build as the condition \"TARGET Qt::Network\" is not met.")
