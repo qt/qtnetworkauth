@@ -13,6 +13,8 @@
 #include "webserver.h"
 #include "tlswebserver.h"
 
+using namespace Qt::StringLiterals;
+
 class tst_OAuth2 : public QObject
 {
     Q_OBJECT
@@ -22,6 +24,8 @@ private Q_SLOTS:
     void getToken();
     void refreshToken();
     void getAndRefreshToken();
+    void tokenRequestErrors();
+    void authorizationErrors();
     void prepareRequest();
 #ifndef QT_NO_SSL
     void setSslConfig();
@@ -39,13 +43,19 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
         return QLatin1String("test");
     }
 
+    QAbstractOAuth::Error aTokenRequestError = QAbstractOAuth::Error::NoError;
+
     void networkReplyFinished(QNetworkReply *reply) override
     {
         QVariantMap data;
         const auto items = QUrlQuery(reply->readAll()).queryItems();
         for (const auto &pair : items)
             data.insert(pair.first, pair.second);
-        Q_EMIT tokensReceived(data);
+
+        if (aTokenRequestError == QAbstractOAuth::Error::NoError)
+            emit tokensReceived(data);
+        else
+            emit tokenRequestError(aTokenRequestError, "a token request error");
     }
 
     void emitCallbackReceived(const QVariantMap &data)
@@ -56,11 +66,97 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
 
 void tst_OAuth2::initTestCase()
 {
+    // QLoggingCategory::setFilterRules(QStringLiteral("qt.networkauth* = true"));
     testDataDir = QFileInfo(QFINDTESTDATA("certs")).absolutePath();
     if (testDataDir.isEmpty())
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+}
+
+void tst_OAuth2::authorizationErrors()
+{
+    // This tests failures in authorization stage. For this test we don't need a web server
+    // as we emit the final (failing) callbackReceived directly.
+    // Helper to catch the expected warning messages:
+    constexpr auto expectWarning = [](){
+        static const QRegularExpression authStageWarning{"Authorization stage:.*"};
+        QTest::ignoreMessage(QtWarningMsg, authStageWarning);
+    };
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl(QUrl{"authorization"_L1});
+    oauth2.setAccessTokenUrl(QUrl{"accessToken"_L1});
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+
+    QVariantMap callbackParameters;
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            &oauth2, [&](const QUrl& /* url */) {
+        replyHandler.emitCallbackReceived(callbackParameters);
+    });
+
+    QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
+    QSignalSpy errorSpy(&oauth2, &QAbstractOAuth2::error);
+    QSignalSpy statusSpy(&oauth2, &QAbstractOAuth2::statusChanged);
+    auto clearSpies = [&](){
+        requestFailedSpy.clear();
+        errorSpy.clear();
+        statusSpy.clear();
+    };
+
+    // Test error response from the authorization server (RFC 6749 section 5.2)
+    callbackParameters = {{"error"_L1, "invalid_grant"_L1},
+                          {"error_description"_L1, "The error description"_L1},
+                          {"error_uri"_L1, "The error URI"_L1}};
+    expectWarning();
+    oauth2.grant();
+    QTRY_COMPARE(errorSpy.count(), 1);
+    QTRY_COMPARE(requestFailedSpy.count(), 1);
+    QCOMPARE(errorSpy.first().at(0).toString(), "invalid_grant"_L1);
+    QCOMPARE(errorSpy.first().at(1).toString(), "The error description"_L1);
+    QCOMPARE(errorSpy.first().at(2).toString(), "The error URI"_L1);
+    QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
+             QAbstractOAuth::Error::ServerError);
+    QVERIFY(statusSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
+
+    // Test not providing authorization code
+    clearSpies();
+    callbackParameters = {{"state"_L1, "thestate"_L1}};
+    expectWarning();
+    oauth2.grant();
+    QTRY_COMPARE(requestFailedSpy.count(), 1);
+    QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
+             QAbstractOAuth::Error::OAuthTokenNotFoundError);
+    QCOMPARE(errorSpy.count(), 0);
+    QVERIFY(statusSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
+
+    // Test not providing a state
+    clearSpies();
+    callbackParameters = {{"code"_L1, "thecode"_L1}};
+    expectWarning();
+    oauth2.grant();
+    QTRY_COMPARE(requestFailedSpy.count(), 1);
+    QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
+             QAbstractOAuth::Error::ServerError);
+    QCOMPARE(errorSpy.count(), 0);
+    QVERIFY(statusSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
+
+    // Test state mismatch (here we use "thestate" while the actual, expected, state is a
+    // random generated string varying each run
+    clearSpies();
+    callbackParameters = {{"code"_L1, "thecode"_L1}, {"state"_L1, "thestate"_L1}};
+    expectWarning();
+    oauth2.grant();
+    QTRY_COMPARE(requestFailedSpy.count(), 1);
+    QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
+             QAbstractOAuth::Error::ServerError);
+    QCOMPARE(errorSpy.count(), 0);
+    QVERIFY(statusSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
 }
 
 void tst_OAuth2::getToken()
@@ -161,6 +257,122 @@ void tst_OAuth2::getAndRefreshToken()
     oauth2.refreshAccessToken();
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("refresh_token"));
+}
+
+void tst_OAuth2::tokenRequestErrors()
+{
+    // This test tests the token acquisition and refreshing errors.
+    // Helper to catch the expected warning messages:
+    constexpr auto expectWarning = [](){
+        static const QRegularExpression tokenWarning{"Token request failed:.*"};
+        QTest::ignoreMessage(QtWarningMsg, tokenWarning);
+    };
+
+    QByteArray accessTokenResponse; // Varying reply for the auth server
+    WebServer authServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
+        if (request.url.path() == QLatin1String("/accessToken"))
+            socket->write(accessTokenResponse);
+    });
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl(authServer.url(QLatin1String("authorization")));
+    oauth2.setAccessTokenUrl(authServer.url(QLatin1String("accessToken")));
+
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+
+    QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
+    QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
+    QSignalSpy statusSpy(&oauth2, &QAbstractOAuth2::statusChanged);
+    auto clearSpies = [&](){
+        requestFailedSpy.clear();
+        grantedSpy.clear();
+        statusSpy.clear();
+    };
+
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            &oauth2, [&](const QUrl &url) {
+        // Successful authorization stage, after which we can test token requests.
+        // For clarity: in these tests we omit browser interaction by directly triggering
+        // the emission of replyhandler::callbackReceived() signal
+        const QUrlQuery query(url.query());
+        replyHandler.emitCallbackReceived(QVariantMap {
+            { QLatin1String("code"), QLatin1String("test") },
+            { QLatin1String("state"),
+             query.queryItemValue(QLatin1String("state")) }
+        });
+    });
+
+    // Check the initial state
+    QVERIFY(requestFailedSpy.isEmpty());
+    QVERIFY(grantedSpy.isEmpty());
+    QVERIFY(statusSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
+
+    // Try to get an access token with an invalid response
+    accessTokenResponse = "an invalid response"_ba;
+    expectWarning();
+    oauth2.grant();
+    QTRY_COMPARE(requestFailedSpy.size(), 1);
+    QVERIFY(grantedSpy.isEmpty());
+    QCOMPARE(statusSpy.size(), 1); // Authorization was successful so we get one signal
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
+
+    // Try to get an access token, but replyhandler indicates an error
+    clearSpies();
+    replyHandler.aTokenRequestError = QAbstractOAuth::Error::NetworkError;
+    expectWarning();
+    oauth2.grant();
+    QTRY_COMPARE(requestFailedSpy.size(), 1);
+    QVERIFY(grantedSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
+
+    // Make a successful access & refresh token acquisition
+    replyHandler.aTokenRequestError = QAbstractOAuth::Error::NoError;
+    clearSpies();
+    accessTokenResponse =
+        "HTTP/1.0 200 OK\r\n"
+        "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
+        "\r\n"
+        "access_token=the_access_token&token_type=bearer&refresh_token=the_refresh_token"_ba;
+    oauth2.grant();
+    QTRY_COMPARE(grantedSpy.size(), 1);
+    QCOMPARE(statusSpy.size(), 3);
+    // First status change is going from TempCred back to NotAuthenticated
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::NotAuthenticated);
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::TemporaryCredentialsReceived);
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::Granted);
+    QVERIFY(requestFailedSpy.isEmpty());
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.token(), u"the_access_token"_s);
+    QCOMPARE(oauth2.refreshToken(), u"the_refresh_token"_s);
+
+    // Successfully refresh access token
+    clearSpies();
+    oauth2.refreshAccessToken();
+    QTRY_COMPARE(statusSpy.size(), 2);
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::RefreshingToken);
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QVERIFY(requestFailedSpy.isEmpty());
+
+    // Failed access token refresh
+    clearSpies();
+    replyHandler.aTokenRequestError = QAbstractOAuth::Error::ServerError;
+    expectWarning();
+    oauth2.refreshAccessToken();
+    QTRY_COMPARE(statusSpy.size(), 2);
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::RefreshingToken);
+    QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::Granted); // back to granted since we have an access token
+    QCOMPARE(requestFailedSpy.size(), 1);
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
 }
 
 void tst_OAuth2::prepareRequest()

@@ -39,6 +39,7 @@ public:
 
     void _q_handleCallback(const QVariantMap &data);
     void _q_accessTokenRequestFinished(const QVariantMap &values);
+    void _q_accessTokenRequestFailed(QAbstractOAuth::Error error, const QString &errorString = {});
     void _q_authenticate(QNetworkReply *reply, QAuthenticator *authenticator);
 
     QUrl accessTokenUrl;

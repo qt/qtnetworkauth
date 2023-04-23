@@ -29,6 +29,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void callbackReceived(const QVariantMap &values);
     void tokensReceived(const QVariantMap &tokens);
+    void tokenRequestError(QAbstractOAuth::Error error, const QString& errorString);
 
     void replyDataReceived(const QByteArray &data);
     void callbackDataReceived(const QByteArray &data);

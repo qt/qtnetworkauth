@@ -79,10 +79,14 @@ using namespace Qt::StringLiterals;
 /*!
     \fn QAbstractOAuth2::error(const QString &error, const QString &errorDescription, const QUrl &uri)
 
-    Signal emitted when the server responds to the request with an
-    error: \a error is the name of the error; \a errorDescription describes
-    the error and \a uri is an optional URI containing more
-    information about the error.
+    Signal emitted when the server responds to the authorization request with
+    an error as defined in \l {https://www.rfc-editor.org/rfc/rfc6749#section-5.2}
+    {RFC 6749 error response}.
+
+    \a error is the name of the error; \a errorDescription describes the error
+    and \a uri is an optional URI containing more information about the error.
+
+    \sa QAbstractOAuth::requestFailed()
 */
 
 /*!

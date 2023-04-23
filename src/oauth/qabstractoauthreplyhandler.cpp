@@ -66,6 +66,18 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+
+    \fn void QAbstractOAuthReplyHandler::tokenRequestError(QAbstractOAuth::Error error,
+                                                           const QString& errorString)
+
+    This signal is emitted when a token request or refresh \a error has
+    occurred. The \a errorString may provide further details on the error.
+
+    \sa QAbstractOAuth::requestFailed()
+    \since 6.6
+*/
+
+/*!
     \fn void QAbstractOAuthReplyHandler::replyDataReceived(const QByteArray &data)
 
     This signal is emitted when an HTTP request finishes and the

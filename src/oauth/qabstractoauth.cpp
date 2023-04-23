@@ -91,7 +91,8 @@ QT_BEGIN_NAMESPACE
     \value NetworkError                     Failed to connect to the server.
 
     \value ServerError                      The server answered the
-    request with an error.
+    request with an error, or its response was not successfully received
+    (for example, due to a state mismatch).
 
     \value OAuthTokenNotFoundError          The server's response to
     a token request provided no token identifier.
@@ -160,6 +161,16 @@ QT_BEGIN_NAMESPACE
 
     This signal is emitted when the authorization flow finishes
     successfully.
+*/
+
+/*!
+    \fn void QAbstractOAuth::requestFailed(const QAbstractOAuth::Error error)
+
+    This signal is emitted to indicate that a request to a server has failed.
+    The \a error supplied indicates how the request failed.
+
+    \sa QAbstractOAuth2::error()
+    \sa QAbstractOAuthReplyHandler::tokenRequestError()
 */
 
 /*!
