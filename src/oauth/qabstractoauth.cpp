@@ -22,8 +22,6 @@
 
 #include <random>
 
-Q_DECLARE_METATYPE(QAbstractOAuth::Error)
-
 QT_BEGIN_NAMESPACE
 
 /*!
