@@ -1,5 +1,0 @@
-[requires]
-qtnetworkauth/6.6.0@qt/snapshot
-
-[generators]
-virtualenv
