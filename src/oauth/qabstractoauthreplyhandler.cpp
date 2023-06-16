@@ -67,7 +67,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
 
-    \fn void QAbstractOAuthReplyHandler::tokenRequestError(QAbstractOAuth::Error error,
+    \fn void QAbstractOAuthReplyHandler::tokenRequestErrorOccurred(QAbstractOAuth::Error error,
                                                            const QString& errorString)
 
     This signal is emitted when a token request or refresh \a error has

@@ -359,7 +359,8 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
                             &QNetworkAccessManager::authenticationRequired,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate,
                             Qt::UniqueConnection);
-    QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokenRequestError,
+    QObjectPrivate::connect(d->replyHandler.data(),
+                            &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFailed,
                             Qt::UniqueConnection);
 }
@@ -438,7 +439,8 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
                             &QNetworkAccessManager::authenticationRequired,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate,
                             Qt::UniqueConnection);
-    QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokenRequestError,
+    QObjectPrivate::connect(d->replyHandler.data(),
+                            &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFailed,
                             Qt::UniqueConnection);
 }

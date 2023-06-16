@@ -170,7 +170,7 @@ QT_BEGIN_NAMESPACE
     The \a error supplied indicates how the request failed.
 
     \sa QAbstractOAuth2::error()
-    \sa QAbstractOAuthReplyHandler::tokenRequestError()
+    \sa QAbstractOAuthReplyHandler::tokenRequestErrorOccurred()
 */
 
 /*!
