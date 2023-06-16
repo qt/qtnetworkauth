@@ -29,11 +29,12 @@ QString QOAuthOobReplyHandler::callback() const
 void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
 {
     if (reply->error() != QNetworkReply::NoError) {
-        emit tokenRequestError(QAbstractOAuth::Error::NetworkError, reply->errorString());
+        emit tokenRequestErrorOccurred(QAbstractOAuth::Error::NetworkError, reply->errorString());
         return;
     }
     if (reply->header(QNetworkRequest::ContentTypeHeader).isNull()) {
-        emit tokenRequestError(QAbstractOAuth::Error::NetworkError, u"Empty Content-type header"_s);
+        emit tokenRequestErrorOccurred(QAbstractOAuth::Error::NetworkError,
+                                       u"Empty Content-type header"_s);
         return;
     }
     const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).isNull() ?
@@ -41,7 +42,7 @@ void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
                 reply->header(QNetworkRequest::ContentTypeHeader).toString();
     const QByteArray data = reply->readAll();
     if (data.isEmpty()) {
-        emit tokenRequestError(QAbstractOAuth::Error::NetworkError, u"No received data"_s);
+        emit tokenRequestErrorOccurred(QAbstractOAuth::Error::NetworkError, u"No received data"_s);
         return;
     }
 
@@ -56,7 +57,7 @@ void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
                || contentType.startsWith(QStringLiteral("text/javascript"))) {
         const QJsonDocument document = QJsonDocument::fromJson(data);
         if (!document.isObject()) {
-            emit tokenRequestError(QAbstractOAuth::Error::ServerError,
+            emit tokenRequestErrorOccurred(QAbstractOAuth::Error::ServerError,
                           u"Received data is not a JSON object: %1"_s.arg(QString::fromUtf8(data)));
             return;
         }
@@ -67,7 +68,7 @@ void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
         }
         ret = object.toVariantMap();
     } else {
-        emit tokenRequestError(QAbstractOAuth::Error::ServerError,
+        emit tokenRequestErrorOccurred(QAbstractOAuth::Error::ServerError,
                                u"Unknown Content-type %1"_s.arg(contentType));
         return;
     }

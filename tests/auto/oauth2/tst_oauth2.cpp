@@ -55,7 +55,7 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
         if (aTokenRequestError == QAbstractOAuth::Error::NoError)
             emit tokensReceived(data);
         else
-            emit tokenRequestError(aTokenRequestError, "a token request error");
+            emit tokenRequestErrorOccurred(aTokenRequestError, "a token request error");
     }
 
     void emitCallbackReceived(const QVariantMap &data)
