@@ -432,6 +432,7 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     QAbstractOAuthReplyHandler *handler = replyHandler();
     QObject::connect(reply, &QNetworkReply::finished,
                      [handler, reply] { handler->networkReplyFinished(reply); });
+    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
     QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,
                             &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished,
                             Qt::UniqueConnection);
