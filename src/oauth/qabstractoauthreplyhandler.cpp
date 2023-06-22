@@ -45,7 +45,10 @@ QT_BEGIN_NAMESPACE
 
     After the server determines whether the request is valid this
     function will be called. Reimplement it to get the data received
-    from the server wrapped in \a reply.
+    from the server wrapped in \a reply. \a reply will be automatically
+    deleted using deleteLater(), it thus must not be stored beyond the
+    scope of this function.
+
 */
 
 /*!
