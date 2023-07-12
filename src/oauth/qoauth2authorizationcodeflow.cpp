@@ -349,7 +349,7 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
 
     QNetworkReply *reply = d->currentReply.data();
     QAbstractOAuthReplyHandler *handler = replyHandler();
-    connect(reply, &QNetworkReply::finished,
+    connect(reply, &QNetworkReply::finished, handler,
             [handler, reply]() { handler->networkReplyFinished(reply); });
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
     QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,
@@ -430,7 +430,7 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     QNetworkReply *reply = d->networkAccessManager()->post(request, data.toUtf8());
     d->currentReply = reply;
     QAbstractOAuthReplyHandler *handler = replyHandler();
-    QObject::connect(reply, &QNetworkReply::finished,
+    QObject::connect(reply, &QNetworkReply::finished, handler,
                      [handler, reply] { handler->networkReplyFinished(reply); });
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
     QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,

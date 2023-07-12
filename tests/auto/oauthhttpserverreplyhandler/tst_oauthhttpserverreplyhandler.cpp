@@ -27,7 +27,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     QVERIFY(!callback.isEmpty());
     callback.setQuery(query);
     QEventLoop eventLoop;
-    connect(&replyHandler, &QOAuthHttpServerReplyHandler::callbackReceived, [&](
+    connect(&replyHandler, &QOAuthHttpServerReplyHandler::callbackReceived, this, [&](
             const QVariantMap &parameters) {
         for (auto item : query.queryItems()) {
             QVERIFY(parameters.contains(item.first));

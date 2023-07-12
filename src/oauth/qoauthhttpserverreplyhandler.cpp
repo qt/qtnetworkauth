@@ -29,7 +29,7 @@ QOAuthHttpServerReplyHandlerPrivate::QOAuthHttpServerReplyHandlerPrivate(
         QOAuthHttpServerReplyHandler *p) :
     text(QObject::tr("Callback received. Feel free to close this page.")), q_ptr(p)
 {
-    QObject::connect(&httpServer, &QTcpServer::newConnection,
+    QObject::connect(&httpServer, &QTcpServer::newConnection, q_ptr,
                      [this]() { _q_clientConnected(); });
 }
 
@@ -44,7 +44,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_clientConnected()
     QTcpSocket *socket = httpServer.nextPendingConnection();
 
     QObject::connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
-    QObject::connect(socket, &QTcpSocket::readyRead,
+    QObject::connect(socket, &QTcpSocket::readyRead, q_ptr,
                      [this, socket]() { _q_readData(socket); });
 }
 

@@ -178,7 +178,8 @@ void tst_OAuth2::getToken()
     oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
-    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, [&](const QUrl &url) {
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            this, [&](const QUrl &url) {
         const QUrlQuery query(url.query());
         replyHandler.emitCallbackReceived(QVariantMap {
                                                { QLatin1String("code"), QLatin1String("test") },
@@ -241,7 +242,8 @@ void tst_OAuth2::getAndRefreshToken()
     oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
-    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, [&](const QUrl &url) {
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            this, [&](const QUrl &url) {
         const QUrlQuery query(url.query());
         replyHandler.emitCallbackReceived(QVariantMap {
                                               { QLatin1String("code"), QLatin1String("test") },
@@ -476,7 +478,8 @@ void tst_OAuth2::tlsAuthentication()
     oauth2.setAccessTokenUrl(tlsServer.url(QLatin1String("accessToken")));
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
-    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, [&](const QUrl &url) {
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            this, [&](const QUrl &url) {
         const QUrlQuery query(url.query());
         replyHandler.emitCallbackReceived(QVariantMap {
                                                { QLatin1String("code"), QLatin1String("test") },
@@ -484,7 +487,7 @@ void tst_OAuth2::tlsAuthentication()
                                                  query.queryItemValue(QLatin1String("state")) }
                                            });
     });
-    connect(&nam, &QNetworkAccessManager::sslErrors,
+    connect(&nam, &QNetworkAccessManager::sslErrors, this,
         [&expectedErrors](QNetworkReply *r, const QList<QSslError> &errors) {
             QCOMPARE(errors.size(), 2);
             for (const auto &err : errors)
