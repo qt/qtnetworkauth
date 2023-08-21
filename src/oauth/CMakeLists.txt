@@ -25,8 +25,6 @@ qt_internal_add_module(NetworkAuth
         Qt::Network
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
 )
 
 #### Keys ignored in scope 1:.:.:oauth.pro:<TRUE>:

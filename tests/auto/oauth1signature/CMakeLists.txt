@@ -13,8 +13,6 @@ qt_internal_add_test(tst_oauth1signature
     LIBRARIES
         Qt::CorePrivate
         Qt::NetworkAuth
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
 )
 
 #### Keys ignored in scope 1:.:.:oauth1signature.pro:<TRUE>:

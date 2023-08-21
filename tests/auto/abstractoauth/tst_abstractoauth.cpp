@@ -51,7 +51,7 @@ void tst_AbstractOAuth::authorizationUrlSignal()
     const QUrl defaultValue = obj.authorizationUrl();
     QVERIFY(expectedValue != defaultValue);
     bool emitted = false;
-    connect(&obj, &QAbstractOAuth::authorizationUrlChanged, [&](const QUrl &value) {
+    connect(&obj, &QAbstractOAuth::authorizationUrlChanged, this, [&](const QUrl &value) {
         QCOMPARE(expectedValue, value);
         emitted = true;
     });

@@ -14,8 +14,6 @@ qt_internal_add_test(tst_oauthhttpserverreplyhandler
         Qt::CorePrivate
         Qt::Network
         Qt::NetworkAuth
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
 )
 
 #### Keys ignored in scope 1:.:.:oauthhttpserverreplyhandler.pro:<TRUE>:

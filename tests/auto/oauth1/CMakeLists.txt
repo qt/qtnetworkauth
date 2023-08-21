@@ -18,8 +18,6 @@ qt_internal_add_test(tst_oauth1
         Qt::Network
         Qt::NetworkAuth
         Qt::NetworkAuthPrivate
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
 )
 
 #### Keys ignored in scope 1:.:.:oauth1.pro:<TRUE>:
