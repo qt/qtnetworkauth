@@ -3,6 +3,7 @@
 
 /*!
     \example redditclient
+    \examplecategory {Networking}
     \title Reddit Example
     \ingroup examples-qtnetworkauth
     \brief Demonstrates authenticating with OAuth 2 to access Reddit.
