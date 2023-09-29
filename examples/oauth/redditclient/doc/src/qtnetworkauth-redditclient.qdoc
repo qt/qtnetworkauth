@@ -7,7 +7,6 @@
     \title Reddit Example
     \ingroup examples-qtnetworkauth
     \brief Demonstrates authenticating with OAuth 2 to access Reddit.
-    \excludefromcreator
     \image redditclient-example.png Screenshot of the example
 
     The \e {Reddit} example uses OAuth 2, as supported by
