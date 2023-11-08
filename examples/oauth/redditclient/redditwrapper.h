@@ -4,10 +4,7 @@
 #ifndef REDDITWRAPPER_H
 #define REDDITWRAPPER_H
 
-#include <QtCore>
-#include <QtNetwork>
-
-#include <QOAuth2AuthorizationCodeFlow>
+#include <QtNetworkAuth/qoauth2authorizationcodeflow.h>
 
 class RedditWrapper : public QObject
 {
@@ -19,20 +16,14 @@ public:
 
     QNetworkReply *requestHotThreads();
 
-    bool isPermanent() const;
-    void setPermanent(bool value);
-
 public slots:
     void grant();
-    void subscribeToLiveUpdates();
 
 signals:
     void authenticated();
-    void subscribed(const QUrl &url);
 
 private:
     QOAuth2AuthorizationCodeFlow oauth2;
-    bool permanent = false;
 };
 
 #endif // REDDITWRAPPER_H
