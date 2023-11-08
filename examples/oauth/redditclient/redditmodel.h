@@ -6,7 +6,9 @@
 
 #include "redditwrapper.h"
 
-#include <QtCore>
+#include <QtCore/qabstractitemmodel.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qpointer.h>
 
 QT_FORWARD_DECLARE_CLASS(QNetworkReply)
 
