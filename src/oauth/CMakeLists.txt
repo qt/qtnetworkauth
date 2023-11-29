@@ -25,6 +25,7 @@ qt_internal_add_module(NetworkAuth
         Qt::Network
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
+    NO_GENERATE_CPP_EXPORTS
 )
 
 qt_internal_extend_target(NetworkAuth CONDITION QT_FEATURE_urischeme_replyhandler
