@@ -415,7 +415,12 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
 #endif
     QUrlQuery query;
     parameters.insert(Key::grantType, QStringLiteral("authorization_code"));
-    parameters.insert(Key::code, QUrl::toPercentEncoding(code));
+
+    if (code.contains(QLatin1Char('%')))
+        parameters.insert(Key::code, code);
+    else
+        parameters.insert(Key::code, QUrl::toPercentEncoding(code));
+
     parameters.insert(Key::redirectUri, QUrl::toPercentEncoding(callback()));
     parameters.insert(Key::clientIdentifier, QUrl::toPercentEncoding(d->clientIdentifier));
     if (!d->clientIdentifierSharedKey.isEmpty())
