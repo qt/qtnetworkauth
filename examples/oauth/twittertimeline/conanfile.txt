@@ -1,5 +1,5 @@
 [requires]
-qtnetworkauth/6.2.7@qt/everywhere
+qtnetworkauth/6.2.8@qt/everywhere
 
 [generators]
 virtualenv
