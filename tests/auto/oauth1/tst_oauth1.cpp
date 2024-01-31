@@ -405,7 +405,7 @@ void tst_OAuth1::getToken()
     QMultiMap<QString, QVariant> oauthHeaders;
 
     WebServer webServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        oauthHeaders = parseAuthorizationString(request.headers["Authorization"]);
+        oauthHeaders = parseAuthorizationString(request.headers["authorization"]);
         const QString format = "oauth_token=%1&oauth_token_secret=%2";
         const QByteArray text = format.arg(expectedToken.first, expectedToken.second).toUtf8();
         const QByteArray replyMessage {
