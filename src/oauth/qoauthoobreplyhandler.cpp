@@ -4,6 +4,7 @@
 #ifndef QT_NO_HTTP
 
 #include "qoauthoobreplyhandler.h"
+#include "qoauthoobreplyhandler_p.h"
 #include "qabstractoauthreplyhandler_p.h"
 
 #include <QtCore/qurlquery.h>
@@ -19,6 +20,11 @@ using namespace Qt::StringLiterals;
 
 QOAuthOobReplyHandler::QOAuthOobReplyHandler(QObject *parent)
     : QAbstractOAuthReplyHandler(parent)
+{}
+
+/*! \internal */
+QOAuthOobReplyHandler::QOAuthOobReplyHandler(QOAuthOobReplyHandlerPrivate &d, QObject *parent)
+    : QAbstractOAuthReplyHandler(d, parent)
 {}
 
 QString QOAuthOobReplyHandler::callback() const

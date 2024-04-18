@@ -11,6 +11,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QOAuthOobReplyHandlerPrivate;
 class Q_OAUTH_EXPORT QOAuthOobReplyHandler : public QAbstractOAuthReplyHandler
 {
     Q_OBJECT
@@ -22,6 +23,7 @@ public:
 
 protected:
     void networkReplyFinished(QNetworkReply *reply) override;
+    explicit QOAuthOobReplyHandler(QOAuthOobReplyHandlerPrivate &, QObject *parent = nullptr);
 
 private:
     QVariantMap parseResponse(const QByteArray &response);
