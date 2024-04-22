@@ -14,6 +14,135 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \class QOAuthUriSchemeReplyHandler
+    \inmodule QtNetworkAuth
+    \ingroup oauth
+    \since 6.8
+
+    \brief Handles private/custom and https URI scheme redirects.
+
+    This class serves as a reply handler for
+    \l {https://datatracker.ietf.org/doc/html/rfc6749}{OAuth 2.0} authorization
+    processes that use private/custom or HTTPS URI schemes for redirection.
+    It manages the reception of the authorization redirection (also known as the
+    callback) and the subsequent acquisition of access tokens.
+
+    The \l {https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2}
+    {redirection URI} is where the authorization server redirects the
+    user-agent (typically, and preferably, the system browser) once
+    the authorization part of the flow is complete.
+
+    The use of specific URI schemes requires configuration at the
+    operating system level to associate the URI with
+    the correct application. The way to set up this association varies
+    between operating systems. See \l {Platform Support and Dependencies}.
+
+    This class complements QOAuthHttpServerReplyHandler,
+    which handles \c http schemes by setting up a localhost server.
+
+    The following code illustrates the usage. First, the needed variables:
+
+    \snippet src_oauth_replyhandlers.cpp uri-variables
+
+    Followed up by the OAuth setup (error handling omitted for brevity):
+
+    \snippet src_oauth_replyhandlers.cpp uri-oauth-setup
+
+    Finally, we then set up the URI scheme reply-handler:
+
+    \snippet src_oauth_replyhandlers.cpp uri-handler-setup
+
+    \section1 Private/Custom URI Schemes
+
+    Custom URI schemes typically use reverse-domain notation followed
+    by a path, or occasionally a host/host+path:
+    \badcode
+    // Example with path:
+    com.example.myapp:/oauth2/callback
+    // Example with host:
+    com.example.myapp://oauth2.callback
+    \endcode
+
+    \section1 HTTPS URI Scheme
+
+    With HTTPS URI schemes, the redirect URLs are regular https links:
+    \badcode
+    https://myapp.example.com/oauth2/callback
+    \endcode
+
+    These links are called
+    \l {https://developer.apple.com/ios/universal-links/}{Universal Links}
+    on iOS and
+    \l {https://developer.android.com/training/app-links}{App Links on Android}.
+
+    The use of https schemes is recommended as it provides additional security
+    by forcing application developers to prove ownership of the URLs used. This
+    proving is done by hosting an association file, which the operating system
+    will consult as part of its internal URL dispatching.
+
+    The content of this file associates the application and the used URLs.
+    The association files must be publicly accessible without any HTTP
+    redirects. In addition, the hosting site must have valid certificates
+    and, at least with Android, the file must be served as
+    \c application/json content-type (refer to your server's configuration
+    guide).
+
+    In addition, https links can provide some usability benefits:
+    \list
+        \li The https URL doubles as a regular https link. If the
+            user hasn't installed the application (since the URL wasn't handled
+            by any application), the https link may for example serve
+            instructions to do so.
+        \li The application selection dialogue to open the URL may be avoided,
+            and instead your application may be opened automatically
+    \endlist
+
+    The tradeoff is that this requires extra setup as you need to set up this
+    publicly-hosted association file.
+
+    \section1 Platform Support and Dependencies
+
+    Currently supported platforms are Android, iOS, and macOS.
+
+    URI scheme listening is based on QDesktopServices::setUrlHandler()
+    and QDesktopServices::unsetUrlHandler(). These are currently
+    provided by Qt::Gui module and therefore QtNetworkAuth module
+    depends on Qt::Gui. If QtNetworkAuth is built without Qt::Gui,
+    QOAuthUriSchemeReplyHandler will not be included.
+
+    \section2 Android
+
+    On \l {Qt for Android}{Android} the URI schemes require:
+    \list
+        \li Setting up
+            \l {https://doc.qt.io/qt-6/qdesktopservices.html#android}{intent-filters}
+            in the application manifest
+        \li Optionally, for automatic verification with https schemes,
+            hosting a site association file
+            \l {https://doc.qt.io/qt-6/qdesktopservices.html#android}{assetlinks.json}
+    \endlist
+
+    See also the
+    \l {https://doc.qt.io/qt-6/android-manifest-file-configuration.html}
+    {Qt Android Manifest File Configuration}.
+
+    \section2 iOS and macOS
+
+    On \l {Qt for iOS}{iOS} and \l {Qt for macOS}{macOS} the URI schemes require:
+    \list
+        \li Setting up site association
+            \l {https://doc.qt.io/qt-6/qdesktopservices.html#ios}{entitlement}
+        \li With https schemes, hosting a
+            \l {https://doc.qt.io/qt-6/qdesktopservices.html#ios}{site association file}
+            (\c apple-app-site-association)
+    \endlist
+
+    \section2 \l {Qt for Windows}{Windows}, \l {Qt for Linux/X11}{Linux}
+
+    Currently not supported.
+*/
+
 class QOAuthUriSchemeReplyHandlerPrivate : public QOAuthOobReplyHandlerPrivate
 {
     Q_DECLARE_PUBLIC(QOAuthUriSchemeReplyHandler)
@@ -74,11 +203,30 @@ public:
     bool listening = false;
 };
 
+/*!
+    \fn QOAuthUriSchemeReplyHandler::QOAuthUriSchemeReplyHandler()
+
+    Constructs a QOAuthUriSchemeReplyHandler object with empty callback()/
+    redirectUrl() and no parent. The constructed object does not automatically
+    listen.
+*/
+
+/*!
+    Constructs a QOAuthUriSchemeReplyHandler object with \a parent and empty
+    callback()/redirectUrl(). The constructed object does not automatically listen.
+*/
 QOAuthUriSchemeReplyHandler::QOAuthUriSchemeReplyHandler(QObject *parent) :
     QOAuthOobReplyHandler(*new QOAuthUriSchemeReplyHandlerPrivate(), parent)
 {
 }
 
+/*!
+    Constructs a QOAuthUriSchemeReplyHandler object and sets \a parent as the
+    parent object and \a redirectUrl as the redirect URL. The constructed
+    object attempts automatically to listen.
+
+    \sa redirectUrl(), setRedirectUrl(), listen(), isListening()
+*/
 QOAuthUriSchemeReplyHandler::QOAuthUriSchemeReplyHandler(const QUrl &redirectUrl, QObject *parent)
     : QOAuthUriSchemeReplyHandler(parent)
 {
@@ -87,6 +235,12 @@ QOAuthUriSchemeReplyHandler::QOAuthUriSchemeReplyHandler(const QUrl &redirectUrl
     listen();
 }
 
+/*!
+    Destroys the QOAuthUriSchemeReplyHandler object. Closes
+    this handler.
+
+    \sa close()
+*/
 QOAuthUriSchemeReplyHandler::~QOAuthUriSchemeReplyHandler()
 {
     close();
@@ -98,6 +252,28 @@ QString QOAuthUriSchemeReplyHandler::callback() const
     return d->redirectUrl.toString();
 }
 
+/*!
+    \property QOAuthUriSchemeReplyHandler::redirectUrl
+    \brief The URL used to receive authorization redirection/response.
+
+    This property is used as the
+    \l{https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2}
+    {OAuth2 redirect_uri parameter}, which is sent as part of the
+    authorization request. The \c redirect_uri is acquired by
+    calling QUrl::toString() with default options.
+
+    The URL must match the one registered at the authorization server,
+    as the authorization servers likely reject any mismatching redirect_uris.
+
+    Similarly, when this handler receives the redirection,
+    the redirection URL must match the URL set here. The handler
+    compares the scheme, host, port, path, and any
+    query items that were part of the URL set by this method.
+
+    The URL is handled only if all of these match. The comparison of query
+    parameters excludes any additional query parameters that may have been set
+    at server-side, as these contain the actual data of interest.
+*/
 void QOAuthUriSchemeReplyHandler::setRedirectUrl(const QUrl &url)
 {
     Q_D(QOAuthUriSchemeReplyHandler);
@@ -120,6 +296,22 @@ QUrl QOAuthUriSchemeReplyHandler::redirectUrl() const
     return d->redirectUrl;
 }
 
+/*!
+    Tells this handler to listen for incoming URLs. Returns
+    \c true if listening is successful, and \c false otherwise.
+
+    The handler will match URLs to redirectUrl().
+    If the received URL does not match, it will be forwarded to
+    QDesktopServices::openURL().
+
+    Active listening is only required when performing the initial
+    authorization phase, typically initiated by a
+    QOAuth2AuthorizationCodeFlow::grant() call.
+
+    It is recommended to close the listener after successful authorization.
+    Listening is not needed for
+    \l {QOAuth2AuthorizationCodeFlow::requestAccessToken()}{acquiring access tokens}.
+*/
 bool QOAuthUriSchemeReplyHandler::listen()
 {
     Q_D(QOAuthUriSchemeReplyHandler);
@@ -137,6 +329,11 @@ bool QOAuthUriSchemeReplyHandler::listen()
     return true;
 }
 
+/*!
+    Tells this handler to stop listening for incoming URLs.
+
+    \sa listen(), isListening()
+*/
 void QOAuthUriSchemeReplyHandler::close()
 {
     Q_D(QOAuthUriSchemeReplyHandler);
@@ -148,6 +345,12 @@ void QOAuthUriSchemeReplyHandler::close()
     d->listening = false;
 }
 
+/*!
+    Returns \c true if this handler is currently listening,
+    and \c false otherwise.
+
+    \sa listen(), close()
+*/
 bool QOAuthUriSchemeReplyHandler::isListening() const noexcept
 {
     Q_D(const QOAuthUriSchemeReplyHandler);
