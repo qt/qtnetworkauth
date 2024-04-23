@@ -29,7 +29,7 @@ sourcedirs  += ..
 #imagedirs  += images
 
 examplesinstallpath     = oauth
-exampledirs += ../../../examples/oauth
+exampledirs += ../../../examples/oauth snippets
 
 #manifestmeta.highlighted.names = "QtNetworkAuth/Twitter Timeline Example"
 
