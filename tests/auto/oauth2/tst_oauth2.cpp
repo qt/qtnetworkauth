@@ -10,6 +10,8 @@
 #include <QtNetworkAuth/qabstractoauthreplyhandler.h>
 #include <QtNetworkAuth/qoauth2authorizationcodeflow.h>
 
+#include <QtCore/qcryptographichash.h>
+
 #include "webserver.h"
 #include "tlswebserver.h"
 
@@ -27,6 +29,8 @@ private Q_SLOTS:
     void tokenRequestErrors();
     void authorizationErrors();
     void prepareRequest();
+    void pkce_data();
+    void pkce();
 #ifndef QT_NO_SSL
     void setSslConfig();
     void tlsAuthentication();
@@ -385,6 +389,89 @@ void tst_OAuth2::prepareRequest()
     QNetworkRequest request(QUrl("http://localhost"));
     oauth2.prepareRequest(&request, QByteArray());
     QCOMPARE(request.rawHeader("Authorization"), QByteArray("Bearer access_token"));
+}
+
+using Method = QOAuth2AuthorizationCodeFlow::PkceMethod;
+
+void tst_OAuth2::pkce_data()
+{
+    QTest::addColumn<Method>("method");
+    QTest::addColumn<quint8>("verifierLength");
+
+    QTest::addRow("none") << Method::None << quint8(43);
+    QTest::addRow("plain_43") << Method::Plain << quint8(43);
+    QTest::addRow("plain_77") << Method::Plain << quint8(77);
+    QTest::addRow("S256_43") << Method::S256 << quint8(43);
+    QTest::addRow("S256_88") << Method::S256 << quint8(88);
+}
+
+void tst_OAuth2::pkce()
+{
+    QFETCH(Method, method);
+    QFETCH(quint8, verifierLength);
+
+    static constexpr auto code_verifier = "code_verifier"_L1;
+    static constexpr auto code_challenge = "code_challenge"_L1;
+    static constexpr auto code_challenge_method = "code_challenge_method"_L1;
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl(QUrl("authorization_url"));
+    oauth2.setAccessTokenUrl(QUrl("access_token_url"));
+    oauth2.setState("a_state"_L1);
+    QCOMPARE(oauth2.pkceMethod(), Method::S256); // the default
+    oauth2.setPkceMethod(method, verifierLength);
+    QCOMPARE(oauth2.pkceMethod(), method);
+
+    QMultiMap<QString, QVariant> tokenRequestParms;
+    oauth2.setModifyParametersFunction(
+        [&] (QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
+            if (stage == QAbstractOAuth::Stage::RequestingAccessToken)
+                tokenRequestParms = *parameters;
+    });
+
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    QSignalSpy openBrowserSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser);
+
+    oauth2.grant(); // Initiate authorization
+
+    // 1. Verify the authorization URL query parameters
+    QTRY_VERIFY(!openBrowserSpy.isEmpty());
+    auto authParms = QUrlQuery{openBrowserSpy.takeFirst().at(0).toUrl()};
+    QVERIFY(!authParms.hasQueryItem(code_verifier));
+    const auto codeChallenge = authParms.queryItemValue(code_challenge).toLatin1();
+    if (method == Method::None) {
+        QVERIFY(!authParms.hasQueryItem(code_challenge));
+        QVERIFY(!authParms.hasQueryItem(code_challenge_method));
+    } else if (method == Method::Plain) {
+        QCOMPARE(codeChallenge.size(), verifierLength); // With plain the challenge == verifier
+        QCOMPARE(authParms.queryItemValue(code_challenge_method), "plain"_L1);
+    } else { // S256
+        QCOMPARE(codeChallenge.size(), 43); // SHA-256 is 32 bytes, and that in base64 is ~43 bytes
+        QCOMPARE(authParms.queryItemValue(code_challenge_method), "S256"_L1);
+    }
+
+    // Conclude authorization => starts access token request
+    emit replyHandler.callbackReceived({{"code", "acode"}, {"state", "a_state"}});
+
+    // 2. Verify the access token request parameters
+    QTRY_VERIFY(!tokenRequestParms.isEmpty());
+    QVERIFY(!tokenRequestParms.contains(code_challenge));
+    QVERIFY(!tokenRequestParms.contains(code_challenge_method));
+    // Verify the challenge received earlier was based on the verifier we receive here
+    if (method == Method::None) {
+        QVERIFY(!tokenRequestParms.contains(code_verifier));
+    } else if (method == Method::Plain) {
+        QVERIFY(tokenRequestParms.contains(code_verifier));
+        QCOMPARE(tokenRequestParms.value(code_verifier).toByteArray(), codeChallenge);
+    } else { // S256
+        QVERIFY(tokenRequestParms.contains(code_verifier));
+        const auto codeVerifier = tokenRequestParms.value(code_verifier).toByteArray();
+        QCOMPARE(codeVerifier.size(), verifierLength);
+        QCOMPARE(QCryptographicHash::hash(codeVerifier, QCryptographicHash::Algorithm::Sha256)
+                 .toBase64(QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals)
+                 , codeChallenge);
+    }
 }
 
 #ifndef QT_NO_SSL

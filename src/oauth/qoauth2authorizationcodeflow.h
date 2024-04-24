@@ -23,6 +23,7 @@ class Q_OAUTH_EXPORT QOAuth2AuthorizationCodeFlow : public QAbstractOAuth2
                READ accessTokenUrl
                WRITE setAccessTokenUrl
                NOTIFY accessTokenUrlChanged)
+    Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 
 public:
     explicit QOAuth2AuthorizationCodeFlow(QObject *parent = nullptr);
@@ -48,6 +49,16 @@ public:
 
     QUrl accessTokenUrl() const;
     void setAccessTokenUrl(const QUrl &accessTokenUrl);
+
+    enum class PkceMethod : quint8 {
+        S256,
+        Plain,
+        None = 255,
+    };
+    Q_ENUM(PkceMethod)
+
+    void setPkceMethod(PkceMethod method, quint8 length = 43) ;
+    PkceMethod pkceMethod() const noexcept;
 
 public Q_SLOTS:
     void grant() override;

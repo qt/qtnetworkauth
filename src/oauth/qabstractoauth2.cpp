@@ -114,6 +114,9 @@ const QString OAuth2::responseType =       u"response_type"_s;
 const QString OAuth2::scope =              u"scope"_s;
 const QString OAuth2::state =              u"state"_s;
 const QString OAuth2::tokenType =          u"token_type"_s;
+const QString OAuth2::codeVerifier =       u"code_verifier"_s;
+const QString OAuth2::codeChallenge =      u"code_challenge"_s;
+const QString OAuth2::codeChallengeMethod = u"code_challenge_method"_s;
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,

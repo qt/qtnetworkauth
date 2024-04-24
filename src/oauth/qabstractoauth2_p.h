@@ -76,6 +76,9 @@ public:
         static const QString scope;
         static const QString state;
         static const QString tokenType;
+        static const QString codeVerifier;
+        static const QString codeChallenge;
+        static const QString codeChallengeMethod;
     };
 };
 
