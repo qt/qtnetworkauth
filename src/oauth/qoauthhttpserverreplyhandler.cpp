@@ -27,6 +27,54 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
 
+/*!
+    \class QOAuthHttpServerReplyHandler
+    \inmodule QtNetworkAuth
+    \ingroup oauth
+    \since 5.8
+
+    \brief Handles loopback redirects by setting up a local HTTP server.
+
+    This class serves as a reply handler for
+    \l {https://datatracker.ietf.org/doc/html/rfc6749}{OAuth 2.0} authorization
+    processes that use
+    \l {https://datatracker.ietf.org/doc/html/rfc8252#section-7.3}{loopback redirection}.
+
+    The \l {https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2}
+    {redirect URI} is where the authorization server redirects the
+    user-agent (typically, and preferably, the system browser) once
+    the authorization part of the flow is complete. Loopback redirect
+    URIs use \c http as the scheme and either \e localhost or an IP
+    address literal as the host (see \l {IPv4 and IPv6}).
+
+    QOAuthHttpServerReplyHandler sets up a localhost server. Once the
+    authorization server redirects the browser to this localhost address,
+    the reply handler parses the redirection URI query parameters,
+    and then signals authorization completion with
+    \l {QAbstractOAuthReplyHandler::callbackReceived}{a signal}.
+
+    To handle other redirect URI schemes, see QOAuthUriSchemeReplyHandler.
+
+    The following code illustrates the usage. First, the needed variables:
+
+    \snippet src_oauth_replyhandlers.cpp httpserver-variables
+
+    Followed up by the OAuth setup (error handling omitted for brevity):
+
+    \snippet src_oauth_replyhandlers.cpp httpserver-oauth-setup
+
+    Finally, we then set up the URI scheme reply-handler:
+
+    \snippet src_oauth_replyhandlers.cpp httpserver-handler-setup
+
+    \section1 IPv4 and IPv6
+
+    Currently if the handler is a loopback address, IPv4 any address,
+    or IPv6 any address, the used callback is in the form of
+    \e {http://localhost:{port}/{path}}. Otherwise, for specific
+    IP addresses, the actual IP literal is used. For instance
+    \e {http://192.168.0.2:{port}/{path}} in the case of IPv4.
+*/
 QOAuthHttpServerReplyHandlerPrivate::QOAuthHttpServerReplyHandlerPrivate(
         QOAuthHttpServerReplyHandler *p) :
     text(QObject::tr("Callback received. Feel free to close this page.")), path(u'/'), q_ptr(p)
@@ -232,14 +280,34 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readHeader(QTcpSocket *s
     return false;
 }
 
+/*!
+    Constructs a QOAuthHttpServerReplyHandler object using \a parent as a
+    parent object. Calls \l {listen()} with port \c 0 and address
+    \l {QHostAddress::SpecialAddress}{Null}.
+
+    \sa listen()
+*/
 QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(QObject *parent) :
     QOAuthHttpServerReplyHandler(QHostAddress::Null, 0, parent)
 {}
 
+/*!
+    Constructs a QOAuthHttpServerReplyHandler object using \a parent as a
+    parent object. Calls \l {listen()} with \a port and address
+    \l {QHostAddress::SpecialAddress}{Null}.
+
+    \sa listen()
+*/
 QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(quint16 port, QObject *parent) :
     QOAuthHttpServerReplyHandler(QHostAddress::Null, port, parent)
 {}
 
+/*!
+    Constructs a QOAuthHttpServerReplyHandler object using \a parent as a
+    parent object. Calls \l {listen()} with \a address and \a port.
+
+    \sa listen()
+*/
 QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(const QHostAddress &address,
                                                            quint16 port, QObject *parent) :
     QOAuthOobReplyHandler(parent),
@@ -248,6 +316,12 @@ QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(const QHostAddress &a
     listen(address, port);
 }
 
+/*!
+    Destroys the QOAuthHttpServerReplyHandler object.
+    Stops listening for connections / redirections.
+
+    \sa close()
+*/
 QOAuthHttpServerReplyHandler::~QOAuthHttpServerReplyHandler()
 {}
 
@@ -273,12 +347,25 @@ QString QOAuthHttpServerReplyHandler::callback() const
                         | QUrl::EncodeReserved);
 }
 
+/*!
+    Returns the path that is used as the path component of the
+    \l callback() / \l{https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2}
+    {OAuth2 redirect_uri parameter}.
+
+    \sa setCallbackPath()
+*/
 QString QOAuthHttpServerReplyHandler::callbackPath() const
 {
     Q_D(const QOAuthHttpServerReplyHandler);
     return d->path;
 }
 
+/*!
+    Sets \a path to be used as the path component of the
+    \l callback().
+
+    \sa callbackPath()
+*/
 void QOAuthHttpServerReplyHandler::setCallbackPath(const QString &path)
 {
     Q_D(QOAuthHttpServerReplyHandler);
@@ -290,24 +377,73 @@ void QOAuthHttpServerReplyHandler::setCallbackPath(const QString &path)
         d->path = u'/';
 }
 
+/*!
+    Returns the text that is used in response to the
+    redirection at the end of the authorization stage.
+
+    The text is wrapped in a simple HTML page, and displayed to
+    the user by the browser / user-agent which did the redirection.
+
+    The default text is
+    \badcode
+    Callback received. Feel free to close this page.
+    \endcode
+
+    \sa setCallbackText()
+*/
 QString QOAuthHttpServerReplyHandler::callbackText() const
 {
     Q_D(const QOAuthHttpServerReplyHandler);
     return d->text;
 }
 
+/*!
+    Sets \a text to be used in response to the
+    redirection at the end of the authorization stage.
+
+    \sa callbackText()
+*/
 void QOAuthHttpServerReplyHandler::setCallbackText(const QString &text)
 {
     Q_D(QOAuthHttpServerReplyHandler);
     d->text = text;
 }
 
+/*!
+    Returns the port on which this handler is listening,
+    otherwise returns 0.
+
+    \sa listen(), isListening()
+*/
 quint16 QOAuthHttpServerReplyHandler::port() const
 {
     Q_D(const QOAuthHttpServerReplyHandler);
     return d->httpServer.serverPort();
 }
 
+/*!
+    Tells this handler to listen for incoming connections / redirections
+    on \a address and \a port. Returns \c true if listening is successful,
+    and \c false otherwise.
+
+    Active listening is only required when performing the initial
+    authorization phase, typically initiated by a
+    QOAuth2AuthorizationCodeFlow::grant() call.
+
+    It is recommended to close the listener after successful authorization.
+    Listening is not needed for
+    \l {QOAuth2AuthorizationCodeFlow::requestAccessToken()}{requesting access tokens}
+    or refreshing them.
+
+    If this function is called with \l {QHostAddress::SpecialAddress}{Null}
+    as the \a address, the handler will attempt to listen to
+    \l {QHostAddress::SpecialAddress}{LocalHost}, and if that fails,
+    \l {QHostAddress::SpecialAddress}{LocalHostIPv6}.
+
+    See also \l {IPv4 and IPv6}.
+
+    \sa close(), isListening(), QTcpServer::listen()
+*/
 bool QOAuthHttpServerReplyHandler::listen(const QHostAddress &address, quint16 port)
 {
     Q_D(QOAuthHttpServerReplyHandler);
@@ -320,12 +456,23 @@ bool QOAuthHttpServerReplyHandler::listen(const QHostAddress &address, quint16 p
     return d->httpServer.listen(address, port);
 }
 
+/*!
+    Tells this handler to stop listening for connections / redirections.
+
+    \sa listen()
+*/
 void QOAuthHttpServerReplyHandler::close()
 {
     Q_D(QOAuthHttpServerReplyHandler);
     return d->httpServer.close();
 }
 
+/*!
+    Returns \c true if this handler is currently listening,
+    and \c false otherwise.
+
+    \sa listen(), close()
+*/
 bool QOAuthHttpServerReplyHandler::isListening() const
 {
     Q_D(const QOAuthHttpServerReplyHandler);
