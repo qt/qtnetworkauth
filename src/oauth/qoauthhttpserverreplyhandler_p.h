@@ -36,7 +36,6 @@ public:
 
     QTcpServer httpServer;
     QString text;
-    QHostAddress listenAddress = QHostAddress::LocalHost;
     QString path;
 
 private:
