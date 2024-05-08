@@ -254,9 +254,16 @@ QString QOAuthHttpServerReplyHandler::callback() const
     Q_ASSERT(d->httpServer.isListening());
     QUrl url;
     url.setScheme(u"http"_s);
-    url.setHost(u"127.0.0.1"_s);
     url.setPort(d->httpServer.serverPort());
     url.setPath(d->path);
+
+    // convert Any and Localhost addresses to "localhost"
+    QHostAddress host = d->httpServer.serverAddress();
+    if (host.isLoopback() || host == QHostAddress::AnyIPv4 || host == QHostAddress::Any
+            || host == QHostAddress::AnyIPv6)
+        url.setHost(u"localhost"_s);
+    else
+        url.setHost(host.toString());
 
     return url.toString(QUrl::EncodeDelimiters);
 }
