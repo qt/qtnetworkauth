@@ -22,8 +22,6 @@
 #include <QtCore/qrandom.h>
 #include <QtCore/private/qlocking_p.h>
 
-#include <random>
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -280,19 +278,15 @@ void QAbstractOAuthPrivate::setStatus(QAbstractOAuth::Status newStatus)
     }
 }
 
-Q_CONSTINIT static QBasicMutex prngMutex;
-Q_GLOBAL_STATIC_WITH_ARGS(std::mt19937, prng, (*QRandomGenerator::system()))
-
 QByteArray QAbstractOAuthPrivate::generateRandomString(quint8 length)
 {
     constexpr char characters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    std::uniform_int_distribution<int> distribution(0, sizeof(characters) - 2);
+    const int len = strlen(characters);
     QByteArray data;
     data.reserve(length);
-    auto lock = qt_unique_lock(prngMutex);
+    QRandomGenerator *prng = QRandomGenerator::system();
     for (quint8 i = 0; i < length; ++i)
-        data.append(characters[distribution(*prng)]);
-    lock.unlock();
+        data.append(characters[prng->bounded(len)]);
     return data;
 }
 
