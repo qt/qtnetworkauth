@@ -275,14 +275,25 @@ void QAbstractOAuthPrivate::setStatus(QAbstractOAuth::Status newStatus)
 
 QByteArray QAbstractOAuthPrivate::generateRandomString(quint8 length)
 {
-    constexpr char characters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const int len = strlen(characters);
-    QByteArray data;
-    data.reserve(length);
-    QRandomGenerator *prng = QRandomGenerator::system();
-    for (quint8 i = 0; i < length; ++i)
-        data.append(characters[prng->bounded(len)]);
-    return data;
+    // We'll use QByteArray::toBase64() to create a random-looking string from
+    // pure random data. In Base64 encoding, we get 6 bits of randomness per
+    // character, so at most 255 * 6 bits are needed in this function.
+    using Word = QRandomGenerator::result_type;
+    auto wordCountForLength = [](int len) constexpr {
+        constexpr int BitsPerWord = std::numeric_limits<Word>::digits;
+        int bitcount = len * 6;
+        return (bitcount + BitsPerWord - 1) / BitsPerWord;
+    };
+    constexpr int RandomBufferLength = wordCountForLength(std::numeric_limits<quint8>::max());
+    Word randomdata[RandomBufferLength];
+
+    qsizetype randomlen = wordCountForLength(length);
+    QRandomGenerator::system()->fillRange(randomdata, randomlen);
+    QByteArray ba = QByteArray::fromRawData(reinterpret_cast<char *>(randomdata),
+                                            randomlen * sizeof(quint32))
+            .toBase64(QByteArray::Base64UrlEncoding);
+    ba.truncate(length);        // toBase64 output length has fixed lengths: 6, 11, 16, 22, 27...
+    return ba;
 }
 
 QByteArray QAbstractOAuthPrivate::convertParameters(const QVariantMap &parameters)
