@@ -265,7 +265,8 @@ QString QOAuthHttpServerReplyHandler::callback() const
     else
         url.setHost(host.toString());
 
-    return url.toString(QUrl::EncodeDelimiters);
+    return url.toString(QUrl::EncodeSpaces | QUrl::EncodeUnicode | QUrl::EncodeDelimiters
+                        | QUrl::EncodeReserved);
 }
 
 QString QOAuthHttpServerReplyHandler::callbackPath() const
