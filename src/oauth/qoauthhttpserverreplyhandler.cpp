@@ -229,11 +229,11 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readHeader(QTcpSocket *s
 }
 
 QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(QObject *parent) :
-    QOAuthHttpServerReplyHandler(QHostAddress::Any, 0, parent)
+    QOAuthHttpServerReplyHandler(QHostAddress::Null, 0, parent)
 {}
 
 QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(quint16 port, QObject *parent) :
-    QOAuthHttpServerReplyHandler(QHostAddress::Any, port, parent)
+    QOAuthHttpServerReplyHandler(QHostAddress::Null, port, parent)
 {}
 
 QOAuthHttpServerReplyHandler::QOAuthHttpServerReplyHandler(const QHostAddress &address,
@@ -307,6 +307,12 @@ quint16 QOAuthHttpServerReplyHandler::port() const
 bool QOAuthHttpServerReplyHandler::listen(const QHostAddress &address, quint16 port)
 {
     Q_D(QOAuthHttpServerReplyHandler);
+    if (address.isNull()) {
+        // try IPv4 first, for greatest compatibility
+        if (d->httpServer.listen(QHostAddress::LocalHost, port))
+            return true;
+        return d->httpServer.listen(QHostAddress::LocalHostIPv6, port);
+    }
     return d->httpServer.listen(address, port);
 }
 
