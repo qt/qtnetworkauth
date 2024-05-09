@@ -21,6 +21,7 @@ private Q_SLOTS:
     void callbackWithQuery();
     void badCallbackUris_data();
     void badCallbackUris();
+    void badCallbackWrongMethod();
 };
 
 void tst_QOAuthHttpServerReplyHandler::callback_data()
@@ -156,6 +157,33 @@ void tst_QOAuthHttpServerReplyHandler::badCallbackUris()
 
     QTest::ignoreMessage(QtWarningMsg, "Invalid request: " + uri.toLocal8Bit());
     QTest::ignoreMessage(QtWarningMsg, "Invalid URL");
+
+    QTestEventLoop::instance().enterLoop(Timeout);
+    QCOMPARE(count, 0);
+    QVERIFY(!QTestEventLoop::instance().timeout());
+}
+
+void tst_QOAuthHttpServerReplyHandler::badCallbackWrongMethod()
+{
+    int count = 0;
+    QOAuthHttpServerReplyHandler replyHandler;
+    QVERIFY(replyHandler.isListening());
+    connect(&replyHandler, &QOAuthHttpServerReplyHandler::callbackReceived, this, [&](
+            const QVariantMap &) {
+        ++count;
+        QTestEventLoop::instance().exitLoop();
+    });
+    QUrl callback(replyHandler.callback());
+    QVERIFY(!callback.isEmpty());
+
+    QTcpSocket socket;
+    socket.connectToHost(QHostAddress::LocalHost, replyHandler.port());
+    socket.write("EHLO localhost\r\n");
+    connect(&socket, &QTcpSocket::disconnected, &QTestEventLoop::instance(),
+            &QTestEventLoop::exitLoop);
+
+    QTest::ignoreMessage(QtWarningMsg, "Invalid operation EHLO");
+    QTest::ignoreMessage(QtWarningMsg, "Invalid Method");
 
     QTestEventLoop::instance().enterLoop(Timeout);
     QCOMPARE(count, 0);
