@@ -9,6 +9,8 @@
 
 typedef QSharedPointer<QNetworkReply> QNetworkReplyPtr;
 
+static constexpr std::chrono::seconds Timeout(20);
+
 class tst_QOAuthHttpServerReplyHandler : public QObject
 {
     Q_OBJECT
@@ -26,7 +28,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     QUrl callback(replyHandler.callback());
     QVERIFY(!callback.isEmpty());
     callback.setQuery(query);
-    QEventLoop eventLoop;
+
     connect(&replyHandler, &QOAuthHttpServerReplyHandler::callbackReceived, this, [&](
             const QVariantMap &parameters) {
         for (auto item : query.queryItems()) {
@@ -34,7 +36,7 @@ void tst_QOAuthHttpServerReplyHandler::callback()
             QCOMPARE(parameters[item.first].toString(), item.second);
         }
         count = parameters.size();
-        eventLoop.quit();
+        QTestEventLoop::instance().exitLoop();
     });
 
     QNetworkAccessManager networkAccessManager;
@@ -42,8 +44,11 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     request.setUrl(callback);
     QNetworkReplyPtr reply;
     reply.reset(networkAccessManager.get(request));
-    eventLoop.exec();
+    connect(reply.get(), &QNetworkReply::finished, &QTestEventLoop::instance(),
+            &QTestEventLoop::exitLoop);
+    QTestEventLoop::instance().enterLoop(Timeout);
     QCOMPARE(count, query.queryItems().size());
+    QVERIFY(!QTestEventLoop::instance().timeout());
 }
 
 QTEST_MAIN(tst_QOAuthHttpServerReplyHandler)
