@@ -15,11 +15,11 @@
 #include <QtCore/qurlquery.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qlocale_p.h>
 
 #include <QtNetwork/qtcpsocket.h>
 #include <QtNetwork/qnetworkreply.h>
 
-#include <cctype>
 #include <cstring>
 #include <functional>
 
@@ -155,7 +155,7 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl(QTcpSocket *sock
     while (socket->bytesAvailable() && !finished) {
         char c;
         socket->getChar(&c);
-        if (std::isspace(c))
+        if (ascii_isspace(c))
             finished = true;
         else
             fragment += c;
