@@ -52,10 +52,14 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_clientConnected()
 
 void QOAuthHttpServerReplyHandlerPrivate::_q_readData(QTcpSocket *socket)
 {
-    if (!clients.contains(socket))
-        clients[socket].port = httpServer.serverPort();
+    QHttpRequest *request = nullptr;
+    if (auto it = clients.find(socket); it == clients.end()) {
+        request = &clients[socket];     // insert it
+        request->port = httpServer.serverPort();
+    } else {
+        request = &*it;
+    }
 
-    QHttpRequest *request = &clients[socket];
     bool error = false;
 
     if (Q_LIKELY(request->state == QHttpRequest::State::ReadingMethod))
