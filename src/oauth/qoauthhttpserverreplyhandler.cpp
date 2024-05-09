@@ -25,9 +25,11 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 QOAuthHttpServerReplyHandlerPrivate::QOAuthHttpServerReplyHandlerPrivate(
         QOAuthHttpServerReplyHandler *p) :
-    text(QObject::tr("Callback received. Feel free to close this page.")), q_ptr(p)
+    text(QObject::tr("Callback received. Feel free to close this page.")), path(u'/'), q_ptr(p)
 {
     QObject::connect(&httpServer, &QTcpServer::newConnection, q_ptr,
                      [this]() { _q_clientConnected(); });
@@ -85,7 +87,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_readData(QTcpSocket *socket)
 void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, const QUrl &url)
 {
     Q_Q(QOAuthHttpServerReplyHandler);
-    if (!url.path().startsWith(QLatin1String("/") + path)) {
+    if (url.path() != path) {
         qCWarning(lcReplyHandler, "Invalid request: %s", qPrintable(url.toString()));
     } else {
         QVariantMap receivedData;
@@ -159,15 +161,12 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl(QTcpSocket *sock
             fragment += c;
     }
     if (finished) {
-        if (!fragment.startsWith("/")) {
-            qCWarning(lcReplyHandler, "Invalid URL path %s", fragment.constData());
-            return false;
-        }
-        url.setUrl(QStringLiteral("http://127.0.0.1:") + QString::number(port) +
-                   QString::fromUtf8(fragment));
+        url = QUrl::fromEncoded(fragment);
         state = State::ReadingStatus;
-        if (!url.isValid()) {
-            qCWarning(lcReplyHandler, "Invalid URL %s", fragment.constData());
+
+        if (!fragment.startsWith(u'/') || !url.isValid() || !url.scheme().isNull()
+                || !url.host().isNull()) {
+            qCWarning(lcReplyHandler, "Invalid request: %s", fragment.constData());
             return false;
         }
         fragment.clear();
@@ -253,8 +252,12 @@ QString QOAuthHttpServerReplyHandler::callback() const
     Q_D(const QOAuthHttpServerReplyHandler);
 
     Q_ASSERT(d->httpServer.isListening());
-    const QUrl url(QString::fromLatin1("http://127.0.0.1:%1/%2")
-                   .arg(d->httpServer.serverPort()).arg(d->path));
+    QUrl url;
+    url.setScheme(u"http"_s);
+    url.setHost(u"127.0.0.1"_s);
+    url.setPort(d->httpServer.serverPort());
+    url.setPath(d->path);
+
     return url.toString(QUrl::EncodeDelimiters);
 }
 
@@ -267,12 +270,12 @@ QString QOAuthHttpServerReplyHandler::callbackPath() const
 void QOAuthHttpServerReplyHandler::setCallbackPath(const QString &path)
 {
     Q_D(QOAuthHttpServerReplyHandler);
-
-    QString copy = path;
-    while (copy.startsWith(QLatin1Char('/')))
-        copy = copy.mid(1);
-
-    d->path = copy;
+    // pass through QUrl to ensure normalization
+    QUrl url;
+    url.setPath(path);
+    d->path = url.path(QUrl::FullyEncoded);
+    if (d->path.isEmpty())
+        d->path = u'/';
 }
 
 QString QOAuthHttpServerReplyHandler::callbackText() const
