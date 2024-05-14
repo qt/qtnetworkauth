@@ -27,7 +27,7 @@ qt_internal_add_module(NetworkAuth
         Qt::CorePrivate
 )
 
-qt_internal_extend_target(NetworkAuth CONDITION TARGET Qt::Gui
+qt_internal_extend_target(NetworkAuth CONDITION QT_FEATURE_urischeme_replyhandler
     SOURCES
         qoauthurischemereplyhandler.cpp qoauthurischemereplyhandler.h
     LIBRARIES
