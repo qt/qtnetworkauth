@@ -20,9 +20,6 @@
 #include <QtNetwork/qtcpsocket.h>
 #include <QtNetwork/qnetworkreply.h>
 
-#include <cstring>
-#include <functional>
-
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
