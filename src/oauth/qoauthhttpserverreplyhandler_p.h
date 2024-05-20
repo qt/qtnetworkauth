@@ -60,10 +60,13 @@ public:
     explicit QOAuthHttpServerReplyHandlerPrivate(QOAuthHttpServerReplyHandler *p);
     ~QOAuthHttpServerReplyHandlerPrivate();
 
+    QString callback() const;
+
     QTcpServer httpServer;
     QString text;
     QHostAddress listenAddress = QHostAddress::LocalHost;
     QString path;
+    quint16 callbackPort = 0;
 
 private:
     void _q_clientConnected();

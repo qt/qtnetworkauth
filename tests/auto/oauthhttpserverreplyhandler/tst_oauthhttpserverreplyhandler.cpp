@@ -40,6 +40,7 @@ class tst_QOAuthHttpServerReplyHandler : public QObject
 
 private Q_SLOTS:
     void callback();
+    void callbackCaching();
 };
 
 void tst_QOAuthHttpServerReplyHandler::callback()
@@ -69,6 +70,32 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     reply.reset(networkAccessManager.get(request));
     eventLoop.exec();
     QCOMPARE(count, query.queryItems().count());
+}
+
+void tst_QOAuthHttpServerReplyHandler::callbackCaching()
+{
+    QOAuthHttpServerReplyHandler replyHandler;
+    const auto callbackPath = QStringLiteral("/foo");
+    const auto callbackHost = QStringLiteral("127.0.0.1");
+
+    QVERIFY(replyHandler.isListening());
+    replyHandler.setCallbackPath(callbackPath);
+    QUrl callback = replyHandler.callback();
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
+
+    replyHandler.close();
+    QVERIFY(!replyHandler.isListening());
+    callback = replyHandler.callback();
+    // Should remain after close
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
+
+    replyHandler.listen();
+    QVERIFY(replyHandler.isListening());
+    callback = replyHandler.callback();
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
 }
 
 QTEST_MAIN(tst_QOAuthHttpServerReplyHandler)

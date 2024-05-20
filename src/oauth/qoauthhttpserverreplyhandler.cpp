@@ -65,6 +65,13 @@ QOAuthHttpServerReplyHandlerPrivate::~QOAuthHttpServerReplyHandlerPrivate()
         httpServer.close();
 }
 
+QString QOAuthHttpServerReplyHandlerPrivate::callback() const
+{
+    const QUrl url(QString::fromLatin1("http://127.0.0.1:%1/%2")
+                       .arg(callbackPort).arg(path));
+    return url.toString(QUrl::EncodeDelimiters);
+}
+
 void QOAuthHttpServerReplyHandlerPrivate::_q_clientConnected()
 {
     QTcpSocket *socket = httpServer.nextPendingConnection();
@@ -277,11 +284,7 @@ QOAuthHttpServerReplyHandler::~QOAuthHttpServerReplyHandler()
 QString QOAuthHttpServerReplyHandler::callback() const
 {
     Q_D(const QOAuthHttpServerReplyHandler);
-
-    Q_ASSERT(d->httpServer.isListening());
-    const QUrl url(QString::fromLatin1("http://127.0.0.1:%1/%2")
-                   .arg(d->httpServer.serverPort()).arg(d->path));
-    return url.toString(QUrl::EncodeDelimiters);
+    return d->callback();
 }
 
 QString QOAuthHttpServerReplyHandler::callbackPath() const
@@ -322,7 +325,13 @@ quint16 QOAuthHttpServerReplyHandler::port() const
 bool QOAuthHttpServerReplyHandler::listen(const QHostAddress &address, quint16 port)
 {
     Q_D(QOAuthHttpServerReplyHandler);
-    return d->httpServer.listen(address, port);
+    const bool success = d->httpServer.listen(address, port);
+
+    if (success) {
+        // Callback ('redirect_uri') value may be needed after this handler is closed
+        d->callbackPort = d->httpServer.serverPort();
+    }
+    return success;
 }
 
 void QOAuthHttpServerReplyHandler::close()
