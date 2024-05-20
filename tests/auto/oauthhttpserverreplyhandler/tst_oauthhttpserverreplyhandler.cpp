@@ -11,6 +11,8 @@ typedef QSharedPointer<QNetworkReply> QNetworkReplyPtr;
 
 static constexpr std::chrono::seconds Timeout(20);
 
+using namespace Qt::StringLiterals;
+
 class tst_QOAuthHttpServerReplyHandler : public QObject
 {
     Q_OBJECT
@@ -18,6 +20,7 @@ class tst_QOAuthHttpServerReplyHandler : public QObject
 private Q_SLOTS:
     void callback_data();
     void callback();
+    void callbackCaching();
     void callbackWithQuery();
     void badCallbackUris_data();
     void badCallbackUris();
@@ -84,6 +87,32 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     QTestEventLoop::instance().enterLoop(Timeout);
     QCOMPARE(count > 0, success);
     QVERIFY(!QTestEventLoop::instance().timeout());
+}
+
+void tst_QOAuthHttpServerReplyHandler::callbackCaching()
+{
+    QOAuthHttpServerReplyHandler replyHandler;
+    constexpr auto callbackPath = "/foo"_L1;
+    constexpr auto callbackHost = "localhost"_L1;
+
+    QVERIFY(replyHandler.isListening());
+    replyHandler.setCallbackPath(callbackPath);
+    QUrl callback = replyHandler.callback();
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
+
+    replyHandler.close();
+    QVERIFY(!replyHandler.isListening());
+    callback = replyHandler.callback();
+    // Should remain after close
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
+
+    replyHandler.listen();
+    QVERIFY(replyHandler.isListening());
+    callback = replyHandler.callback();
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
 }
 
 void tst_QOAuthHttpServerReplyHandler::callbackWithQuery()

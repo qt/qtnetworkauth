@@ -86,6 +86,25 @@ QOAuthHttpServerReplyHandlerPrivate::~QOAuthHttpServerReplyHandlerPrivate()
         httpServer.close();
 }
 
+QString QOAuthHttpServerReplyHandlerPrivate::callback() const
+{
+    QUrl url;
+    url.setScheme(u"http"_s);
+    url.setPort(callbackPort);
+    url.setPath(path);
+
+    // convert Any and Localhost addresses to "localhost"
+    if (callbackAddress.isLoopback() || callbackAddress == QHostAddress::AnyIPv4
+        || callbackAddress == QHostAddress::Any || callbackAddress == QHostAddress::AnyIPv6) {
+        url.setHost(u"localhost"_s);
+    } else {
+        url.setHost(callbackAddress.toString());
+    }
+
+    return url.toString(QUrl::EncodeSpaces | QUrl::EncodeUnicode | QUrl::EncodeDelimiters
+                            | QUrl::EncodeReserved);
+}
+
 void QOAuthHttpServerReplyHandlerPrivate::_q_clientConnected()
 {
     QTcpSocket *socket = httpServer.nextPendingConnection();
@@ -325,23 +344,7 @@ QOAuthHttpServerReplyHandler::~QOAuthHttpServerReplyHandler()
 QString QOAuthHttpServerReplyHandler::callback() const
 {
     Q_D(const QOAuthHttpServerReplyHandler);
-
-    Q_ASSERT(d->httpServer.isListening());
-    QUrl url;
-    url.setScheme(u"http"_s);
-    url.setPort(d->httpServer.serverPort());
-    url.setPath(d->path);
-
-    // convert Any and Localhost addresses to "localhost"
-    QHostAddress host = d->httpServer.serverAddress();
-    if (host.isLoopback() || host == QHostAddress::AnyIPv4 || host == QHostAddress::Any
-            || host == QHostAddress::AnyIPv6)
-        url.setHost(u"localhost"_s);
-    else
-        url.setHost(host.toString());
-
-    return url.toString(QUrl::EncodeSpaces | QUrl::EncodeUnicode | QUrl::EncodeDelimiters
-                        | QUrl::EncodeReserved);
+    return d->callback();
 }
 
 /*!
@@ -444,13 +447,24 @@ quint16 QOAuthHttpServerReplyHandler::port() const
 bool QOAuthHttpServerReplyHandler::listen(const QHostAddress &address, quint16 port)
 {
     Q_D(QOAuthHttpServerReplyHandler);
+    bool success = false;
+
     if (address.isNull()) {
         // try IPv4 first, for greatest compatibility
-        if (d->httpServer.listen(QHostAddress::LocalHost, port))
-            return true;
-        return d->httpServer.listen(QHostAddress::LocalHostIPv6, port);
+        success = d->httpServer.listen(QHostAddress::LocalHost, port);
+        if (!success)
+            success = d->httpServer.listen(QHostAddress::LocalHostIPv6, port);
     }
-    return d->httpServer.listen(address, port);
+    if (!success)
+        success = d->httpServer.listen(address, port);
+
+    if (success) {
+        // Callback ('redirect_uri') value may be needed after this handler is closed
+        d->callbackAddress = d->httpServer.serverAddress();
+        d->callbackPort = d->httpServer.serverPort();
+    }
+
+    return success;
 }
 
 /*!
