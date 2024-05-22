@@ -10,9 +10,6 @@
 
 #include <QtNetwork/qnetworkaccessmanager.h>
 
-#include <functional>
-#include <type_traits>
-
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")

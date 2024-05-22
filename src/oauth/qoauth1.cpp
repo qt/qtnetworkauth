@@ -8,7 +8,6 @@
 #include "qoauth1.h"
 #include "qoauth1_p.h"
 #include "qoauth1signature.h"
-#include "qoauthoobreplyhandler.h"
 #include "qoauthhttpserverreplyhandler.h"
 
 #include <QtCore/qmap.h>
