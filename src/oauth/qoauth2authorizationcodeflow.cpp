@@ -460,15 +460,14 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     connect(reply, &QNetworkReply::finished, handler,
             [handler, reply]() { handler->networkReplyFinished(reply); });
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
-    QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,
+    QObjectPrivate::connect(handler, &QAbstractOAuthReplyHandler::tokensReceived, d,
                             &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished,
                             Qt::UniqueConnection);
     QObjectPrivate::connect(d->networkAccessManager(),
                             &QNetworkAccessManager::authenticationRequired,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate,
                             Qt::UniqueConnection);
-    QObjectPrivate::connect(d->replyHandler.data(),
-                            &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred,
+    QObjectPrivate::connect(handler, &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFailed,
                             Qt::UniqueConnection);
 }
@@ -503,7 +502,7 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
     if (d->modifyParametersFunction)
         d->modifyParametersFunction(Stage::RequestingAuthorization, &p);
     url.setQuery(d->createQuery(p));
-    connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::callbackReceived, this,
+    connect(replyHandler(), &QAbstractOAuthReplyHandler::callbackReceived, this,
             &QOAuth2AuthorizationCodeFlow::authorizationCallbackReceived, Qt::UniqueConnection);
     setStatus(QAbstractOAuth::Status::NotAuthenticated);
     qCDebug(d->loggingCategory, "Generated URL: %s", qPrintable(url.toString()));
@@ -554,14 +553,14 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     QObject::connect(reply, &QNetworkReply::finished, handler,
                      [handler, reply] { handler->networkReplyFinished(reply); });
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
-    QObjectPrivate::connect(d->replyHandler.data(), &QAbstractOAuthReplyHandler::tokensReceived, d,
+    QObjectPrivate::connect(handler, &QAbstractOAuthReplyHandler::tokensReceived, d,
                             &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished,
                             Qt::UniqueConnection);
     QObjectPrivate::connect(d->networkAccessManager(),
                             &QNetworkAccessManager::authenticationRequired,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate,
                             Qt::UniqueConnection);
-    QObjectPrivate::connect(d->replyHandler.data(),
+    QObjectPrivate::connect(handler,
                             &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred,
                             d, &QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFailed,
                             Qt::UniqueConnection);
