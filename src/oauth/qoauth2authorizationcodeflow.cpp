@@ -38,6 +38,10 @@ using namespace Qt::StringLiterals;
     {Authorization Code Grant} flow, which is used both to obtain and
     to refresh access tokens. It is a redirection-based flow so the
     user will need access to a web browser.
+
+    As a redirection-based flow this class requires a proper
+    reply handler to be set. See \l {Qt OAuth2 Overview},
+    QOAuthHttpServerReplyHandler, and QOAuthUriSchemeReplyHandler.
 */
 
 /*!
