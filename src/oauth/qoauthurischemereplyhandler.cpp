@@ -116,11 +116,11 @@ QT_BEGIN_NAMESPACE
     On \l {Qt for Android}{Android} the URI schemes require:
     \list
         \li Setting up
-            \l {https://doc.qt.io/qt-6/qdesktopservices.html#android}{intent-filters}
+            \l {configuring qdesktopservices url handler on android}{intent-filters}
             in the application manifest
         \li Optionally, for automatic verification with https schemes,
             hosting a site association file
-            \l {https://doc.qt.io/qt-6/qdesktopservices.html#android}{assetlinks.json}
+            \l {configuring qdesktopservices url handler on android}{assetlinks.json}
     \endlist
 
     See also the
@@ -132,9 +132,9 @@ QT_BEGIN_NAMESPACE
     On \l {Qt for iOS}{iOS} and \l {Qt for macOS}{macOS} the URI schemes require:
     \list
         \li Setting up site association
-            \l {https://doc.qt.io/qt-6/qdesktopservices.html#ios}{entitlement}
+            \l {configuring qdesktopservices url handler on ios and macos}{entitlement}
         \li With https schemes, hosting a
-            \l {https://doc.qt.io/qt-6/qdesktopservices.html#ios}{site association file}
+            \l {configuring qdesktopservices url handler on ios and macos}{site association file}
             (\c apple-app-site-association)
     \endlist
 
