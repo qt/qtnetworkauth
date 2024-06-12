@@ -13,6 +13,7 @@
 
 QT_BEGIN_NAMESPACE
 
+// ### Qt 7 remove the support for OAuth1 (QTBUG-124329)
 class QOAuth1Private;
 class Q_OAUTH_EXPORT QOAuth1: public QAbstractOAuth
 {

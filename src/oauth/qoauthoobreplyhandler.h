@@ -11,6 +11,7 @@
 
 QT_BEGIN_NAMESPACE
 
+// ### Qt 7 remove this undocumented class and arrange it's functionality otherwise (QTBUG-124329)
 class QOAuthOobReplyHandlerPrivate;
 class Q_OAUTH_EXPORT QOAuthOobReplyHandler : public QAbstractOAuthReplyHandler
 {
