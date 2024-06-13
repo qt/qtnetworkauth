@@ -26,6 +26,8 @@ private Q_SLOTS:
     void listenClose();
     void authorization_data();
     void authorization();
+    void callbackDataReceived_data();
+    void callbackDataReceived();
 
 private:
     const QUrl customUrlWithPath{"com.my.app:/somepath"_L1};
@@ -195,6 +197,27 @@ void tst_QOAuthUriSchemeReplyHandler::authorization()
         QTRY_VERIFY(!redirectedSpy.isEmpty());
         QCOMPARE(redirectedSpy.takeFirst().at(0).toMap(), result_parameters);
     }
+}
+
+void tst_QOAuthUriSchemeReplyHandler::callbackDataReceived_data()
+{
+    QTest::addColumn<QUrl>("response_redirect_uri");
+
+    QTest::addRow("base_url") << QUrl(u"io:/path"_s);
+    QTest::addRow("query_parameters") << QUrl(u"io:/path?k1=v1"_s);
+}
+
+void tst_QOAuthUriSchemeReplyHandler::callbackDataReceived()
+{
+    QFETCH(const QUrl, response_redirect_uri);
+
+    QOAuthUriSchemeReplyHandler rh(QUrl{u"io:/path"_s});
+    QSignalSpy spy(&rh, &QOAuthUriSchemeReplyHandler::callbackDataReceived);
+    QVERIFY(rh.isListening());
+
+    QDesktopServices::openUrl(response_redirect_uri);
+    QTRY_COMPARE(spy.size(), 1);
+    QCOMPARE(spy.at(0).at(0).toByteArray(), response_redirect_uri.toEncoded());
 }
 
 QTEST_MAIN(tst_QOAuthUriSchemeReplyHandler)

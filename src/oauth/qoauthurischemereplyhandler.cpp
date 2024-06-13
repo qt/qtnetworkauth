@@ -189,6 +189,7 @@ public:
         }
 
         qCDebug(lcReplyHandler(), "Url handled");
+        emit q->callbackDataReceived(url.toEncoded());
 
         QVariantMap resultParameters;
         const auto responseItems = responseQuery.queryItems(QUrl::FullyDecoded);

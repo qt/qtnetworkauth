@@ -158,6 +158,8 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
     if (url.path() != path) {
         qCWarning(lcReplyHandler, "Invalid request: %s", qPrintable(url.toString()));
     } else {
+        Q_EMIT q->callbackDataReceived(QUrl(callback()).resolved(url).toEncoded());
+
         QVariantMap receivedData;
         const QUrlQuery query(url.query());
         const auto items = query.queryItems();

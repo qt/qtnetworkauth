@@ -25,6 +25,8 @@ private Q_SLOTS:
     void badCallbackUris_data();
     void badCallbackUris();
     void badCallbackWrongMethod();
+    void callbackDataReceived_data();
+    void callbackDataReceived();
 };
 
 void tst_QOAuthHttpServerReplyHandler::callback_data()
@@ -217,6 +219,34 @@ void tst_QOAuthHttpServerReplyHandler::badCallbackWrongMethod()
     QTestEventLoop::instance().enterLoop(Timeout);
     QCOMPARE(count, 0);
     QVERIFY(!QTestEventLoop::instance().timeout());
+}
+
+void tst_QOAuthHttpServerReplyHandler::callbackDataReceived_data()
+{
+    QTest::addColumn<QString>("redirect_response_data");
+
+    QTest::addRow("no_data") << u""_s;
+    QTest::addRow("query_parameters") << u"?k1=v1"_s;
+}
+
+void tst_QOAuthHttpServerReplyHandler::callbackDataReceived()
+{
+    QFETCH(const QString, redirect_response_data);
+
+    QOAuthHttpServerReplyHandler replyHandler;
+    QSignalSpy spy(&replyHandler, &QOAuthHttpServerReplyHandler::callbackDataReceived);
+    QVERIFY(replyHandler.isListening());
+
+    QString expected_response_data = replyHandler.callback() + redirect_response_data;
+
+    QNetworkAccessManager networkAccessManager;
+    QNetworkRequest request(expected_response_data);
+    QNetworkReplyPtr reply;
+
+    reply.reset(networkAccessManager.get(request));
+
+    QTRY_COMPARE(spy.size(), 1);
+    QCOMPARE(spy.at(0).at(0).toByteArray(), expected_response_data.toLatin1());
 }
 
 QTEST_MAIN(tst_QOAuthHttpServerReplyHandler)
