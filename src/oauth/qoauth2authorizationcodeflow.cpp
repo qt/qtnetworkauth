@@ -364,7 +364,7 @@ void QOAuth2AuthorizationCodeFlow::setAccessTokenUrl(const QUrl &accessTokenUrl)
 
     \sa pkceMethod(), QOAuth2AuthorizationCodeFlow::PkceMethod
 */
-void QOAuth2AuthorizationCodeFlow::setPkceMethod(PkceMethod method, quint8 length)
+void QOAuth2AuthorizationCodeFlow::setPkceMethod(PkceMethod method, qsizetype length)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
     if (length < 43 || length > 128) {
@@ -372,7 +372,8 @@ void QOAuth2AuthorizationCodeFlow::setPkceMethod(PkceMethod method, quint8 lengt
         qWarning("Invalid PKCE length provided, must be between 43..128. Ignoring.");
         return;
     }
-    d->pkceVerifierLength = length;
+    static_assert(std::is_same_v<decltype(d->pkceVerifierLength), quint8>);
+    d->pkceVerifierLength = quint8(length);
     d->pkceMethod = method;
 }
 

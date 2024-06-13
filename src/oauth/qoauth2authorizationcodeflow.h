@@ -57,7 +57,7 @@ public:
     };
     Q_ENUM(PkceMethod)
 
-    void setPkceMethod(PkceMethod method, quint8 length = 43) ;
+    void setPkceMethod(PkceMethod method, qsizetype length = 43) ;
     PkceMethod pkceMethod() const noexcept;
 
 public Q_SLOTS:
