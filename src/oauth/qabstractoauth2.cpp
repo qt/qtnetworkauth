@@ -271,7 +271,7 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
 {
     Q_D(QAbstractOAuth2);
     const auto data = d->convertParameters(parameters);
-    return post(url, data);
+    QT_IGNORE_DEPRECATIONS(return post(url, data);)
 }
 
 /*!
@@ -326,7 +326,7 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QVariantMap &paramete
 {
     Q_D(QAbstractOAuth2);
     const auto data = d->convertParameters(parameters);
-    return put(url, data);
+    QT_IGNORE_DEPRECATIONS(return put(url, data);)
 }
 
 /*!
