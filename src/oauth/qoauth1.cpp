@@ -400,6 +400,8 @@ QPair<QString, QString> QOAuth1::clientCredentials() const
 }
 
 /*!
+    \fn void QOAuth1::setClientCredentials(const std::pair<QString, QString> &clientCredentials)
+
     Sets \a clientCredentials as the pair of QString used to identify
     the application and sign requests to the web server.
 
@@ -452,6 +454,8 @@ void QOAuth1::setTokenSecret(const QString &tokenSecret)
 }
 
 /*!
+    \fn std::pair<QString, QString> QOAuth1::tokenCredentials() const
+
     Returns the pair of QString used to identify and sign
     authenticated requests to the web server.
 
@@ -464,6 +468,8 @@ QPair<QString, QString> QOAuth1::tokenCredentials() const
 }
 
 /*!
+    \fn void QOAuth1::setTokenCredentials(const std::pair<QString, QString> &tokenCredentials)
+
     Sets \a tokenCredentials as the pair of QString used to identify
     and sign authenticated requests to the web server.
 
@@ -705,6 +711,11 @@ QNetworkReply *QOAuth1::requestTemporaryCredentials(QNetworkAccessManager::Opera
 }
 
 /*!
+    \fn QNetworkReply *QOAuth1::requestTokenCredentials(QNetworkAccessManager::Operation operation,
+                                                const QUrl &url,
+                                                const std::pair<QString, QString> &temporaryToken,
+                                                const QVariantMap &parameters)
+
     Starts a request for token credentials using the request
     method \a operation. The request URL is \a url and the
     \a parameters shall be encoded and sent during the
