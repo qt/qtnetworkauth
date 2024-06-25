@@ -35,3 +35,6 @@ exampledirs += ../../../examples/oauth snippets
 
 navigation.landingpage = "Qt Network Authorization"
 navigation.cppclassespage = "Qt Network Authorization C++ Classes"
+
+# Enforce zero documentation warnings
+warninglimit = 0
