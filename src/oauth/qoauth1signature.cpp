@@ -12,7 +12,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")
+Q_STATIC_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")
 
 /*!
     \class QOAuth1Signature
