@@ -14,7 +14,11 @@ qhp.QtNetworkAuth.virtualFolder       = qtnetworkauth
 qhp.QtNetworkAuth.indexTitle          = Qt Network Authorization
 qhp.QtNetworkAuth.indexRoot           =
 
-qhp.QtNetworkAuth.subprojects         = classes
+qhp.QtNetworkAuth.subprojects         = overview classes
+qhp.QtNetworkAuth.subprojects.overview.title = Overview
+qhp.QtNetworkAuth.subprojects.overview.indexTitle = Qt OAuth2 Overview
+qhp.QtNetworkAuth.subprojects.overview.selectors = group:none
+
 qhp.QtNetworkAuth.subprojects.classes.title = C++ Classes
 qhp.QtNetworkAuth.subprojects.classes.indexTitle = Qt Network Authorization C++ Classes
 qhp.QtNetworkAuth.subprojects.classes.selectors = class doc:headerfile
