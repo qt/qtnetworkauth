@@ -33,6 +33,10 @@ private Q_SLOTS:
     void pkce();
     void scope_data();
     void scope();
+    void scopeAndRequestedScope_data();
+    void scopeAndRequestedScope();
+    void grantedScope_data();
+    void grantedScope();
 #ifndef QT_NO_SSL
     void setSslConfig();
     void tlsAuthentication();
@@ -67,6 +71,11 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
     void emitCallbackReceived(const QVariantMap &data)
     {
         Q_EMIT callbackReceived(data);
+    }
+
+    void emitTokensReceived(const QVariantMap &data)
+    {
+        Q_EMIT tokensReceived(data);
     }
 };
 
@@ -543,6 +552,137 @@ void tst_OAuth2::scope()
     } else {
         QCOMPARE(scopeSpy.size(), 1);
     }
+}
+
+void tst_OAuth2::scopeAndRequestedScope_data()
+{
+    const QString f = u"first"_s;
+    const QString s = u"second"_s;
+    const QString fs = u"first second"_s;
+
+    QTest::addColumn<QString>("scope");
+    QTest::addColumn<QString>("expected_scope");
+    QTest::addColumn<QStringList>("requested_scope");
+    QTest::addColumn<QString>("expected_resulting_request_scope");
+
+    QTest::addRow("singlescope") << f << f << QStringList{f} << f;
+    QTest::addRow("multiscope") << fs << fs << QStringList{f, s} << fs;
+}
+
+void tst_OAuth2::scopeAndRequestedScope()
+{
+    QFETCH(QString, scope);
+    QFETCH(QString, expected_scope);
+    QFETCH(QStringList, requested_scope);
+    QFETCH(QString, expected_resulting_request_scope);
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    QVERIFY(oauth2.scope().isEmpty());
+    QVERIFY(oauth2.requestedScope().isEmpty());
+
+    QSignalSpy scopeSpy(&oauth2, &QAbstractOAuth2::scopeChanged);
+    QSignalSpy requestedScopeSpy(&oauth2, &QAbstractOAuth2::requestedScopeChanged);
+    QString resultingRequestScope;
+    QObject::connect(&oauth2, &QAbstractOAuth2::authorizeWithBrowser, this,
+                     [&resultingRequestScope](const QUrl &url) {
+                         QUrlQuery queryParameters(url);
+                         resultingRequestScope = queryParameters.queryItemValue(u"scope"_s);
+                     });
+
+    // Set 'scope' and verify that both 'scope' and 'requestedScope' change
+    oauth2.setScope(scope);
+
+    QCOMPARE(scopeSpy.size(), 1);
+    QCOMPARE(oauth2.scope(), expected_scope);
+    QCOMPARE(scopeSpy.at(0).at(0).toString(), expected_scope);
+
+    QCOMPARE(requestedScopeSpy.size(), 1);
+    QCOMPARE(oauth2.requestedScope(), requested_scope);
+    QCOMPARE(requestedScopeSpy.at(0).at(0).toStringList(), requested_scope);
+
+    oauth2.grant();
+    QCOMPARE(resultingRequestScope, expected_resulting_request_scope);
+
+    // Clear data
+    oauth2.setScope(u""_s);
+    oauth2.setRequestedScope({});
+    resultingRequestScope.clear();
+    scopeSpy.clear();
+    requestedScopeSpy.clear();
+
+    // Set 'requestedScope' and verify that both 'scope' and 'requestedScope' change
+    oauth2.setRequestedScope(requested_scope);
+
+    QCOMPARE(requestedScopeSpy.size(), 1);
+    QCOMPARE(oauth2.requestedScope(), requested_scope);
+    QCOMPARE(requestedScopeSpy.at(0).at(0).toStringList(), requested_scope);
+
+    QCOMPARE(scopeSpy.size(), 1);
+    QCOMPARE(oauth2.scope(), expected_scope);
+    QCOMPARE(scopeSpy.at(0).at(0).toString(), expected_scope);
+
+    oauth2.grant();
+    QCOMPARE(resultingRequestScope, expected_resulting_request_scope);
+}
+
+void tst_OAuth2::grantedScope_data()
+{
+    const QStringList requestedScope = {u"first"_s, u"second"_s};
+    const QString scope = u"first second"_s;
+    const QString granted1 = u"granted1"_s;
+    const QString granted2 = u"granted2"_s;
+    const QString grantedJoined = granted1 + u" "_s + granted2;
+    const QStringList grantedList = {granted1, granted2};
+
+    QTest::addColumn<QStringList>("requested_scope");
+    QTest::addColumn<QString>("granted_scope");
+    QTest::addColumn<QStringList>("expected_granted_scope");
+
+    QTest::addRow("requested_scope_returned")
+        << requestedScope << scope << requestedScope;
+
+    QTest::addRow("differing_singlescope_returned")
+        << requestedScope << granted1 << QStringList{granted1};
+
+    QTest::addRow("differing_multiscope_returned")
+        << requestedScope << grantedJoined << grantedList;
+
+    QTest::addRow("empty_scope_returned")
+        << requestedScope << u""_s << requestedScope;
+}
+
+void tst_OAuth2::grantedScope()
+{
+    QFETCH(QStringList, requested_scope);
+    QFETCH(QString, granted_scope);
+    QFETCH(QStringList, expected_granted_scope);
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::grantedScopeChanged);
+    oauth2.setRequestedScope(requested_scope);
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setState("a_state"_L1);
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+
+    oauth2.grant();
+    // Conclude authorization stage in order to proceed to access token stage
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+
+    QVariantMap accessTokenResponseParameters;
+    if (granted_scope.isEmpty())
+        accessTokenResponseParameters = {{"access_token"_L1, "at"_L1}};
+    else
+        accessTokenResponseParameters = {{"access_token"_L1, "at"_L1}, {"scope"_L1, granted_scope}};
+    // Conclude access token stage, during which the granted scope is provided
+    replyHandler.emitTokensReceived(accessTokenResponseParameters);
+
+    QTRY_COMPARE(grantedSpy.size(), 1);
+    QCOMPARE(oauth2.grantedScope(), expected_granted_scope);
+    QCOMPARE(grantedSpy.at(0).at(0).toStringList(), expected_granted_scope);
 }
 
 #ifndef QT_NO_SSL

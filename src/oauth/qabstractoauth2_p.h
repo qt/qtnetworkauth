@@ -43,11 +43,14 @@ public:
                            const QUrl &authorizationUrl, QNetworkAccessManager *manager = nullptr);
     ~QAbstractOAuth2Private();
 
+    void setGrantedScope(const QStringList &scope);
     static QString generateRandomState();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
 
     QString clientIdentifierSharedKey;
     QString scope;
+    QStringList requestedScope;
+    QStringList grantedScope;
     QString state = generateRandomState();
     QString userAgent = QStringLiteral("QtOAuth/1.0 (+https://www.qt.io)");
     QString responseType;

@@ -146,9 +146,20 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
     // If the requested scope and granted scopes differ, server is REQUIRED to return
     // the scope. If OTOH the scopes match, the server MAY omit the scope in the response,
     // in which case we assume that the granted scope matches the requested scope.
-    const QString scope = values.value(Key::scope).toString();
-    if (!scope.isEmpty())
-        q->setScope(scope);
+    //
+    // Note: 'scope' variable has two roles: requested scope, and later granted scope.
+    // Therefore 'scope' needs to be set if the granted scope differs from 'scope'.
+    const QString grantedScope = values.value(Key::scope).toString();
+    const QStringList splitGrantedScope = grantedScope.split(" "_L1, Qt::SkipEmptyParts);
+    if (splitGrantedScope.isEmpty()) {
+        setGrantedScope(requestedScope);
+    } else {
+        setGrantedScope(splitGrantedScope);
+        if (grantedScope != scope) {
+            scope = grantedScope;
+            Q_EMIT q->scopeChanged(scope);
+        }
+    }
 
     const QDateTime currentDateTime = QDateTime::currentDateTime();
     if (expiresIn > 0 && currentDateTime.secsTo(expiresAt) != expiresIn) {
@@ -505,7 +516,8 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
     p.insert(Key::responseType, responseType());
     p.insert(Key::clientIdentifier, d->clientIdentifier);
     p.insert(Key::redirectUri, callback());
-    p.insert(Key::scope, d->scope);
+    if (!d->requestedScope.isEmpty())
+        p.insert(Key::scope, d->requestedScope.join(" "_L1));
     p.insert(Key::state, state);
     if (d->pkceMethod != PkceMethod::None) {
         p.insert(Key::codeChallenge, d->createPKCEChallenge());

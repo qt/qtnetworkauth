@@ -20,6 +20,11 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
 {
     Q_OBJECT
     Q_PROPERTY(QString scope READ scope WRITE setScope NOTIFY scopeChanged)
+    Q_PROPERTY(QStringList grantedScope READ grantedScope NOTIFY grantedScopeChanged)
+    Q_PROPERTY(QStringList requestedScope
+                READ requestedScope
+                WRITE setRequestedScope
+                NOTIFY requestedScopeChanged)
     Q_PROPERTY(QString userAgent READ userAgent WRITE setUserAgent NOTIFY userAgentChanged)
     Q_PROPERTY(QString clientIdentifierSharedKey
                READ clientIdentifierSharedKey
@@ -84,6 +89,11 @@ public:
     QString scope() const;
     void setScope(const QString &scope);
 
+    QStringList grantedScope() const;
+
+    QStringList requestedScope() const;
+    void setRequestedScope(const QStringList &scope);
+
     QString userAgent() const;
     void setUserAgent(const QString &userAgent);
 
@@ -110,6 +120,8 @@ public:
 
 Q_SIGNALS:
     void scopeChanged(const QString &scope);
+    void grantedScopeChanged(const QStringList &scope);
+    void requestedScopeChanged(const QStringList &scope);
     void userAgentChanged(const QString &userAgent);
     void responseTypeChanged(const QString &responseType);
     void clientIdentifierSharedKeyChanged(const QString &clientIdentifierSharedKey);

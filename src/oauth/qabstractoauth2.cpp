@@ -113,6 +113,42 @@ using namespace Qt::StringLiterals;
     authorization server. In case of an empty scope response, the
     \l {https://datatracker.ietf.org/doc/html/rfc6749#section-5.1}
     {requested scope is assumed as granted and does not change}.
+
+    The fact that this property serves two different roles, first
+    as the requested scope and later as the granted scope, is an historical
+    artefact. All new code is recommended to use
+    \l QAbstractOAuth2::requestedScope and \l QAbstractOAuth2::grantedScope.
+
+    \sa QAbstractOAuth2::grantedScope, QAbstractOAuth2::requestedScope
+*/
+
+/*!
+    \since 6.9
+    \property QAbstractOAuth2::grantedScope
+    \brief This property holds the scope granted by the authorization
+    server.
+
+    The requested and granted scope may differ. End-user may have opted
+    to grant only a subset of the scope, or server-side policies may
+    change it. The application should be prepared to handle this
+    scenario, and check the granted scope to see if it should impact
+    the application logic.
+
+    The server may omit indicating the granted scope altogether, as defined by
+    \l {https://datatracker.ietf.org/doc/html/rfc6749#section-5.1}{RFC 6749}.
+    In this case the implementation assumes the granted scope is the same as
+    the requested scope.
+
+    \sa QAbstractOAuth2::requestedScope
+*/
+
+/*!
+    \since 6.9
+    \property QAbstractOAuth2::requestedScope
+    \brief This property holds the desired scope which defines the
+    permissions requested by the client.
+
+    \sa QAbstractOAuth2::grantedScope
 */
 
 /*!
@@ -196,6 +232,15 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
 
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
 {}
+
+void QAbstractOAuth2Private::setGrantedScope(const QStringList &newScope)
+{
+    if (newScope == grantedScope)
+        return;
+    Q_Q(QAbstractOAuth2);
+    grantedScope = newScope;
+    Q_EMIT q->grantedScopeChanged(grantedScope);
+}
 
 QString QAbstractOAuth2Private::generateRandomState()
 {
@@ -485,12 +530,43 @@ QString QAbstractOAuth2::scope() const
     return d->scope;
 }
 
+QStringList QAbstractOAuth2::grantedScope() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->grantedScope;
+}
+
 void QAbstractOAuth2::setScope(const QString &scope)
 {
     Q_D(QAbstractOAuth2);
     if (d->scope != scope) {
         d->scope = scope;
         Q_EMIT scopeChanged(scope);
+    }
+    QStringList splitScope = scope.split(" "_L1, Qt::SkipEmptyParts);
+    if (d->requestedScope != splitScope) {
+        d->requestedScope = splitScope;
+        Q_EMIT requestedScopeChanged(splitScope);
+    }
+}
+
+QStringList QAbstractOAuth2::requestedScope() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->requestedScope;
+}
+
+void QAbstractOAuth2::setRequestedScope(const QStringList &scope)
+{
+    Q_D(QAbstractOAuth2);
+    if (scope != d->requestedScope) {
+        d->requestedScope = scope;
+        Q_EMIT requestedScopeChanged(scope);
+    }
+    QString joinedScope = scope.join(" "_L1);
+    if (joinedScope != d->scope) {
+        d->scope = joinedScope;
+        Q_EMIT scopeChanged(joinedScope);
     }
 }
 
