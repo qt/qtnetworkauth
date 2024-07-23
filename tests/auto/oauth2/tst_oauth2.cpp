@@ -31,6 +31,8 @@ private Q_SLOTS:
     void prepareRequest();
     void pkce_data();
     void pkce();
+    void scope_data();
+    void scope();
 #ifndef QT_NO_SSL
     void setSslConfig();
     void tlsAuthentication();
@@ -471,6 +473,75 @@ void tst_OAuth2::pkce()
         QCOMPARE(QCryptographicHash::hash(codeVerifier, QCryptographicHash::Algorithm::Sha256)
                  .toBase64(QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals)
                  , codeChallenge);
+    }
+}
+
+void tst_OAuth2::scope_data()
+{
+    static const auto requestedScope = u"requested"_s;
+    QTest::addColumn<QString>("scope");
+    QTest::addColumn<QString>("granted_scope");
+    QTest::addColumn<QString>("expected_scope");
+
+    QTest::addRow("scope_returned") << requestedScope << requestedScope << requestedScope;
+    QTest::addRow("differing_scope_returned") << requestedScope << u"granted"_s << u"granted"_s;
+    QTest::addRow("empty_scope_returned") << requestedScope << u""_s << requestedScope;
+}
+
+void tst_OAuth2::scope()
+{
+    QFETCH(QString, scope);
+    QFETCH(QString, granted_scope);
+    QFETCH(QString, expected_scope);
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    QVERIFY(oauth2.scope().isEmpty());
+
+    // Set the requested scope and verify it changes
+    QSignalSpy scopeSpy(&oauth2, &QAbstractOAuth2::scopeChanged);
+    oauth2.setScope(scope);
+    QCOMPARE(scopeSpy.size(), 1);
+    QCOMPARE(oauth2.scope(), scope);
+    QCOMPARE(scopeSpy.at(0).at(0).toString(), scope);
+
+    // Verify that empty authorization server 'scope' response doesn't overwrite the
+    // requested scope, whereas a returned scope value does
+    WebServer webServer([granted_scope](const WebServer::HttpRequest &request, QTcpSocket *socket) {
+        if (request.url.path() == "/accessTokenUrl"_L1) {
+            QString accessTokenResponseParams;
+            accessTokenResponseParams += u"access_token=token&token_type=bearer"_s;
+            if (!granted_scope.isEmpty())
+                accessTokenResponseParams += u"&scope="_s + granted_scope;
+            const QByteArray replyMessage {
+                "HTTP/1.0 200 OK\r\n"
+                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
+                "Content-Length: "
+                + QByteArray::number(accessTokenResponseParams.size()) + "\r\n\r\n"
+                + accessTokenResponseParams.toUtf8()
+            };
+            socket->write(replyMessage);
+        }
+    });
+    oauth2.setAuthorizationUrl(webServer.url("authorizationUrl"_L1));
+    oauth2.setAccessTokenUrl(webServer.url("accessTokenUrl"_L1));
+    oauth2.setState("a_state"_L1);
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            this, [&](const QUrl &) {
+                replyHandler.emitCallbackReceived(QVariantMap {
+                    { "code"_L1, "a_code"_L1 }, { "state"_L1, "a_state"_L1 },
+        });
+    });
+    oauth2.grant();
+
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.scope(), expected_scope);
+    if (!granted_scope.isEmpty() && (granted_scope != scope)) {
+        QCOMPARE(scopeSpy.size(), 2);
+        QCOMPARE(scopeSpy.at(1).at(0).toString(), expected_scope);
+    } else {
+        QCOMPARE(scopeSpy.size(), 1);
     }
 }
 
