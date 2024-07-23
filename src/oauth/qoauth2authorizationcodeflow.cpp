@@ -134,13 +134,21 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
         expiresIn = -1;
     if (values.value(Key::refreshToken).isValid())
         q->setRefreshToken(values.value(Key::refreshToken).toString());
-    scope = values.value(Key::scope).toString();
+
     if (accessToken.isEmpty()) {
         _q_accessTokenRequestFailed(QAbstractOAuth::Error::OAuthTokenNotFoundError,
                                     "Access token not received"_L1);
         return;
     }
     q->setToken(accessToken);
+
+    // RFC 6749 section 5.1 https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
+    // If the requested scope and granted scopes differ, server is REQUIRED to return
+    // the scope. If OTOH the scopes match, the server MAY omit the scope in the response,
+    // in which case we assume that the granted scope matches the requested scope.
+    const QString scope = values.value(Key::scope).toString();
+    if (!scope.isEmpty())
+        q->setScope(scope);
 
     const QDateTime currentDateTime = QDateTime::currentDateTime();
     if (expiresIn > 0 && currentDateTime.secsTo(expiresAt) != expiresIn) {
