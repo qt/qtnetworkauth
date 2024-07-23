@@ -47,6 +47,11 @@ using namespace Qt::StringLiterals;
     \property QAbstractOAuth2::scope
     \brief This property holds the desired scope which defines the
     permissions requested by the client.
+
+    The scope value is updated to the scope value granted by the
+    authorization server. In case of an empty scope response, the
+    \l {https://datatracker.ietf.org/doc/html/rfc6749#section-5.1}
+    {requested scope is assumed as granted and does not change}.
 */
 
 /*!
