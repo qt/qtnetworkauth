@@ -289,7 +289,7 @@ QUrl QAbstractOAuth2::createAuthenticatedUrl(const QUrl &url, const QVariantMap 
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     Sends an authenticated HEAD request and returns a new
@@ -308,7 +308,7 @@ QNetworkReply *QAbstractOAuth2::head(const QUrl &url, const QVariantMap &paramet
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     Sends an authenticated GET request and returns a new
@@ -327,7 +327,7 @@ QNetworkReply *QAbstractOAuth2::get(const QUrl &url, const QVariantMap &paramete
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     Sends an authenticated POST request and returns a new
@@ -345,7 +345,7 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QVariantMap &paramet
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     \since 5.10
@@ -368,7 +368,7 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, const QByteArray &data)
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     \since 5.10
@@ -391,7 +391,7 @@ QNetworkReply *QAbstractOAuth2::post(const QUrl &url, QHttpMultiPart *multiPart)
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     Sends an authenticated PUT request and returns a new
@@ -409,7 +409,7 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QVariantMap &paramete
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     \since 5.10
@@ -432,7 +432,7 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, const QByteArray &data)
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     \since 5.10
@@ -455,7 +455,7 @@ QNetworkReply *QAbstractOAuth2::put(const QUrl &url, QHttpMultiPart *multiPart)
 }
 
 /*!
-    \deprecated [6.8] Please use QtNetwork classes directly instead, see
+    \deprecated [6.11] Please use QtNetwork classes directly instead, see
     \l {OAuth2 HTTP method alternatives}{HTTP method alternatives}.
 
     Sends an authenticated DELETE request and returns a new
