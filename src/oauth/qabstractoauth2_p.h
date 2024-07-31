@@ -48,7 +48,9 @@ public:
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
 
     QString clientIdentifierSharedKey;
+#if QT_DEPRECATED_SINCE(6, 11)
     QString scope;
+#endif
     QStringList requestedScope;
     QStringList grantedScope;
     QString state = generateRandomState();

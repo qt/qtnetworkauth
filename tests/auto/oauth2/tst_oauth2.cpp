@@ -32,10 +32,14 @@ private Q_SLOTS:
     void prepareRequest();
     void pkce_data();
     void pkce();
+#if QT_DEPRECATED_SINCE(6, 11)
     void scope_data();
     void scope();
     void scopeAndRequestedScope_data();
     void scopeAndRequestedScope();
+#endif
+    void requestedScope_data();
+    void requestedScope();
     void grantedScope_data();
     void grantedScope();
 #ifndef QT_NO_SSL
@@ -532,6 +536,8 @@ void tst_OAuth2::pkce()
     }
 }
 
+#if QT_DEPRECATED_SINCE(6, 11)
+QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 void tst_OAuth2::scope_data()
 {
     static const auto requestedScope = u"requested"_s;
@@ -669,6 +675,51 @@ void tst_OAuth2::scopeAndRequestedScope()
     QCOMPARE(scopeSpy.size(), 1);
     QCOMPARE(oauth2.scope(), expected_scope);
     QCOMPARE(scopeSpy.at(0).at(0).toString(), expected_scope);
+
+    oauth2.grant();
+    QCOMPARE(resultingRequestScope, expected_resulting_request_scope);
+}
+QT_WARNING_POP
+#endif // QT_DEPRECATED_SINCE(6, 11)
+
+void tst_OAuth2::requestedScope_data()
+{
+    const QString f = u"first"_s;
+    const QString s = u"second"_s;
+    const QString fs = u"first second"_s;
+
+    QTest::addColumn<QStringList>("requested_scope");
+    QTest::addColumn<QStringList>("expected_requested_scope");
+    QTest::addColumn<QString>("expected_resulting_request_scope");
+
+    QTest::addRow("singlescope") << QStringList{f} << QStringList{f} << f;
+    QTest::addRow("multiscope")  << QStringList{f, s} << QStringList{f, s} << fs;
+}
+
+void tst_OAuth2::requestedScope()
+{
+    QFETCH(QStringList, requested_scope);
+    QFETCH(QStringList, expected_requested_scope);
+    QFETCH(QString, expected_resulting_request_scope);
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    QVERIFY(oauth2.requestedScope().isEmpty());
+
+    QSignalSpy requestedScopeSpy(&oauth2, &QAbstractOAuth2::requestedScopeChanged);
+    QString resultingRequestScope;
+    QObject::connect(&oauth2, &QAbstractOAuth2::authorizeWithBrowser, this,
+                     [&resultingRequestScope](const QUrl &url) {
+                         QUrlQuery queryParameters(url);
+                         resultingRequestScope = queryParameters.queryItemValue(u"scope"_s);
+                     });
+
+    oauth2.setRequestedScope(requested_scope);
+
+    QCOMPARE(requestedScopeSpy.size(), 1);
+    QCOMPARE(oauth2.requestedScope(), expected_requested_scope);
+    QCOMPARE(requestedScopeSpy.at(0).at(0).toStringList(), expected_requested_scope);
 
     oauth2.grant();
     QCOMPARE(resultingRequestScope, expected_resulting_request_scope);

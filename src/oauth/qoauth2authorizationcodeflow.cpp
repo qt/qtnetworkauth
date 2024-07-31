@@ -173,10 +173,12 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
         setGrantedScope(requestedScope);
     } else {
         setGrantedScope(splitGrantedScope);
+#if QT_DEPRECATED_SINCE(6, 11)
         if (grantedScope != scope) {
             scope = grantedScope;
-            Q_EMIT q->scopeChanged(scope);
+            QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(scope);)
         }
+#endif
     }
 
     const QDateTime currentDateTime = QDateTime::currentDateTime();
