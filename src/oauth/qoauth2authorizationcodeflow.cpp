@@ -63,6 +63,23 @@ QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
     responseType = QStringLiteral("code");
 }
 
+static QString toUrlFormEncoding(const QString &source)
+{
+    // RFC 6749 Appendix B
+    // https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
+    // Replace spaces with plus, while percent-encoding the rest
+    QByteArray encoded = source.toUtf8().toPercentEncoding(" ");
+    encoded.replace(" ", "+");
+    return QString::fromUtf8(encoded);
+}
+
+static QString fromUrlFormEncoding(const QString &source)
+{
+    QByteArray decoded = source.toUtf8();
+    decoded = QByteArray::fromPercentEncoding(decoded.replace("+"," "));
+    return QString::fromUtf8(decoded);
+}
+
 void QOAuth2AuthorizationCodeFlowPrivate::_q_handleCallback(const QVariantMap &data)
 {
     Q_Q(QOAuth2AuthorizationCodeFlow);
@@ -78,7 +95,8 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_handleCallback(const QVariantMap &d
 
     const QString error = data.value(Key::error).toString();
     const QString code = data.value(Key::code).toString();
-    const QString receivedState = data.value(Key::state).toString();
+    const QString receivedState = fromUrlFormEncoding(data.value(Key::state).toString());
+
     if (error.size()) {
         // RFC 6749, Section 5.2 Error Response
         const QString uri = data.value(Key::errorUri).toString();
@@ -518,7 +536,7 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
     p.insert(Key::redirectUri, callback());
     if (!d->requestedScope.isEmpty())
         p.insert(Key::scope, d->requestedScope.join(" "_L1));
-    p.insert(Key::state, state);
+    p.insert(Key::state, toUrlFormEncoding(state));
     if (d->pkceMethod != PkceMethod::None) {
         p.insert(Key::codeChallenge, d->createPKCEChallenge());
         p.insert(Key::codeChallengeMethod,
