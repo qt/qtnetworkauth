@@ -23,6 +23,7 @@ class tst_OAuth2 : public QObject
 
 private Q_SLOTS:
     void initTestCase();
+    void state();
     void getToken();
     void refreshToken();
     void getAndRefreshToken();
@@ -78,6 +79,52 @@ void tst_OAuth2::initTestCase()
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+}
+
+void tst_OAuth2::state()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl(QUrl{"accessTokenUrl"_L1});
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    QSignalSpy statePropertySpy(&oauth2, &QAbstractOAuth2::stateChanged);
+
+    QString stateParameter;
+    oauth2.setModifyParametersFunction(
+        [&] (QAbstractOAuth::Stage, QMultiMap<QString, QVariant> *parameters) {
+            stateParameter = parameters->value(u"state"_s).toString();
+    });
+
+    oauth2.grant();
+    QVERIFY(!stateParameter.isEmpty()); // internally generated initial state used
+    QCOMPARE(stateParameter, oauth2.state());
+
+    // Test setting the 'state' property
+    const QString simpleState = u"a_state"_s;
+    oauth2.setState(simpleState);
+    QCOMPARE(oauth2.state(), simpleState);
+    QCOMPARE(statePropertySpy.size(), 1);
+    QCOMPARE(statePropertySpy.at(0).at(0), simpleState);
+    oauth2.grant();
+    QCOMPARE(stateParameter, simpleState);
+
+    // Test 'state' that requires encoding/decoding.
+    // The 'state' value contains all allowed characters as defined by
+    // https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5
+    // state      = 1*VSCHAR
+    // Where
+    // VSCHAR     = %x20-7E
+    const QString stateRequiringEncoding = u"! \"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"_s;
+    const QString stateAsEncoded = u"%21+%22%23%24%25%26%27%28%29%2A%2B%2C-.%2F0123456789%3A%3B%3C%3D%3E%3F%40ABCDEFGHIJKLMNOPQRSTUVWXYZ%5B%5C%5D%5E_%60abcdefghijklmnopqrstuvwxyz%7B%7C%7D~"_s;
+    oauth2.setState(stateRequiringEncoding);
+    QCOMPARE(oauth2.state(), stateRequiringEncoding);
+    oauth2.grant();
+    QCOMPARE(stateParameter, stateAsEncoded);
+    // Conclude authorization stage, and check that the 'state' which we returned as encoded
+    // matches the original decoded state (ie. the status changes to TemporaryCredentialsReceived)
+    replyHandler.emitCallbackReceived({{"code", "acode"}, {"state", stateAsEncoded}});
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
 }
 
 void tst_OAuth2::authorizationErrors()
