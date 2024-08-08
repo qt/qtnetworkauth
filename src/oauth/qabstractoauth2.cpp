@@ -173,6 +173,13 @@ using namespace Qt::StringLiterals;
     This property holds the string sent to the server during
     authentication. The state is used to identify and validate the
     request when the callback is received.
+
+    Certain characters are illegal in the state element (see
+    \l {https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5}{RFC 6749}).
+    The use of illegal characters could lead to an unintended state mismatch
+    and a failing OAuth 2 authorization. Therefore, if you attempt to set
+    a value that contains illegal characters, the state is ignored and a
+    warning is logged.
 */
 
 /*!
@@ -628,6 +635,17 @@ QString QAbstractOAuth2::state() const
 void QAbstractOAuth2::setState(const QString &state)
 {
     Q_D(QAbstractOAuth2);
+    // Allowed characters are defined in
+    // https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5
+    // state      = 1*VSCHAR
+    // Where
+    // VSCHAR     = %x20-7E
+    for (QChar c : state) {
+        if (c < u'\x20' || c > u'\x7E') {
+            qCWarning(d->loggingCategory, "setState() contains illegal character(s), ignoring");
+            return;
+        }
+    }
     if (state != d->state) {
         d->state = state;
         Q_EMIT stateChanged(state);

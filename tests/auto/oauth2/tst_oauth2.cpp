@@ -122,6 +122,12 @@ void tst_OAuth2::state()
     oauth2.grant();
     QCOMPARE(stateParameter, simpleState);
 
+    // Test 'state' that contains illegal characters
+    QTest::ignoreMessage(QtWarningMsg, "setState() contains illegal character(s), ignoring");
+    oauth2.setState(u"foo€bar"_s);
+    QCOMPARE(oauth2.state(), simpleState);
+    QCOMPARE(statePropertySpy.size(), 1);
+
     // Test 'state' that requires encoding/decoding.
     // The 'state' value contains all allowed characters as defined by
     // https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5
