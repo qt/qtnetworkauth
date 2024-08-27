@@ -58,8 +58,12 @@ for native applications like Qt applications.
 
 The following code snippet provides an example setup:
 
-\snippet src_oauth_replyhandlers.cpp uri-variables
+\snippet src_oauth_replyhandlers_p.h uri-variables
+\codeline
+\snippet src_oauth_replyhandlers.cpp uri-service-configuration
+\codeline
 \snippet src_oauth_replyhandlers.cpp uri-oauth-setup
+\codeline
 \snippet src_oauth_replyhandlers.cpp uri-handler-setup
 
 \section2 Stages

@@ -26,7 +26,7 @@ qhp.QtNetworkAuth.subprojects.classes.sortPages = true
 
 tagfile                 = qtnetworkauth.tags
 
-depends                 += qtcore qtnetwork qtdoc qtcmake qtgui
+depends                 += qtcore qtnetwork qtdoc qtcmake qtgui qtwebengine
 
 headerdirs  += ..
 sourcedirs  += ..

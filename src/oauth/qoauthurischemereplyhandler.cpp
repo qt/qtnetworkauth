@@ -43,10 +43,12 @@ QT_BEGIN_NAMESPACE
 
     The following code illustrates the usage. First, the needed variables:
 
-    \snippet src_oauth_replyhandlers.cpp uri-variables
+    \snippet src_oauth_replyhandlers_p.h uri-variables
 
     Followed up by the OAuth setup (error handling omitted for brevity):
 
+    \snippet src_oauth_replyhandlers.cpp uri-service-configuration
+    \codeline
     \snippet src_oauth_replyhandlers.cpp uri-oauth-setup
 
     Finally, we then set up the URI scheme reply-handler:
@@ -140,7 +142,9 @@ QT_BEGIN_NAMESPACE
 
     \section2 \l {Qt for Windows}{Windows}, \l {Qt for Linux/X11}{Linux}
 
-    Currently not supported.
+    Currently not supported. However platforms and use cases supporting
+    \l {Qt WebEngine Platform Notes}{Qt WebEngine} can still use this reply
+    handler - see \l {Qt OAuth2 Browser Support} for details.
 */
 
 class QOAuthUriSchemeReplyHandlerPrivate : public QOAuthOobReplyHandlerPrivate
@@ -316,6 +320,8 @@ QUrl QOAuthUriSchemeReplyHandler::redirectUrl() const
     recommended to \l close() the handler to avoid unnecessary listening.
 
     Returns \c true if the URL matched and was handled, \c false otherwise.
+
+    See also \l {Redirect URI Schemes}{Redirect URI Schemes with Qt WebEngine}.
 */
 bool QOAuthUriSchemeReplyHandler::handleAuthorizationRedirect(const QUrl &url)
 {

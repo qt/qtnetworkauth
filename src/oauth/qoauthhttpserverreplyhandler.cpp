@@ -54,10 +54,12 @@ using namespace Qt::StringLiterals;
 
     The following code illustrates the usage. First, the needed variables:
 
-    \snippet src_oauth_replyhandlers.cpp httpserver-variables
+    \snippet src_oauth_replyhandlers_p.h httpserver-variables
 
     Followed up by the OAuth setup (error handling omitted for brevity):
 
+    \snippet src_oauth_replyhandlers.cpp httpserver-service-configuration
+    \codeline
     \snippet src_oauth_replyhandlers.cpp httpserver-oauth-setup
 
     Finally, we then set up the URI scheme reply-handler:
