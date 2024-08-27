@@ -28,6 +28,7 @@ private Q_SLOTS:
     void authorization();
     void callbackDataReceived_data();
     void callbackDataReceived();
+    void handleAuthorizationRedirect();
 
 private:
     const QUrl customUrlWithPath{"com.my.app:/somepath"_L1};
@@ -218,6 +219,21 @@ void tst_QOAuthUriSchemeReplyHandler::callbackDataReceived()
     QDesktopServices::openUrl(response_redirect_uri);
     QTRY_COMPARE(spy.size(), 1);
     QCOMPARE(spy.at(0).at(0).toByteArray(), response_redirect_uri.toEncoded());
+}
+
+void tst_QOAuthUriSchemeReplyHandler::handleAuthorizationRedirect()
+{
+    QOAuthUriSchemeReplyHandler handler;
+    QSignalSpy callbackReceivedSpy(&handler, &QOAuthUriSchemeReplyHandler::callbackReceived);
+    const QUrl redirectUrl(u"com.example.myqtapp:/oauthredirect"_s);
+    const QUrl validAuthorizationRedirect(u"com.example.myqtapp:/oauthredirect?code=foo"_s);
+    const QUrl invalidAuthorizationRedirect(u"com.example.wrong.myqtapp:/oauthredirect?code=foo"_s);
+    handler.setRedirectUrl(redirectUrl);
+    QVERIFY(!handler.handleAuthorizationRedirect(invalidAuthorizationRedirect));
+    QVERIFY(callbackReceivedSpy.isEmpty());
+    QVERIFY(handler.handleAuthorizationRedirect(validAuthorizationRedirect));
+    QVERIFY(!callbackReceivedSpy.isEmpty());
+    QCOMPARE(callbackReceivedSpy.at(0).at(0).toMap().value("code").toString(), u"foo"_s);
 }
 
 QTEST_MAIN(tst_QOAuthUriSchemeReplyHandler)

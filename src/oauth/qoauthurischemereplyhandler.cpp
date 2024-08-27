@@ -156,7 +156,7 @@ public:
                && redirectUrl.fragment().isEmpty();
     }
 
-    void _q_handleRedirectUrl(const QUrl &url)
+    bool _q_handleRedirectUrl(const QUrl &url)
     {
         Q_Q(QOAuthUriSchemeReplyHandler);
         // Remove the query parameters from comparison, and compare them manually (the parameters
@@ -181,11 +181,13 @@ public:
 
         if (!urlMatch) {
             qCDebug(lcReplyHandler(), "Url ignored");
-            // The URLs received here might be unrelated. Further, in case of "https" scheme,
-            // the first request issued to the authorization server comes through here
-            // (if this handler is listening)
-            QDesktopServices::openUrl(url);
-            return;
+            if (forwardUnhandledUrls) {
+                // The URLs received here might be unrelated. Further, in case of "https" scheme,
+                // the first request issued to the authorization server comes through here
+                // (if this handler is listening)
+                QDesktopServices::openUrl(url);
+            }
+            return false;
         }
 
         qCDebug(lcReplyHandler(), "Url handled");
@@ -197,10 +199,12 @@ public:
             resultParameters.insert(item.first, item.second);
 
         emit q->callbackReceived(resultParameters);
+        return true;
     }
 
 public:
     QUrl redirectUrl;
+    bool forwardUnhandledUrls = true;
     bool listening = false;
 };
 
@@ -295,6 +299,31 @@ QUrl QOAuthUriSchemeReplyHandler::redirectUrl() const
 {
     Q_D(const QOAuthUriSchemeReplyHandler);
     return d->redirectUrl;
+}
+
+/*!
+    \since 6.9
+    This function is used to supply the redirect URL the Authorization
+    Server provides at the end of the authorization stage. The provided
+    \a url undergoes the same URL matching as described in \l {redirectUrl}.
+
+    Suppyling the URL can be useful for scenarios where this redirect URL
+    is captured by some other means, for example with \l {Qt WebEngine} or
+    through some other custom arrangement. This way such agent usage can be
+    integrated with rest of the OAuth2 flow.
+
+    This handler does not need to be listening, and therefore it is
+    recommended to \l close() the handler to avoid unnecessary listening.
+
+    Returns \c true if the URL matched and was handled, \c false otherwise.
+*/
+bool QOAuthUriSchemeReplyHandler::handleAuthorizationRedirect(const QUrl &url)
+{
+    Q_D(QOAuthUriSchemeReplyHandler);
+    d->forwardUnhandledUrls = false;
+    const bool handled = d->_q_handleRedirectUrl(url);
+    d->forwardUnhandledUrls = true;
+    return handled;
 }
 
 /*!
