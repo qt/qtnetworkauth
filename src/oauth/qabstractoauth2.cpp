@@ -227,6 +227,36 @@ using namespace Qt::StringLiterals;
 */
 
 /*!
+    \fn template<typename Functor, QAbstractOAuth2::if_compatible_callback<Functor>> void QAbstractOAuth2::setTokenRequestModifier(
+                        const ContextTypeForFunctor<Functor> *context,
+                        Functor &&callback)
+    \since 6.9
+
+    Sets the network request modification function to \a callback.
+    This function is used to customize the token requests sent
+    to the server.
+
+    \a callback has to implement the signature
+    \c {void(QNetworkRequest&, QAbstractOAuth::Stage)}. The provided
+    QNetworkRequest can be directly modified, and it is used right after
+    the callback finishes. \a callback can be a function pointer, lambda,
+    member function, or any callable object. The provided
+    QAbstractOAuth::Stage can be used to check if the request is an
+    access token request or an access token refresh request.
+
+    \a context controls the lifetime of the calls, and prevents
+    access to de-allocated resources in case \a context is destroyed.
+    In other words, if the object provided as context is destroyed,
+    callbacks won't be executed. \a context must point to a valid
+    QObject (and in case the callback is a member function,
+    it needs to actually have it). Since the callback's results
+    are used immediately, \a context must reside in the same
+    thread as the QAbstractOAuth2 instance.
+
+    \sa clearTokenRequestModifier(), QNetworkRequest
+*/
+
+/*!
     \property QAbstractOAuth2::userAgent
     This property holds the User-Agent header used to create the
     network requests.
@@ -381,6 +411,31 @@ void QAbstractOAuth2Private::setIdToken(const QString &token)
     emit q->idTokenChanged(idToken);
 }
 
+bool QAbstractOAuth2Private::verifyThreadAffinity(const QObject *contextObject)
+{
+    Q_Q(QAbstractOAuth2);
+    if (contextObject && (contextObject->thread() != q->thread())) {
+        qCWarning(loggingCategory, "Context object must reside in the same thread");
+        return false;
+    }
+    return true;
+}
+
+void QAbstractOAuth2Private::callTokenRequestModifier(QNetworkRequest &request,
+                                                       QAbstractOAuth::Stage stage)
+{
+    if (tokenRequestModifier.contextObject && tokenRequestModifier.slot) {
+        if (!verifyThreadAffinity(tokenRequestModifier.contextObject)) {
+            Q_Q(QAbstractOAuth2);
+            q->clearTokenRequestModifier();
+            return;
+        }
+        void *argv[] = { nullptr, &request, &stage};
+        tokenRequestModifier.slot->call(
+            const_cast<QObject*>(tokenRequestModifier.contextObject.get()), argv);
+    }
+}
+
 /*!
     \reimp
 */
@@ -424,6 +479,33 @@ void QAbstractOAuth2::setResponseType(const QString &responseType)
         d->responseType = responseType;
         Q_EMIT responseTypeChanged(responseType);
     }
+}
+
+void QAbstractOAuth2::setTokenRequestModifierImpl(const QObject* context,
+                                                   QtPrivate::QSlotObjectBase *slot)
+{
+    Q_D(QAbstractOAuth2);
+
+    if (!context) {
+        qCWarning(d->loggingCategory, "Context object must not be null, ignoring");
+        return;
+    }
+    if (!d->verifyThreadAffinity(context))
+        return;
+
+    d->tokenRequestModifier.contextObject = context;
+    d->tokenRequestModifier.slot.reset(slot);
+}
+
+/*!
+    Clears the network request modifier.
+
+    \sa setTokenRequestModifier()
+*/
+void QAbstractOAuth2::clearTokenRequestModifier()
+{
+    Q_D(QAbstractOAuth2);
+    d->tokenRequestModifier = {nullptr, nullptr};
 }
 
 /*!

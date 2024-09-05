@@ -507,6 +507,8 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
     request.setHeader(QNetworkRequest::ContentTypeHeader,
                       QStringLiteral("application/x-www-form-urlencoded"));
 
+    d->callTokenRequestModifier(request, QAbstractOAuth::Stage::RefreshingAccessToken);
+
     const QString data = query.toString(QUrl::FullyEncoded);
     d->currentReply = d->networkAccessManager()->post(request, data.toUtf8());
     setStatus(Status::RefreshingToken);
@@ -609,6 +611,9 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
                       QStringLiteral("application/x-www-form-urlencoded"));
 
     const QString data = query.toString(QUrl::FullyEncoded);
+
+    d->callTokenRequestModifier(request, QAbstractOAuth::Stage::RequestingAccessToken);
+
     QNetworkReply *reply = d->networkAccessManager()->post(request, data.toUtf8());
     d->currentReply = reply;
     QAbstractOAuthReplyHandler *handler = replyHandler();

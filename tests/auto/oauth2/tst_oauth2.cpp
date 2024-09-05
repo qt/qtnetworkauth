@@ -29,6 +29,7 @@ private Q_SLOTS:
     void getAndRefreshToken();
     void tokenRequestErrors();
     void authorizationErrors();
+    void modifyTokenRequests();
     void prepareRequest();
     void pkce_data();
     void pkce();
@@ -252,6 +253,156 @@ void tst_OAuth2::authorizationErrors()
     QCOMPARE(errorSpy.count(), 0);
     QVERIFY(statusSpy.isEmpty());
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
+}
+
+class RequestModifier : public QObject
+{
+    Q_OBJECT
+public:
+    RequestModifier(QObject *parent = nullptr) : QObject(parent) {}
+
+    void handleRequestModification(QNetworkRequest &request, QAbstractOAuth::Stage stage)
+    {
+        stageReceivedByModifier = stage;
+        auto headers = request.headers();
+        headers.append("test-header-name"_ba, valueToSet);
+        request.setHeaders(headers);
+    }
+    QAbstractOAuth::Stage stageReceivedByModifier =
+        QAbstractOAuth::Stage::RequestingTemporaryCredentials;
+    QByteArray valueToSet;
+};
+
+#define TEST_MODIFY_REQUEST_WITH_MODIFIER(STAGE_RECEIVED, VALUE_SET, VALUE_PREFIX) \
+    { \
+        valueReceivedByTokenServer.clear(); \
+        STAGE_RECEIVED = QAbstractOAuth::Stage::RequestingTemporaryCredentials; \
+        VALUE_SET = QByteArray(VALUE_PREFIX) + "_access_token"; \
+        oauth2.grant(); \
+        /* Conclude authorization stage so that we proceed into access token request */ \
+        replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}}); \
+        QTRY_COMPARE(STAGE_RECEIVED, QAbstractOAuth::Stage::RequestingAccessToken); \
+        QTRY_COMPARE(valueReceivedByTokenServer, VALUE_SET); \
+        QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
+        /* Refresh token request */ \
+        VALUE_SET = QByteArray(VALUE_PREFIX) + "_refresh_token"; \
+        valueReceivedByTokenServer.clear(); \
+        STAGE_RECEIVED = QAbstractOAuth::Stage::RequestingTemporaryCredentials; \
+        oauth2.refreshAccessToken(); \
+        QCOMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken); \
+        QTRY_COMPARE(STAGE_RECEIVED, QAbstractOAuth::Stage::RefreshingAccessToken); \
+        QTRY_COMPARE(valueReceivedByTokenServer, VALUE_SET); \
+        QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
+        oauth2.clearTokenRequestModifier(); \
+    } \
+
+#define TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(VALUE_SET) \
+    { \
+        valueReceivedByTokenServer.clear(); \
+        VALUE_SET = "must_not_be_set"_ba; \
+        oauth2.grant(); \
+        /* Conclude authorization stage so that we proceed into access token request */ \
+        replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}}); \
+        QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
+        QVERIFY(valueReceivedByTokenServer.isEmpty()); \
+        oauth2.refreshAccessToken(); \
+        QCOMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken); \
+        QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
+        QVERIFY(valueReceivedByTokenServer.isEmpty()); \
+        oauth2.clearTokenRequestModifier(); \
+    } \
+
+void tst_OAuth2::modifyTokenRequests()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    std::unique_ptr<RequestModifier> context(new RequestModifier);
+    QRegularExpression nullContextWarning(u".*Context object must not be null, ignoring"_s);
+    QRegularExpression wrongThreadWarning(u".*Context object must reside in the same thread"_s);
+    auto valueToSet = ""_ba;
+
+    QByteArray valueReceivedByTokenServer;
+    WebServer tokenServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
+        valueReceivedByTokenServer = request.headers.value("test-header-name"_ba);
+        const QString text = "access_token=token&token_type=bearer";
+        const QByteArray replyMessage {
+            "HTTP/1.0 200 OK\r\n"
+            "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
+            "Content-Length: " + QByteArray::number(text.size()) + "\r\n\r\n"
+            + text.toUtf8()
+        };
+        socket->write(replyMessage);
+    });
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    oauth2.setRefreshToken(u"refresh_token"_s);
+    oauth2.setAuthorizationUrl(tokenServer.url(QLatin1String("authorization")));
+    oauth2.setAccessTokenUrl(tokenServer.url(QLatin1String("accessToken")));
+    oauth2.setState("a_state"_L1);
+
+    QAbstractOAuth::Stage stageReceivedByModifier =
+        QAbstractOAuth::Stage::RequestingTemporaryCredentials;
+    auto modifierLambda = [&](QNetworkRequest &request, QAbstractOAuth::Stage stage) {
+        stageReceivedByModifier = stage;
+        auto headers = request.headers();
+        headers.append("test-header-name"_ba, valueToSet);
+        request.setHeaders(headers);
+    };
+    std::function<void(QNetworkRequest &, QAbstractOAuth::Stage)> modifierFunc = modifierLambda;
+
+    // Lambda with a context object
+    oauth2.setTokenRequestModifier(context.get(), modifierLambda);
+    TEST_MODIFY_REQUEST_WITH_MODIFIER(stageReceivedByModifier, valueToSet, "lambda_with_context")
+
+    // Test that the modifier will be cleared
+    oauth2.clearTokenRequestModifier();
+    TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(valueToSet)
+
+    // Lambda without a context object
+    QTest::ignoreMessage(QtWarningMsg, nullContextWarning);
+    oauth2.setTokenRequestModifier(nullptr, modifierLambda);
+    TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(valueToSet)
+
+    // std::function with a context object
+    oauth2.setTokenRequestModifier(context.get(), modifierFunc);
+    TEST_MODIFY_REQUEST_WITH_MODIFIER(stageReceivedByModifier, valueToSet, "func_with_context")
+
+    // PMF with context object
+    oauth2.setTokenRequestModifier(context.get(), &RequestModifier::handleRequestModification);
+    TEST_MODIFY_REQUEST_WITH_MODIFIER(context->stageReceivedByModifier,
+                                      context->valueToSet, "pmf_with_context")
+
+    // PMF without context object
+    QTest::ignoreMessage(QtWarningMsg, nullContextWarning);
+    oauth2.setTokenRequestModifier(nullptr, &RequestModifier::handleRequestModification);
+    TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(context->valueToSet)
+
+    // Destroy context object => no callback (or crash)
+    oauth2.setTokenRequestModifier(context.get(), modifierLambda);
+    context.reset(nullptr);
+    TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(valueToSet)
+
+    // Context object in wrong thread
+    QThread thread;
+    QObject objectInWrongThread;
+    // Initially context object is in correct thread
+    oauth2.setTokenRequestModifier(&objectInWrongThread, modifierLambda);
+    // Move to wrong thread, verify we get warnings when it's time to call the callback
+    objectInWrongThread.moveToThread(&thread);
+    oauth2.grant();
+    QTest::ignoreMessage(QtWarningMsg, wrongThreadWarning);
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    // Now the context object is in wrong thread when attempting to set the modifier
+    oauth2.clearTokenRequestModifier();
+    QTest::ignoreMessage(QtWarningMsg, wrongThreadWarning);
+    oauth2.setTokenRequestModifier(&objectInWrongThread, modifierLambda);
+    TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(valueToSet)
+
+    // These must not compile
+    // oauth2.setRequestModifier();
+    // oauth2.setRequestModifier(&context, [](const QString& wrongType){});
+    // oauth2.setRequestModifier(&context, [](QNetworkRequest &request, int wrongType){});
+    // oauth2.setRequestModifier(&context, [](int wrongType, QAbstractOAuth::Stage stage){});
 }
 
 void tst_OAuth2::getToken()

@@ -42,6 +42,13 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
     Q_PROPERTY(QString nonce READ nonce WRITE setNonce NOTIFY nonceChanged)
     Q_PROPERTY(QString idToken READ idToken NOTIFY idTokenChanged)
 
+    using TokenRequestModifierPrototype = void(*)(QNetworkRequest&, QAbstractOAuth::Stage);
+    template <typename Functor>
+    using ContextTypeForFunctor = typename QtPrivate::ContextTypeForFunctor<Functor>::ContextType;
+    template <typename Functor>
+    using if_compatible_callback = std::enable_if_t<
+        QtPrivate::AreFunctionsCompatible<TokenRequestModifierPrototype, Functor>::value, bool>;
+
 public:
     enum class NonceMode : quint8 {
         Automatic,
@@ -141,6 +148,16 @@ public:
     void prepareRequest(QNetworkRequest *request, const QByteArray &verb,
                         const QByteArray &body = QByteArray()) override;
 
+    template <typename Functor, if_compatible_callback<Functor> = true>
+    void setTokenRequestModifier(const ContextTypeForFunctor<Functor> *context,
+                                 Functor &&callback) {
+        setTokenRequestModifierImpl(
+            context,
+            QtPrivate::makeCallableObject<TokenRequestModifierPrototype>(
+                std::forward<Functor>(callback)));
+    }
+    void clearTokenRequestModifier();
+
 Q_SIGNALS:
 #if QT_DEPRECATED_SINCE(6, 11)
     QT_DEPRECATED_VERSION_X_6_11("Use requestedScope and grantedScope properties instead.")
@@ -170,6 +187,7 @@ protected:
     void setResponseType(const QString &responseType);
 
 private:
+    void setTokenRequestModifierImpl(const QObject* context, QtPrivate::QSlotObjectBase *slot);
     Q_DECLARE_PRIVATE(QAbstractOAuth2)
 };
 

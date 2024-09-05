@@ -50,6 +50,14 @@ public:
     bool authorizationShouldIncludeNonce() const;
     void setIdToken(const QString &token);
 
+    struct CallerInfo {
+        QPointer<const QObject> contextObject = nullptr;
+        QtPrivate::SlotObjUniquePtr slot;
+    };
+    CallerInfo tokenRequestModifier;
+    void callTokenRequestModifier(QNetworkRequest &request, QAbstractOAuth::Stage stage);
+    bool verifyThreadAffinity(const QObject *contextObject);
+
     QString clientIdentifierSharedKey;
 #if QT_DEPRECATED_SINCE(6, 11)
     QString scope;
