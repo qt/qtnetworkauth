@@ -554,7 +554,7 @@ void QAbstractOAuth2::setScope(const QString &scope)
     Q_D(QAbstractOAuth2);
     if (d->scope != scope) {
         d->scope = scope;
-        Q_EMIT scopeChanged(scope);
+        QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(scope);)
     }
     QStringList splitScope = scope.split(" "_L1, Qt::SkipEmptyParts);
     if (d->requestedScope != splitScope) {
