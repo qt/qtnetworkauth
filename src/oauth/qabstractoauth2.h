@@ -38,8 +38,17 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
                READ refreshToken
                WRITE setRefreshToken
                NOTIFY refreshTokenChanged)
+    Q_PROPERTY(NonceMode nonceMode READ nonceMode WRITE setNonceMode NOTIFY nonceModeChanged)
+    Q_PROPERTY(QString nonce READ nonce WRITE setNonce NOTIFY nonceChanged)
 
 public:
+    enum class NonceMode : quint8 {
+        Automatic,
+        Enabled,
+        Disabled,
+    };
+    Q_ENUM(NonceMode)
+
     explicit QAbstractOAuth2(QObject *parent = nullptr);
     explicit QAbstractOAuth2(QNetworkAccessManager *manager, QObject *parent = nullptr);
     ~QAbstractOAuth2();
@@ -115,6 +124,12 @@ public:
     QString refreshToken() const;
     void setRefreshToken(const QString &refreshToken);
 
+    NonceMode nonceMode() const;
+    void setNonceMode(NonceMode mode);
+
+    QString nonce() const;
+    void setNonce(const QString &nonce);
+
 #ifndef QT_NO_SSL
     QSslConfiguration sslConfiguration() const;
     void setSslConfiguration(const QSslConfiguration &configuration);
@@ -136,6 +151,8 @@ Q_SIGNALS:
     void stateChanged(const QString &state);
     void expirationAtChanged(const QDateTime &expiration);
     void refreshTokenChanged(const QString &refreshToken);
+    void nonceModeChanged(NonceMode mode);
+    void nonceChanged(const QString &nonce);
 #ifndef QT_NO_SSL
     void sslConfigurationChanged(const QSslConfiguration &configuration);
 #endif

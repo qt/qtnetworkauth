@@ -544,6 +544,11 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
         p.insert(Key::codeChallengeMethod,
                  d->pkceMethod == PkceMethod::Plain ? u"plain"_s : u"S256"_s);
     }
+    if (d->authorizationShouldIncludeNonce()) {
+        if (d->nonce.isEmpty())
+            setNonce(QAbstractOAuth2Private::generateNonce());
+        p.insert(Key::nonce, d->nonce);
+    }
     if (d->modifyParametersFunction)
         d->modifyParametersFunction(Stage::RequestingAuthorization, &p);
     url.setQuery(d->createQuery(p));

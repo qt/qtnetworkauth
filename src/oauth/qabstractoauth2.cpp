@@ -155,6 +155,67 @@ using namespace Qt::StringLiterals;
 */
 
 /*!
+    \since 6.9
+    \property QAbstractOAuth2::nonceMode
+    \brief This property holds the current nonce mode (whether or not
+           nonce is used).
+
+    \sa NonceMode, nonce
+*/
+
+/*!
+    \since 6.9
+    \enum QAbstractOAuth2::NonceMode
+
+    List of available
+    \l {https://openid.net/specs/openid-connect-core-1_0-final.html#IDToken}{nonce}
+    modes.
+
+    \value Automatic Nonce is sent if the \l {requestedScope()} contains
+           \c {openid}. This is the default mode, and sends \c {nonce} only
+           when it's relevant to OIDC authentication flows.
+    \value Enabled Nonce is sent during authorization stage.
+    \value Disabled Nonce is not sent during authorization stage.
+
+    \sa nonce, {Qt OAuth2 Overview}
+*/
+
+/*!
+    \since 6.9
+    \property QAbstractOAuth2::nonce
+
+    This property holds the string sent to the server during
+    authentication. The nonce is used to associate applicable
+    token responses (OpenID Connect \c {id_token} in particular)
+    with the authorization stage.
+
+    The primary purpose of the \c {nonce} is to mitigate replay attacks.
+    It ensures that the token responses received are in response
+    to the authentication requests initiated by the application,
+    preventing attackers from reusing tokens in unauthorized contexts.
+    Therefore, it's important to include nonce verification as part of
+    the token validation.
+
+    In practice, authorization server vendors may refuse the OpenID Connect
+    request if \l {https://openid.net/specs/openid-connect-core-1_0-final.html#AuthRequest}
+    {a nonce isn't provided in the Authorization request}.
+
+    The token itself is an opaque string, and should contain only
+    URL-safe characters for maximum compatibility. Further the
+    token must provide adequate entropy
+    \l {https://openid.net/specs/openid-connect-core-1_0-final.html#NonceNotes}
+    {so that it's unguessable to attackers}. There are no strict size
+    limits for nonce, and authorization server vendors may impose their own
+    minimum and maximum sizes.
+
+    While the \c {nonce} can be set manually, Qt classes will
+    generate a 32-character nonce \l {NonceMode}{when needed} if
+    one isn't set.
+
+    \sa nonceMode
+*/
+
+/*!
     \property QAbstractOAuth2::userAgent
     This property holds the User-Agent header used to create the
     network requests.
@@ -229,6 +290,7 @@ const QString OAuth2::tokenType =          u"token_type"_s;
 const QString OAuth2::codeVerifier =       u"code_verifier"_s;
 const QString OAuth2::codeChallenge =      u"code_challenge"_s;
 const QString OAuth2::codeChallengeMethod = u"code_challenge_method"_s;
+const QString OAuth2::nonce =              u"nonce"_s;
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
@@ -257,6 +319,14 @@ QString QAbstractOAuth2Private::generateRandomState()
     return QString::fromUtf8(QAbstractOAuthPrivate::generateRandomString(8));
 }
 
+QString QAbstractOAuth2Private::generateNonce()
+{
+    // There is no strict minimum or maximum size for nonce, but
+    // generating a 32-character base64 URL string provides
+    // ~192 bits of entropy (32 characters * 6 bits per character).
+    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomString(32));
+}
+
 QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMap *parameters)
 {
     QUrlQuery query(url.query());
@@ -275,6 +345,19 @@ QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMa
     const QString bearer = bearerFormat.arg(token);
     request.setRawHeader("Authorization", bearer.toUtf8());
     return request;
+}
+
+bool QAbstractOAuth2Private::authorizationShouldIncludeNonce() const
+{
+    switch (nonceMode) {
+    case QAbstractOAuth2::NonceMode::Enabled:
+        return true;
+    case QAbstractOAuth2::NonceMode::Disabled:
+        return false;
+    case QAbstractOAuth2::NonceMode::Automatic:
+        return requestedScope.contains("openid"_L1);
+    };
+    return false;
 }
 
 /*!
@@ -687,6 +770,36 @@ void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)
         d->refreshToken = refreshToken;
         Q_EMIT refreshTokenChanged(refreshToken);
     }
+}
+
+QAbstractOAuth2::NonceMode QAbstractOAuth2::nonceMode() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->nonceMode;
+}
+
+void QAbstractOAuth2::setNonceMode(NonceMode mode)
+{
+    Q_D(QAbstractOAuth2);
+    if (mode == d->nonceMode)
+        return;
+    d->nonceMode = mode;
+    emit nonceModeChanged(d->nonceMode);
+}
+
+QString QAbstractOAuth2::nonce() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->nonce;
+}
+
+void QAbstractOAuth2::setNonce(const QString &nonce)
+{
+    Q_D(QAbstractOAuth2);
+    if (nonce == d->nonce)
+        return;
+    d->nonce = nonce;
+    emit nonceChanged(d->nonce);
 }
 
 #ifndef QT_NO_SSL

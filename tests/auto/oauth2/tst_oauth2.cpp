@@ -32,6 +32,7 @@ private Q_SLOTS:
     void prepareRequest();
     void pkce_data();
     void pkce();
+    void nonce();
 #if QT_DEPRECATED_SINCE(6, 11)
     void scope_data();
     void scope();
@@ -561,6 +562,82 @@ void tst_OAuth2::pkce()
                  .toBase64(QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals)
                  , codeChallenge);
     }
+}
+
+void tst_OAuth2::nonce()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    const auto nonce = "a_nonce"_ba;
+
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+
+    QByteArray nonceInAuthorizationUrl;
+    connect(&oauth2, &QAbstractOAuth::authorizeWithBrowser, this, [&](const QUrl &url){
+        QUrlQuery parameters(url);
+        nonceInAuthorizationUrl = parameters.queryItemValue(u"nonce"_s).toUtf8();
+    });
+
+    // Test setting nonce mode
+    QSignalSpy nonceModeSpy(&oauth2, &QAbstractOAuth2::nonceModeChanged);
+    // -- Default
+    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Automatic);
+    // -- Change
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
+    QCOMPARE(nonceModeSpy.size(), 1);
+    QCOMPARE(nonceModeSpy.at(0).at(0).value<QAbstractOAuth2::NonceMode>(),
+             QAbstractOAuth2::NonceMode::Disabled);
+    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Disabled);
+    // -- Attempt to change again, but to same value
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
+    QCOMPARE(nonceModeSpy.size(), 1);
+    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Disabled);
+
+    // Test setting nonce value
+    QSignalSpy nonceSpy(&oauth2, &QAbstractOAuth2::nonceChanged);
+    // -- Default
+    QVERIFY(oauth2.nonce().isEmpty());
+    // -- Change
+    oauth2.setNonce(nonce);
+    QCOMPARE(nonceSpy.size(), 1);
+    QCOMPARE(nonceSpy.at(0).at(0).toByteArray(), nonce);
+    QCOMPARE(oauth2.nonce(), nonce);
+    // -- Attempt to change again, but to same value
+    oauth2.setNonce(nonce);
+    QCOMPARE(nonceSpy.size(), 1);
+    QCOMPARE(oauth2.nonce(), nonce);
+
+    // Verify that nonce is set to authorization request when appropriate
+    oauth2.setNonce(nonce);
+    oauth2.setRequestedScope({u"scope_item1"_s});
+
+    // -- Nonce is always included
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Enabled);
+    oauth2.grant();
+    QCOMPARE(nonceInAuthorizationUrl, nonce);
+
+    // -- Nonce is never included
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
+    oauth2.grant();
+    QVERIFY(nonceInAuthorizationUrl.isEmpty());
+
+    // -- Nonce is included if scope contains 'openid'
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Automatic);
+    oauth2.grant();
+    QVERIFY(nonceInAuthorizationUrl.isEmpty());
+
+    oauth2.setRequestedScope({u"scope_item1"_s, u"openid"_s});
+    oauth2.grant();
+    QCOMPARE(nonceInAuthorizationUrl, nonce);
+
+    // -- Clear nonce, one should be generated
+    oauth2.setNonce("");
+    QVERIFY(oauth2.nonce().isEmpty());
+    oauth2.grant();
+    QVERIFY(!oauth2.nonce().isEmpty());
+    QCOMPARE(nonceInAuthorizationUrl, oauth2.nonce());
 }
 
 #if QT_DEPRECATED_SINCE(6, 11)

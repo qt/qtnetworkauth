@@ -45,7 +45,9 @@ public:
 
     void setGrantedScope(const QStringList &scope);
     static QString generateRandomState();
+    static QString generateNonce();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
+    bool authorizationShouldIncludeNonce() const;
 
     QString clientIdentifierSharedKey;
 #if QT_DEPRECATED_SINCE(6, 11)
@@ -59,6 +61,8 @@ public:
     const QString bearerFormat = QStringLiteral("Bearer %1"); // Case sensitive
     QDateTime expiresAt;
     QString refreshToken;
+    QAbstractOAuth2::NonceMode nonceMode = QAbstractOAuth2::NonceMode::Automatic;
+    QString nonce;
 #ifndef QT_NO_SSL
     std::optional<QSslConfiguration> sslConfiguration;
 #endif
@@ -84,6 +88,7 @@ public:
         static const QString codeVerifier;
         static const QString codeChallenge;
         static const QString codeChallengeMethod;
+        static const QString nonce;
     };
 };
 
