@@ -157,4 +157,156 @@ The choice depends on several factors such as:
 security and usability advantages over the other methods.
 \endquotation
 
+\section1 Qt OpenID Connect Support
+
+OpenID Connect (OIDC) is a
+\l {https://openid.net/specs/openid-connect-core-1_0-final.html}
+{simple identity layer on top of OAuth2 protocol}. Where authorization
+provides means to authorize users to perform actions, OIDC enables
+establishing a trusted identity of a user.
+
+Qt's support for OIDC is at the moment limited to getting
+\l {https://openid.net/specs/openid-connect-core-1_0-final.html#Terminology}{ID tokens}.
+An \c {ID token} is a
+\l {https://datatracker.ietf.org/doc/html/rfc7519}{JSON Web Token (JWT)}
+that contains claims about the authentication event.
+
+Notably the support for \c {ID token} validation or \c {ID token}
+decryption is currently not implemented.
+
+Assuming the application is able to \l {Validating an ID Token}{validate}
+the received tokens, the token can be used to establish
+the identity of the user reliably (to the degree the OIDC provider itself
+is trusted).
+
+ID tokens are sensitive information and should be kept as a secret.
+ID tokens are not intended for sending out in API
+calls - the access token is intended for that purpose. Note that some
+vendors may use the same
+\l {https://datatracker.ietf.org/doc/html/rfc7519}{JWT format} for access
+tokens, but that is not to be confused with actual ID tokens which
+incidentally use the same format. With ID tokens the client receiving
+the token is responsible for verifying the token, whereas with access
+tokens it's the resource server accepting the token that is responsible
+for verification.
+
+\section2 Getting an ID Token
+
+Getting an ID token is very similar to getting an access token.
+First we need to set the appropriate scope. Authorization Server
+vendor may support additional scope specifiers such as \c {profile}
+and \c {email}, but all OIDC requests must include \c {openid} scope:
+
+\snippet src_oauth_replyhandlers.cpp oidc-setting-scope
+
+For OIDC it is strongly recommended to use
+\l {QAbstractOAuth2::nonce}{nonce} parameter.
+This is done by ensuring that appropriate
+\l {QAbstractOAuth2::NonceMode}{NonceMode} is set.
+
+\snippet src_oauth_replyhandlers.cpp oidc-setting-nonce-mode
+
+As last step we can listen for either \l {QAbstractOAuth2::granted}
+signal or the \l {QAbstractOAuth2::idTokenChanged} directly:
+
+\snippet src_oauth_replyhandlers.cpp oidc-listen-idtoken-change
+
+\section2 Validating an ID Token
+
+Validating the received ID Token is a crucial part of the
+flow, and,
+\l {https://openid.net/specs/openid-connect-core-1_0-final.html#IDTokenValidation}
+{when fully implemented, a somewhat complicated task}.
+
+At its outline validation consists of these steps
+\list
+    \li Decrypting the token if needed
+        (\l {https://datatracker.ietf.org/doc/html/rfc7516}{see JWE})
+    \li Extracting the token header, payload, and signature
+    \li Validating the signature
+    \li Validating the fields of the payload
+        (such as \c {aud, iss, exp, nonce, iat})
+\endlist
+
+Qt currently doesn't provide support for ID token validation,
+but there are
+\l {https://jwt.io/libraries}{several C++ library options available},
+such as
+\l {https://github.com/arun11299/cpp-jwt}{cpp-jwt}.
+
+\section2 Reading ID Token Values
+
+The ID token is in
+\l {https://datatracker.ietf.org/doc/html/rfc7519}{JSON Web Token (JWT)}
+format and consists of a header, payload, and signature parts,
+separated by dots \{'.'}.
+
+Reading the values of the ID token is straightforward. As an example,
+assuming a struct:
+
+\snippet src_oauth_replyhandlers_p.h oidc-id-token-struct
+
+And a function:
+\snippet src_oauth_replyhandlers_p.h oidc-id-token-parser-declaration
+
+The token can be extracted:
+\snippet src_oauth_replyhandlers.cpp oidc-id-token-parsing
+
+In more rare cases the token may be encrypted with
+\l {https://datatracker.ietf.org/doc/html/rfc7516}{JSON Web Encryption (JWE)},
+which internally contains a JWT token. In this case the token must
+be decrypted first.
+
+\section2 OpenID Connect Discovery
+
+\l {https://openid.net/specs/openid-connect-discovery-1_0.html}
+{OpenID Connect Discovery} defines means to discover needed
+OpenID provider details, in order to interact with it. This includes
+things such as \c {authorization_endpoint} and \c {token_endpoint} URLs.
+
+While these provider details can be statically configured in the application,
+discovering the details at runtime may provide more flexibility and
+robustness in interacting with various providers.
+
+Getting the discovery document is a simple \c {HTTP GET} request.
+The document is typically located in
+\c {https://<the-domain eg. example.com>/.well-known/openid_configuration}
+
+\snippet src_oauth_replyhandlers.cpp oidc-get-openid-configuration
+
+Notably, for token validation, the
+\l {https://datatracker.ietf.org/doc/html/rfc7517#section-5}{jwks_uri} field
+provides a link for accessing the current (public) security credentials.
+Using that removes the need to hardcode such credentials in the application
+directly. This also helps with key rotation; the vendors may change the used
+keys from time to time, and therefore ensuring an up-to-date key is important.
+
+Getting the keys is similarly a simple \c {HTTP GET} request:
+
+\snippet src_oauth_replyhandlers.cpp oidc-get-jwks-keys
+
+The key set typically contains several keys. The correct key is indicated
+in the JWT header (care must be taken to match the keys properly, just
+checking the key id (\c {kid}) field is not adequate).
+
+\section2 OpenID UserInfo Endpoint
+
+An alternative way to access user information is to use
+\l {https://openid.net/specs/openid-connect-core-1_0-final.html#UserInfo}
+{OpenID UserInfo Endpoint}, if the OIDC provider supports it. The URL
+for the userinfo is in \c {userinfo_endpoint} field of the
+\l {OpenID Connect Discovery} document.
+
+The userinfo endpoint does not use the ID token, but is
+accessed with the access token. Accessing the userinfo is similar
+to accessing any other resource with an access token.
+
+Assuming the access token is received and set for example by:
+
+\snippet src_oauth_replyhandlers.cpp oidc-set-bearertoken
+
+Then accessing the userinfo is a \c {HTTP GET} request:
+
+\snippet src_oauth_replyhandlers.cpp oidc-read-userinfo
+
 */

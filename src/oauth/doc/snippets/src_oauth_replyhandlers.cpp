@@ -10,6 +10,7 @@
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 #include <QtNetworkAuth/qoauthurischemereplyhandler.h>
 
+#include <QtNetwork/qrestreply.h>
 #include <QtNetwork/qnetworkrequestfactory.h>
 
 #include <QtQml/qqmlregistration.h>
@@ -20,6 +21,8 @@
 #include <QtGui/qdesktopservices.h>
 
 #include <QtCore/qcommandlineparser.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
 
@@ -32,6 +35,11 @@ static constexpr auto authorizationUrl = "https://www.myqtapp.example.com/api/v1
 static constexpr auto accessTokenUrl = "https://www.myqtapp.example.com/api/v1/access_token"_L1;
 static constexpr auto clientIdentifier = "some_client_id"_L1;
 static constexpr auto scope = "read"_L1;
+static constexpr auto oidcConfigUrl =
+    "https://www.myqtapp.example.com/.well-known/openid-configuration"_L1;
+static constexpr auto oidcJwksUrl = "https://www.myqtapp.example.com/v1/certs"_L1;
+static constexpr auto oidcUserInfoUrl = "https://oidc.myqtapp.example.com/v1/userinfo"_L1;
+static constexpr auto clientSecret = "abcdefg"_L1;
 
 HttpExample::HttpExample()
 {
@@ -44,10 +52,22 @@ HttpExample::HttpExample()
     m_oauth.setClientIdentifier(clientIdentifier);
     m_oauth.setRequestedScope({scope});
     //! [httpserver-service-configuration]
+
+    //! [oidc-setting-scope]
+    m_oauth.setRequestedScope({"openid"_L1});
+    //! [oidc-setting-scope]
+
+    //! [oidc-setting-nonce-mode]
+    // This is for illustrative purposes, 'Automatic' is the default mode
+    m_oauth.setNonceMode(QAbstractOAuth2::NonceMode::Automatic);
+    //! [oidc-setting-nonce-mode]
+
+    m_network = new QRestAccessManager(new QNetworkAccessManager(this), this);
 }
 
 void HttpExample::setupSystemBrowser()
 {
+    // m_oauth.setClientIdentifierSharedKey(clientSecret); // Need depends: vendor, scheme, app type
     //! [httpserver-oauth-setup]
     m_handler = new QOAuthHttpServerReplyHandler(1234, this);
 
@@ -61,6 +81,20 @@ void HttpExample::setupSystemBrowser()
     });
     //! [httpserver-oauth-setup]
 
+    //! [oidc-listen-idtoken-change]
+    connect(&m_oauth, &QAbstractOAuth2::idTokenChanged, this, [this](const QString &token) {
+        Q_UNUSED(token); // Handle token
+    });
+    //! [oidc-listen-idtoken-change]
+
+    connect(&m_oauth, &QAbstractOAuth2::idTokenChanged, this, [this](const QString &token) {
+        auto parsed = parseIDToken(token);
+        if (parsed)
+            qDebug() << "ID token:" << parsed->header << parsed->payload << parsed->signature;
+        else
+            qDebug() << "No ID token";
+    });
+
     //! [httpserver-handler-setup]
     m_oauth.setReplyHandler(m_handler);
 
@@ -69,6 +103,81 @@ void HttpExample::setupSystemBrowser()
         m_oauth.grant();
     }
     //! [httpserver-handler-setup]
+
+    readOIDCConfiguration({oidcConfigUrl});
+    readJSONWebKeySet({oidcJwksUrl});
+    readUserInfo({oidcUserInfoUrl});
+}
+
+void HttpExample::readOIDCConfiguration(const QUrl &url) const
+{
+    QNetworkRequest request(url);
+    //! [oidc-get-openid-configuration]
+    m_network->get(request, this, [this](QRestReply &reply) {
+        if (reply.isSuccess()) {
+            if (auto doc = reply.readJson(); doc && doc->isObject())
+                qDebug() << doc->object(); // Use the configuration
+        }
+    });
+    //! [oidc-get-openid-configuration]
+}
+
+void HttpExample::readJSONWebKeySet(const QUrl &url) const
+{
+    QNetworkRequest request(url);
+    //! [oidc-get-jwks-keys]
+    m_network->get(request, this, [this](QRestReply &reply) {
+        if (reply.isSuccess()) {
+            if (auto doc = reply.readJson(); doc && doc->isObject())
+                qDebug() << doc->object(); // Use the keys
+        }
+    });
+    //! [oidc-get-jwks-keys]
+}
+
+std::optional<HttpExample::IDToken> HttpExample::parseIDToken(const QString &token) const
+{
+    //! [oidc-id-token-parsing]
+    if (token.isEmpty())
+        return std::nullopt;
+
+    QList<QByteArray> parts = token.toLatin1().split('.');
+    if (parts.size() != 3)
+        return std::nullopt;
+
+    QJsonParseError parsing;
+
+    QJsonDocument header = QJsonDocument::fromJson(
+        QByteArray::fromBase64(parts.at(0), QByteArray::Base64UrlEncoding), &parsing);
+    if (parsing.error != QJsonParseError::NoError || !header.isObject())
+        return std::nullopt;
+
+    QJsonDocument payload = QJsonDocument::fromJson(
+        QByteArray::fromBase64(parts.at(1), QByteArray::Base64UrlEncoding), &parsing);
+    if (parsing.error != QJsonParseError::NoError || !payload.isObject())
+        return std::nullopt;
+
+    QByteArray signature = QByteArray::fromBase64(parts.at(2), QByteArray::Base64UrlEncoding);
+
+    return IDToken{header.object(), payload.object(), signature};
+    //! [oidc-id-token-parsing]
+}
+
+void HttpExample::readUserInfo(const QUrl &url) const
+{
+    //! [oidc-set-bearertoken]
+    QNetworkRequestFactory userInfoApi(url);
+    userInfoApi.setBearerToken(m_oauth.token().toLatin1());
+    //! [oidc-set-bearertoken]
+
+    //! [oidc-read-userinfo]
+    m_network->get(userInfoApi.createRequest(), this, [this](QRestReply &reply) {
+        if (reply.isSuccess()) {
+            if (auto doc = reply.readJson(); doc && doc->isObject())
+                qDebug() << doc->object(); // Use the userinfo
+        }
+    });
+    //! [oidc-read-userinfo]
 }
 
 void HttpExample::setupWebEngineWidgets()

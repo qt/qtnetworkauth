@@ -48,6 +48,7 @@ public:
     static QString generateNonce();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
     bool authorizationShouldIncludeNonce() const;
+    void setIdToken(const QString &token);
 
     QString clientIdentifierSharedKey;
 #if QT_DEPRECATED_SINCE(6, 11)
@@ -63,6 +64,7 @@ public:
     QString refreshToken;
     QAbstractOAuth2::NonceMode nonceMode = QAbstractOAuth2::NonceMode::Automatic;
     QString nonce;
+    QString idToken;
 #ifndef QT_NO_SSL
     std::optional<QSslConfiguration> sslConfiguration;
 #endif
@@ -89,6 +91,7 @@ public:
         static const QString codeChallenge;
         static const QString codeChallengeMethod;
         static const QString nonce;
+        static const QString idToken;
     };
 };
 

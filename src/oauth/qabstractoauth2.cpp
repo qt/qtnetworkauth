@@ -212,7 +212,18 @@ using namespace Qt::StringLiterals;
     generate a 32-character nonce \l {NonceMode}{when needed} if
     one isn't set.
 
-    \sa nonceMode
+    \sa nonceMode, {Qt OpenID Connect Support}
+*/
+
+/*!
+    \since 6.9
+    \property QAbstractOAuth2::idToken
+
+    This property holds the received
+    \l {https://openid.net/specs/openid-connect-core-1_0-final.html#CodeIDToken}
+    {OpenID Connect ID token}.
+
+    \sa NonceMode, nonce, {Qt OpenID Connect Support}
 */
 
 /*!
@@ -291,6 +302,7 @@ const QString OAuth2::codeVerifier =       u"code_verifier"_s;
 const QString OAuth2::codeChallenge =      u"code_challenge"_s;
 const QString OAuth2::codeChallengeMethod = u"code_challenge_method"_s;
 const QString OAuth2::nonce =              u"nonce"_s;
+const QString OAuth2::idToken =            u"id_token"_s;
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
@@ -358,6 +370,15 @@ bool QAbstractOAuth2Private::authorizationShouldIncludeNonce() const
         return requestedScope.contains("openid"_L1);
     };
     return false;
+}
+
+void QAbstractOAuth2Private::setIdToken(const QString &token)
+{
+    Q_Q(QAbstractOAuth2);
+    if (idToken == token)
+        return;
+    idToken = token;
+    emit q->idTokenChanged(idToken);
 }
 
 /*!
@@ -800,6 +821,12 @@ void QAbstractOAuth2::setNonce(const QString &nonce)
         return;
     d->nonce = nonce;
     emit nonceChanged(d->nonce);
+}
+
+QString QAbstractOAuth2::idToken() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->idToken;
 }
 
 #ifndef QT_NO_SSL

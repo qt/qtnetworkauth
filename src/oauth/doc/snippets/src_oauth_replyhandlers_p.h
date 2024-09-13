@@ -10,11 +10,13 @@
 #include <QtWidgets/qmainwindow.h>
 
 #include <QtNetwork/qnetworkrequestfactory.h>
+#include <QtNetwork/qrestaccessmanager.h>
 
 #include <QtQml/qqmlregistration.h>
 
 #include <QtGui/qdesktopservices.h>
 
+#include <QtCore/qjsonobject.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
 
@@ -38,14 +40,31 @@ public:
     void setupSystemBrowser();
     void setupWebEngineWidgets();
 
+    void readOIDCConfiguration(const QUrl &url) const;
+    void readJSONWebKeySet(const QUrl &url) const;
+    void readUserInfo(const QUrl &url) const;
+
 private:
     //! [httpserver-variables]
     QOAuth2AuthorizationCodeFlow m_oauth;
     QOAuthHttpServerReplyHandler *m_handler = nullptr;
     //! [httpserver-variables]
     QNetworkRequestFactory m_api;
+    QRestAccessManager *m_network = nullptr;
     QWebEngineView *webView = nullptr;
     QMainWindow mainWindow;
+
+    //! [oidc-id-token-struct]
+    struct IDToken {
+        QJsonObject header;
+        QJsonObject payload;
+        QByteArray signature;
+    };
+    //! [oidc-id-token-struct]
+
+    //! [oidc-id-token-parser-declaration]
+    std::optional<IDToken> parseIDToken(const QString &token) const;
+    //! [oidc-id-token-parser-declaration]
 };
 
 class UriSchemeExample : public QObject

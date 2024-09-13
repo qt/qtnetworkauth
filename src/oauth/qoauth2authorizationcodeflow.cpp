@@ -181,6 +181,18 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
 #endif
     }
 
+    // An id_token must be included if this was an OIDC request
+    // https://openid.net/specs/openid-connect-core-1_0-final.html#AuthRequest (cf. 'scope')
+    // https://openid.net/specs/openid-connect-core-1_0-final.html#TokenResponse
+    const QString receivedIdToken = values.value(Key::idToken).toString();
+    if (grantedScope.contains("openid"_L1) && receivedIdToken.isEmpty()) {
+        setIdToken({});
+        _q_accessTokenRequestFailed(QAbstractOAuth::Error::OAuthTokenNotFoundError,
+                                    "ID token not received"_L1);
+        return;
+    }
+    setIdToken(receivedIdToken);
+
     const QDateTime currentDateTime = QDateTime::currentDateTime();
     if (expiresIn > 0 && currentDateTime.secsTo(expiresAt) != expiresIn) {
         expiresAt = currentDateTime.addSecs(expiresIn);

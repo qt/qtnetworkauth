@@ -33,6 +33,7 @@ private Q_SLOTS:
     void pkce_data();
     void pkce();
     void nonce();
+    void idToken();
 #if QT_DEPRECATED_SINCE(6, 11)
     void scope_data();
     void scope();
@@ -638,6 +639,91 @@ void tst_OAuth2::nonce()
     oauth2.grant();
     QVERIFY(!oauth2.nonce().isEmpty());
     QCOMPARE(nonceInAuthorizationUrl, oauth2.nonce());
+}
+
+static QString createSignedJWT(const QVariantMap &header = {}, const QVariantMap &payload = {})
+{
+    auto base64Encode = [](const QByteArray &input) {
+        return input.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+    };
+    // Repeating values which can be overridden and augmented by the supplied 'header' and 'payload'
+    QVariantMap mergedHeader = {{"alg", "HS256"},
+                                {"typ", "JWT"}};
+    QVariantMap mergedPayload = {{"iss", "https://tst_oauth2.example.com"},
+                                 {"sub", "tst_oauth2"},
+                                 {"aud", "tst_oauth2_client_id"},
+                                 {"exp", QDateTime::currentSecsSinceEpoch() + 300}, // valid 5 mins
+                                 {"iat", QDateTime::currentSecsSinceEpoch()}, // issued now
+                                 {"name", "No Body"},
+                                 {"email", "no.body@example.com"}};
+    mergedHeader.insert(header);
+    mergedPayload.insert(payload);
+
+    // Signed JWT within OIDC context is: header.payload.signature (separated with dots)
+    auto header64 =
+        base64Encode(QJsonDocument::fromVariant(mergedHeader).toJson(QJsonDocument::Compact));
+    auto payload64 =
+        base64Encode(QJsonDocument::fromVariant(mergedPayload).toJson(QJsonDocument::Compact));
+    auto token = header64 + "." + payload64;
+    auto signature64 =
+        base64Encode(QMessageAuthenticationCode::hash(token, "secret", QCryptographicHash::Sha256));
+    token = token + "." + signature64;
+    return token;
+}
+
+void tst_OAuth2::idToken()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setRequestedScope({"openid"_L1});
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setState("a_state"_L1);
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    QSignalSpy idTokenSpy(&oauth2, &QAbstractOAuth2::idTokenChanged);
+    QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
+
+    // Verify default token is empty
+    QVERIFY(oauth2.idToken().isEmpty());
+
+    // Test without openid and verify idToken doesn't change
+    oauth2.setRequestedScope({"read"_L1});
+    oauth2.grant();
+    // Conclude authorization stage in order to proceed to access token stage
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+    // Conclude access token stage, during which the id token is (would be) provided
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}});
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QVERIFY(idTokenSpy.isEmpty());
+    QVERIFY(oauth2.idToken().isEmpty());
+
+    // Test with openid
+    // Note: using a proper JWT or setting the matching 'nonce' is not required for this tests
+    // purpose as we don't currently validate the received token, but no harm in being thorough
+    auto idToken = createSignedJWT({}, {{"nonce"_L1, oauth2.nonce()}});
+    oauth2.setRequestedScope({"openid"_L1});
+    oauth2.grant();
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"id_token"_L1, idToken}});
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.idToken(), idToken);
+    QCOMPARE(idTokenSpy.size(), 1);
+    QCOMPARE(idTokenSpy.at(0).at(0).toByteArray(), idToken);
+
+    // Test missing id_token error
+    QVERIFY(requestFailedSpy.isEmpty());
+    const QRegularExpression tokenWarning{"Token request failed: \"ID token not received\""};
+    QTest::ignoreMessage(QtWarningMsg, tokenWarning);
+    oauth2.grant();
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}});
+    QTRY_COMPARE(requestFailedSpy.size(), 1);
+    QCOMPARE(requestFailedSpy.at(0).at(0).value<QAbstractOAuth::Error>(),
+             QAbstractOAuth::Error::OAuthTokenNotFoundError);
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
+    // idToken is cleared on failure
+    QCOMPARE(idTokenSpy.size(), 2);
+    QVERIFY(oauth2.idToken().isEmpty());
 }
 
 #if QT_DEPRECATED_SINCE(6, 11)

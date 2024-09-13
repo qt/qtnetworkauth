@@ -40,6 +40,7 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
                NOTIFY refreshTokenChanged)
     Q_PROPERTY(NonceMode nonceMode READ nonceMode WRITE setNonceMode NOTIFY nonceModeChanged)
     Q_PROPERTY(QString nonce READ nonce WRITE setNonce NOTIFY nonceChanged)
+    Q_PROPERTY(QString idToken READ idToken NOTIFY idTokenChanged)
 
 public:
     enum class NonceMode : quint8 {
@@ -130,6 +131,8 @@ public:
     QString nonce() const;
     void setNonce(const QString &nonce);
 
+    QString idToken() const;
+
 #ifndef QT_NO_SSL
     QSslConfiguration sslConfiguration() const;
     void setSslConfiguration(const QSslConfiguration &configuration);
@@ -153,6 +156,7 @@ Q_SIGNALS:
     void refreshTokenChanged(const QString &refreshToken);
     void nonceModeChanged(NonceMode mode);
     void nonceChanged(const QString &nonce);
+    void idTokenChanged(const QString &idToken);
 #ifndef QT_NO_SSL
     void sslConfigurationChanged(const QSslConfiguration &configuration);
 #endif
