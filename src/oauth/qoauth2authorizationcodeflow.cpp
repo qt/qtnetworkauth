@@ -167,15 +167,15 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
     //
     // Note: 'scope' variable has two roles: requested scope, and later granted scope.
     // Therefore 'scope' needs to be set if the granted scope differs from 'scope'.
-    const QString grantedScope = values.value(Key::scope).toString();
-    const QStringList splitGrantedScope = grantedScope.split(" "_L1, Qt::SkipEmptyParts);
+    const QString receivedGrantedScope = values.value(Key::scope).toString();
+    const QStringList splitGrantedScope = receivedGrantedScope.split(" "_L1, Qt::SkipEmptyParts);
     if (splitGrantedScope.isEmpty()) {
         setGrantedScope(requestedScope);
     } else {
         setGrantedScope(splitGrantedScope);
 #if QT_DEPRECATED_SINCE(6, 11)
-        if (grantedScope != scope) {
-            scope = grantedScope;
+        if (receivedGrantedScope != scope) {
+            scope = receivedGrantedScope;
             QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(scope);)
         }
 #endif
