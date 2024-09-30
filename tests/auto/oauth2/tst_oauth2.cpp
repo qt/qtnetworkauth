@@ -49,6 +49,27 @@ private Q_SLOTS:
 
 private:
     QString testDataDir;
+    [[nodiscard]] auto useTemporaryKeychain()
+    {
+#ifndef QT_NO_SSL
+        // Set the same environment value as CI uses, so that it's possible
+        // to run autotests locally without macOS asking for permission to use
+        // a private key in keychain (with TLS sockets)
+        auto value = qEnvironmentVariable("QT_SSL_USE_TEMPORARY_KEYCHAIN");
+        qputenv("QT_SSL_USE_TEMPORARY_KEYCHAIN", "1");
+        auto envRollback = qScopeGuard([value](){
+            if (value.isEmpty())
+                qunsetenv("QT_SSL_USE_TEMPORARY_KEYCHAIN");
+            else
+                qputenv("QT_SSL_USE_TEMPORARY_KEYCHAIN", value.toUtf8());
+        });
+        return envRollback;
+#else
+        // avoid maybe-unused warnings from callers
+        return qScopeGuard([]{});
+#endif // QT_NO_SSL
+    }
+
 };
 
 struct ReplyHandler : QAbstractOAuthReplyHandler
@@ -849,6 +870,8 @@ void tst_OAuth2::tlsAuthentication()
 {
     if (!QSslSocket::supportsSsl())
         QSKIP("This test will fail because the backend does not support TLS");
+
+    auto rollback = useTemporaryKeychain();
 
     // erros may vary, depending on backend
     const QSet<QSslError::SslError> expectedErrors{ QSslError::SelfSignedCertificate,
