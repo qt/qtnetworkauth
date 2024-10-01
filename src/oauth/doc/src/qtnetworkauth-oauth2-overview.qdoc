@@ -232,7 +232,39 @@ Qt currently doesn't provide support for ID token validation,
 but there are
 \l {https://jwt.io/libraries}{several C++ library options available},
 such as
-\l {https://github.com/arun11299/cpp-jwt}{cpp-jwt}.
+\l {https://github.com/Thalhammer/jwt-cpp}{jwt-cpp}.
+
+\section3 ID Token Verification Example
+
+This section illustrates a simple verification with the help of
+\l {https://github.com/Thalhammer/jwt-cpp}{jwt-cpp} library.
+As prerequisites, the development environment needs to have
+\l {https://www.openssl.org/}{OpenSSL} libraries, and
+\l {https://github.com/Thalhammer/jwt-cpp}{jwt-cpp} include
+folder under the application project's source directory.
+
+In application project's \c {CMakeLists.txt} we first check
+that the prerequisities are met:
+\snippet ../snippets/CMakeLists.txt oidc-jwt-cpp-available-cmake
+
+Then we add necessary includes and libraries:
+\snippet ../snippets/CMakeLists.txt oidc-jwt-cpp-link-and-include-cmake
+
+In the application source files, include the verification library:
+\snippet src_oauth_replyhandlers.cpp oidc-jwt-cpp-include
+
+Once the application receives an \c {ID token}, it's time to verify it.
+First we find a matching key from JSON Web Key Sets (JWKS, see
+\l {OpenID Connect Discovery}).
+\snippet src_oauth_replyhandlers.cpp oidc-jwt-cpp-key-matching
+
+And then we do the actual verification:
+\snippet src_oauth_replyhandlers.cpp oidc-jwt-cpp-verification
+
+It is recommended to check up-to-date documentation and examples
+of the library being used, and also to familiarize with
+\l {https://openid.net/specs/openid-connect-core-1_0-final.html#IDTokenValidation}
+{ID token verification}.
 
 \section2 Reading ID Token Values
 

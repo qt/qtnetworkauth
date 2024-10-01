@@ -16,6 +16,7 @@
 
 #include <QtGui/qdesktopservices.h>
 
+#include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
@@ -40,9 +41,10 @@ public:
     void setupSystemBrowser();
     void setupWebEngineWidgets();
 
-    void readOIDCConfiguration(const QUrl &url) const;
-    void readJSONWebKeySet(const QUrl &url) const;
+    void readOIDCConfiguration(const QUrl &url);
+    void readJSONWebKeySet(const QUrl &url);
     void readUserInfo(const QUrl &url) const;
+    bool verifyIDToken() const;
 
 private:
     //! [httpserver-variables]
@@ -53,6 +55,7 @@ private:
     QRestAccessManager *m_network = nullptr;
     QWebEngineView *webView = nullptr;
     QMainWindow mainWindow;
+    std::optional<QJsonDocument> m_jwks;
 
     //! [oidc-id-token-struct]
     struct IDToken {
@@ -61,6 +64,7 @@ private:
         QByteArray signature;
     };
     //! [oidc-id-token-struct]
+    std::optional<QJsonObject> m_oidcConfig;
 
     //! [oidc-id-token-parser-declaration]
     std::optional<IDToken> parseIDToken(const QString &token) const;
