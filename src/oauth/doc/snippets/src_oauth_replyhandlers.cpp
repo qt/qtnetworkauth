@@ -9,8 +9,10 @@
 #endif
 //! [oidc-jwt-cpp-include]
 
+#ifdef QT_WEBENGINEWIDGETS_LIB
 #include <QtWebEngineWidgets/qwebengineview.h>
 #include <QtWebEngineCore/qwebenginenavigationrequest.h>
+#endif
 
 #include <QtNetworkAuth/qoauth2authorizationcodeflow.h>
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
@@ -49,9 +51,11 @@ static constexpr auto clientSecret = "abcdefg"_L1;
 
 HttpExample::HttpExample()
 {
+#ifdef QT_WEBENGINEWIDGETS_LIB
     webView = new QWebEngineView;
     mainWindow.setCentralWidget(webView);
     mainWindow.resize(800, 600);
+#endif
     //! [httpserver-service-configuration]
     m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
     m_oauth.setAccessTokenUrl(QUrl(accessTokenUrl));
@@ -249,6 +253,7 @@ bool HttpExample::verifyIDToken() const
 
 void HttpExample::setupWebEngineWidgets()
 {
+#ifdef QT_WEBENGINEWIDGETS_LIB
     m_handler = new QOAuthHttpServerReplyHandler(1234, this);
 
     //! [webengine-widget-authorization-start]
@@ -274,6 +279,9 @@ void HttpExample::setupWebEngineWidgets()
     if (m_handler->isListening()) {
         m_oauth.grant();
     }
+#else
+    qWarning("QtWebEngine not available");
+#endif
 }
 
 void HttpExample::authorize()
@@ -305,9 +313,11 @@ void HttpExample::authorize()
 
 UriSchemeExample::UriSchemeExample()
 {
+#ifdef QT_WEBENGINEWIDGETS_LIB
     webView = new QWebEngineView;
     mainWindow.setCentralWidget(webView);
     mainWindow.resize(800, 600);
+#endif
 
     //! [uri-service-configuration]
     m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
@@ -341,6 +351,7 @@ void UriSchemeExample::setupSystemBrowserCustom()
 
 void UriSchemeExample::setupWebEngineWidgetsCustom()
 {
+#ifdef QT_WEBENGINEWIDGETS_LIB
     //! [webengine-widgets-custom]
     m_handler.setRedirectUrl(QUrl{"com.example.myqtapp://oauth2redirect"_L1});
     m_oauth.setReplyHandler(&m_handler);
@@ -365,10 +376,14 @@ void UriSchemeExample::setupWebEngineWidgetsCustom()
     if (m_handler.isListening()) {
         m_oauth.grant();
     }
+#else
+    qWarning("QtWebEngine not available");
+#endif
 }
 
 void UriSchemeExample::setupWebEngineWidgetsHttps()
 {
+#ifdef QT_WEBENGINEWIDGETS_LIB
     m_handler.setRedirectUrl(QUrl{"https://myqtapp.example.com/oauth2redirect"_L1});
     m_handler.close();
     m_oauth.setReplyHandler(&m_handler);
@@ -407,4 +422,7 @@ void UriSchemeExample::setupWebEngineWidgetsHttps()
         webView->close();
     });
     m_oauth.grant();
+#else
+    qWarning("QtWebEngine not available");
+#endif
 }

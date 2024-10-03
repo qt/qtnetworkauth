@@ -34,9 +34,13 @@ int main(int argc, char *argv[])
     UriSchemeExample uriSchemeExample;
 
     if (agent == u"qml"_s && scheme == u"http"_s) {
+#ifdef QT_WEBENGINEQUICK_LIB
         QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app,
                          []() { QCoreApplication::exit(1); }, Qt::QueuedConnection);
         engine.loadFromModule("OAuthSnippets", "MainWindow");
+#else
+        qWarning("QtWebEngine not available");
+#endif
     } else if (agent == u"system"_s && scheme == u"http"_s) {
         httpExample.setupSystemBrowser();
     } else if (agent == u"system"_s && scheme == u"custom"_s) {

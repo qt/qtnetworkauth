@@ -5,7 +5,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(networkauth_oauth_snippets)
 
-find_package(Qt6 REQUIRED COMPONENTS Core NetworkAuth Gui Quick WebEngineWidgets WebEngineQuick)
+find_package(Qt6 REQUIRED COMPONENTS Core NetworkAuth Gui Quick Widgets)
+find_package(Qt6 OPTIONAL_COMPONENTS WebEngineWidgets WebEngineQuick QUIET)
 
 qt_standard_project_setup(REQUIRES 6.9)
 
@@ -25,9 +26,26 @@ target_link_libraries(networkauth_oauth_snippets
         Qt6::NetworkAuth
         Qt6::Gui
         Qt6::Quick
-        Qt6::WebEngineWidgets
-        Qt6::WebEngineQuick
+        Qt6::Widgets
 )
+
+if(TARGET Qt::WebEngineWidgets)
+    target_link_libraries(networkauth_oauth_snippets
+        PRIVATE
+            Qt6::WebEngineWidgets
+    )
+else()
+    message("QtWebEngineWidgets not available, using QWebEngineView as user-agent not possible")
+endif()
+
+if(TARGET Qt::WebEngineQuick)
+    target_link_libraries(networkauth_oauth_snippets
+        PRIVATE
+            Qt6::WebEngineQuick
+    )
+else()
+    message("QtWebEngineQuick not available, using WebEngineView as user-agent not possible")
+endif()
 
 # Check if jwt-cpp is available (it's a headers-only library => copy the project's include dir).
 # Also check if we have OpenSSL, as jwt-cpp relies on it

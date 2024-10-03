@@ -5,9 +5,10 @@
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 #include <QtNetworkAuth/qoauthurischemereplyhandler.h>
 
+#ifdef QT_WEBENGINEWIDGETS_LIB
 #include <QtWebEngineWidgets/qwebengineview.h>
-
 #include <QtWidgets/qmainwindow.h>
+#endif
 
 #include <QtNetwork/qnetworkrequestfactory.h>
 #include <QtNetwork/qrestaccessmanager.h>
@@ -53,8 +54,10 @@ private:
     //! [httpserver-variables]
     QNetworkRequestFactory m_api;
     QRestAccessManager *m_network = nullptr;
+#ifdef QT_WEBENGINEWIDGETS_LIB
     QWebEngineView *webView = nullptr;
     QMainWindow mainWindow;
+#endif
     std::optional<QJsonDocument> m_jwks;
 
     //! [oidc-id-token-struct]
@@ -86,8 +89,10 @@ private:
     QOAuthUriSchemeReplyHandler m_handler;
     //! [uri-variables]
     QNetworkRequestFactory m_api;
+#ifdef QT_WEBENGINEWIDGETS_LIB
     //! [webengine-widget-variables]
     QWebEngineView *webView = nullptr;
     QMainWindow mainWindow;
     //! [webengine-widget-variables]
+#endif
 };
