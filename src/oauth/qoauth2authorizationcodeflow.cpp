@@ -550,7 +550,7 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
     connect(replyHandler(), &QAbstractOAuthReplyHandler::callbackReceived, this,
             &QOAuth2AuthorizationCodeFlow::authorizationCallbackReceived, Qt::UniqueConnection);
     setStatus(QAbstractOAuth::Status::NotAuthenticated);
-    qCDebug(d->loggingCategory, "Generated URL: %s", qPrintable(url.toString()));
+    qCDebug(d->loggingCategory, "Authorization URL generated");
     return url;
 }
 
