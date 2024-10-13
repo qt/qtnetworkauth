@@ -103,7 +103,12 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_handleCallback(const QVariantMap &d
         const QString description = data.value(Key::errorDescription).toString();
         qCWarning(loggingCategory, "Authorization stage: AuthenticationError: %s(%s): %s",
                   qPrintable(error), qPrintable(uri), qPrintable(description));
-        Q_EMIT q->error(error, description, uri);
+
+#if QT_DEPRECATED_SINCE(6, 13)
+        QT_IGNORE_DEPRECATIONS(Q_EMIT q->error(error, description, uri);)
+#endif
+        Q_EMIT q->errorOccurred(error, description, uri);
+
         // Emit also requestFailed() so that it is a signal for all errors
         emit q->requestFailed(QAbstractOAuth::Error::ServerError);
         return;

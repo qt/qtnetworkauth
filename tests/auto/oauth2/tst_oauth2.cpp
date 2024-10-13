@@ -170,6 +170,7 @@ void tst_OAuth2::state()
     QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
 }
 
+QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 void tst_OAuth2::authorizationErrors()
 {
     // This tests failures in authorization stage. For this test we don't need a web server
@@ -193,11 +194,17 @@ void tst_OAuth2::authorizationErrors()
     });
 
     QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
+#if QT_DEPRECATED_SINCE(6, 13)
     QSignalSpy errorSpy(&oauth2, &QAbstractOAuth2::error);
+#endif
+    QSignalSpy errorOccurredSpy(&oauth2, &QAbstractOAuth2::errorOccurred);
     QSignalSpy statusSpy(&oauth2, &QAbstractOAuth2::statusChanged);
     auto clearSpies = [&](){
         requestFailedSpy.clear();
+        errorOccurredSpy.clear();
+#if QT_DEPRECATED_SINCE(6, 13)
         errorSpy.clear();
+#endif
         statusSpy.clear();
     };
 
@@ -207,11 +214,19 @@ void tst_OAuth2::authorizationErrors()
                           {"error_uri"_L1, "The error URI"_L1}};
     expectWarning();
     oauth2.grant();
+#if QT_DEPRECATED_SINCE(6, 13)
     QTRY_COMPARE(errorSpy.count(), 1);
+#endif
+    QTRY_COMPARE(errorOccurredSpy.count(), 1);
     QTRY_COMPARE(requestFailedSpy.count(), 1);
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(errorSpy.first().at(0).toString(), "invalid_grant"_L1);
     QCOMPARE(errorSpy.first().at(1).toString(), "The error description"_L1);
     QCOMPARE(errorSpy.first().at(2).toString(), "The error URI"_L1);
+#endif
+    QCOMPARE(errorOccurredSpy.first().at(0).toString(), "invalid_grant"_L1);
+    QCOMPARE(errorOccurredSpy.first().at(1).toString(), "The error description"_L1);
+    QCOMPARE(errorOccurredSpy.first().at(2).toString(), "The error URI"_L1);
     QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
              QAbstractOAuth::Error::ServerError);
     QVERIFY(statusSpy.isEmpty());
@@ -225,7 +240,11 @@ void tst_OAuth2::authorizationErrors()
     QTRY_COMPARE(requestFailedSpy.count(), 1);
     QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
              QAbstractOAuth::Error::OAuthTokenNotFoundError);
+
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(errorSpy.count(), 0);
+#endif
+    QCOMPARE(errorOccurredSpy.count(), 0);
     QVERIFY(statusSpy.isEmpty());
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
 
@@ -237,7 +256,10 @@ void tst_OAuth2::authorizationErrors()
     QTRY_COMPARE(requestFailedSpy.count(), 1);
     QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
              QAbstractOAuth::Error::ServerError);
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(errorSpy.count(), 0);
+#endif
+    QCOMPARE(errorOccurredSpy.count(), 0);
     QVERIFY(statusSpy.isEmpty());
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
 
@@ -250,10 +272,14 @@ void tst_OAuth2::authorizationErrors()
     QTRY_COMPARE(requestFailedSpy.count(), 1);
     QCOMPARE(requestFailedSpy.first().at(0).value<QAbstractOAuth::Error>(),
              QAbstractOAuth::Error::ServerError);
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(errorSpy.count(), 0);
+#endif
+    QCOMPARE(errorOccurredSpy.count(), 0);
     QVERIFY(statusSpy.isEmpty());
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
 }
+QT_WARNING_POP
 
 class RequestModifier : public QObject
 {

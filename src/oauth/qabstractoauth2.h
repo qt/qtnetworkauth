@@ -178,7 +178,11 @@ Q_SIGNALS:
     void sslConfigurationChanged(const QSslConfiguration &configuration);
 #endif
 
+#if QT_DEPRECATED_SINCE(6, 13)
+    QT_DEPRECATED_VERSION_X_6_13("Use errorOccurred instead.")
     void error(const QString &error, const QString &errorDescription, const QUrl &uri);
+#endif
+    void errorOccurred(const QString &error, const QString &errorDescription, const QUrl &uri);
     void authorizationCallbackReceived(const QVariantMap &data);
 
 protected:
