@@ -129,7 +129,7 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_handleCallback(const QVariantMap &d
 
     QVariantMap copy(data);
     copy.remove(Key::code);
-    extraTokens = copy;
+    setExtraTokens(copy);
     q->requestAccessToken(code);
 }
 
@@ -180,7 +180,9 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
     copy.remove(Key::refreshToken);
     copy.remove(Key::scope);
     copy.remove(Key::tokenType);
-    extraTokens.insert(copy);
+    QVariantMap newExtraTokens = extraTokens;
+    newExtraTokens.insert(copy);
+    setExtraTokens(newExtraTokens);
 
     setStatus(QAbstractOAuth::Status::Granted);
 }

@@ -52,6 +52,7 @@ public:
     QNetworkAccessManager *networkAccessManager();
     void setStatus(QAbstractOAuth::Status status);
     static QByteArray generateRandomString(quint8 length);
+    void setExtraTokens(const QVariantMap &tokens);
 
     const QLoggingCategory loggingCategory;
     QString clientIdentifier;

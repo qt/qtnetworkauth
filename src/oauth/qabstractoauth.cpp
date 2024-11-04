@@ -296,6 +296,16 @@ QByteArray QAbstractOAuthPrivate::generateRandomString(quint8 length)
     return ba;
 }
 
+void QAbstractOAuthPrivate::setExtraTokens(const QVariantMap &tokens)
+{
+    if (extraTokens == tokens)
+        return;
+    Q_Q(QAbstractOAuth);
+    extraTokens = tokens;
+    emit q->extraTokensChanged(extraTokens);
+}
+
+// ### Qt 7 remove when removing HTTP method support (QTBUG-124329)
 QByteArray QAbstractOAuthPrivate::convertParameters(const QVariantMap &parameters)
 {
     QByteArray data;
