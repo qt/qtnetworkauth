@@ -64,6 +64,8 @@ public:
     void resetCurrentTokenReply();
     void resetCurrentAuthorizationReply();
 
+    void initializeAutoRefresh();
+
     QRestAccessManager *network();
 
     // https://datatracker.ietf.org/doc/html/rfc8628#section-3.2

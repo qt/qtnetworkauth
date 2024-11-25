@@ -557,6 +557,15 @@ void QOAuth2DeviceAuthorizationFlowPrivate::handleTokenSuccessResponse(const QJs
     stopTokenPolling();
 }
 
+void QOAuth2DeviceAuthorizationFlowPrivate::initializeAutoRefresh()
+{
+    Q_Q(QOAuth2DeviceAuthorizationFlow);
+    QObject::connect(q, &QAbstractOAuth2::accessTokenAboutToExpire, q, [q] {
+        if (q->autoRefresh() && !(q->refreshToken().isEmpty()) && !(q->isPolling()))
+            q->refreshAccessToken();
+    });
+}
+
 /*!
     Constructs a QOAuth2DeviceAuthorizationFlow object.
 */
@@ -583,6 +592,7 @@ QOAuth2DeviceAuthorizationFlow::QOAuth2DeviceAuthorizationFlow(QNetworkAccessMan
     : QAbstractOAuth2(*new QOAuth2DeviceAuthorizationFlowPrivate(manager), parent)
 {
     Q_D(QOAuth2DeviceAuthorizationFlow);
+    d->initializeAutoRefresh();
     d->tokenPollingTimer.setInterval(d->defaultPollingInterval);
     d->tokenPollingTimer.setSingleShot(false);
     connect(&d->tokenPollingTimer, &QChronoTimer::timeout, this, [d]() {

@@ -1264,7 +1264,6 @@ void tst_OAuth2::refreshRequestSent()
     clearTestVariables();
     accessToken = "newer-refreshed-access-token";
     expectWarning("Token expiration soon");
-    expectWarning("Cannot refresh access token. Refresh Access Token is already in progress");
     QTRY_COMPARE(expirationSpy.size(), 1);
     QCOMPARE(receivedTokenRequests.size(), 0);
     QCOMPARE(oauth2.token(), "refreshed-access-token"_L1);
