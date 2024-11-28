@@ -1,11 +1,14 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtNetworkAuth/qoauth2authorizationcodeflow.h>
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 
 #include <QtCore>
 #include <QtTest>
 #include <QtNetwork>
+
+#include "webserver.h"
 
 typedef QSharedPointer<QNetworkReply> QNetworkReplyPtr;
 
@@ -18,6 +21,8 @@ class tst_QOAuthHttpServerReplyHandler : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void networkReplyErrors_data();
+    void networkReplyErrors();
     void callback_data();
     void callback();
     void callbackCaching();
@@ -26,6 +31,89 @@ private Q_SLOTS:
     void badCallbackUris();
     void badCallbackWrongMethod();
 };
+
+void tst_QOAuthHttpServerReplyHandler::networkReplyErrors_data()
+{
+    using Error = QAbstractOAuth::Error;
+    QString tokenResponse;
+    QTest::addColumn<QString>("tokenResponse");
+    QTest::addColumn<Error>("expectedError");
+    // Note: For some rows the 'warning detail' is left empty, because the detail is from
+    // QNetworkReply, and could change over time
+    QTest::addColumn<QString>("expectedWarningDetails");
+
+    tokenResponse = "\0"_L1;
+    QTest::addRow("network-error") << tokenResponse << Error::NetworkError << QString();
+
+    tokenResponse = "HTTP/1.1 400 Bad Request\r\n"_L1
+                    "\r\n"_L1;
+    QTest::addRow("400-bad-request") << tokenResponse << Error::ServerError << QString();
+
+    tokenResponse = "HTTP/1.1 200 OK\r\n"_L1
+                    "\r\n"_L1;
+    QTest::addRow("missing-content-type")
+        << tokenResponse << Error::ServerError << u"Empty Content-type header"_s;
+
+    tokenResponse = "HTTP/1.1 200 OK\r\n"_L1
+                    "Content-Type: application/json\r\n"_L1
+                    "\r\n"_L1;
+    QTest::addRow("missing-body-data")
+        << tokenResponse << Error::ServerError << u"No data received"_s;
+
+    tokenResponse = "HTTP/1.1 200 OK\r\n"_L1
+                    "Content-Type: application/json\r\n"_L1
+                    "\r\n"_L1
+                    "not valid json"_L1;
+    QTest::addRow("content-not-valid-json")
+        << tokenResponse << Error::ServerError << u"Received data is not a JSON object"_s;
+
+    tokenResponse = "HTTP/1.1 200 OK\r\n"_L1
+                    "Content-Type: application/json\r\n"_L1
+                    "\r\n"_L1
+                    "{}"_L1;
+    QTest::addRow("empty-json")
+        << tokenResponse << Error::ServerError << u"Received an empty JSON object"_s;
+
+    tokenResponse = "HTTP/1.1 200 OK\r\n"_L1
+                    "Content-Type: application/x-quantum-data-stream\r\n"_L1
+                    "\r\n"_L1
+                    "this statement is false"_L1;
+    QTest::addRow("unknown-content-type")
+        << tokenResponse << Error::ServerError << u"Unknown Content-type"_s;
+}
+
+void tst_QOAuthHttpServerReplyHandler::networkReplyErrors()
+{
+    using Error = QAbstractOAuth::Error;
+    QFETCH(const QString, tokenResponse);
+    QFETCH(Error, expectedError);
+    QFETCH(const QString, expectedWarningDetails);
+
+    WebServer authorizationServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
+        if (request.url.path() == QLatin1String("/tokenEndpoint"))
+            socket->write(tokenResponse.toUtf8());
+    });
+
+    constexpr auto expectWarning = [](const QString &warningText) {
+        const QRegularExpression warning{u"Token request failed: \""_s + warningText};
+        QTest::ignoreMessage(QtWarningMsg, warning);
+    };
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    QOAuthHttpServerReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    oauth2.setAuthorizationUrl(QUrl{"authorizationEndpoint"_L1});
+    oauth2.setAccessTokenUrl(authorizationServer.url("tokenEndpoint"_L1));
+    oauth2.setState("a-state"_L1);
+    QSignalSpy tokenErrorSpy(&replyHandler, &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred);
+
+    oauth2.grant();
+    // Conclude authorization stage so that authorization server gets a token request
+    emit replyHandler.callbackReceived({{ "code"_L1, "a-code"_L1 }, { "state"_L1, "a-state"_L1 }});
+    expectWarning(expectedWarningDetails);
+    QTRY_COMPARE(tokenErrorSpy.size(), 1);
+    QCOMPARE(tokenErrorSpy.at(0).at(0).value<Error>(), expectedError);
+}
 
 void tst_QOAuthHttpServerReplyHandler::callback_data()
 {
