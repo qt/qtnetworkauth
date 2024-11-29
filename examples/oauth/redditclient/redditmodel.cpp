@@ -30,7 +30,7 @@ RedditModel::RedditModel(const QString &clientId, QObject *parent) :
 
     redditApi.setBaseUrl(QUrl(hotUrl));
 
-    auto replyHandler = new QOAuthHttpServerReplyHandler(1337, this);
+    auto replyHandler = new QOAuthHttpServerReplyHandler(QHostAddress::Any, 1337, this);
     oauth2.setReplyHandler(replyHandler);
     oauth2.setAuthorizationUrl(QUrl(authorizationUrl));
     oauth2.setAccessTokenUrl(QUrl(accessTokenUrl));

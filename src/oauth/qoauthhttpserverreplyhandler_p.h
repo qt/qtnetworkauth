@@ -36,6 +36,7 @@ public:
     ~QOAuthHttpServerReplyHandlerPrivate();
 
     QString callback() const;
+    QString callbackHost() const;
 
     QTcpServer httpServer;
     QString text;
