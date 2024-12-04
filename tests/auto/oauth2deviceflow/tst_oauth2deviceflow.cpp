@@ -42,7 +42,6 @@ private Q_SLOTS:
     void grantedScope();
     void refreshThreshold_data();
     void refreshThreshold();
-    void refreshRequestSent();
     void modifyTokenRequests();
     void userCodeExpiration();
     void startStopTokenPolling();
@@ -1252,44 +1251,54 @@ void tst_OAuth2DeviceFlow::refreshThreshold_data()
 {
     QTest::addColumn<std::chrono::seconds>("refreshThreshold");
     QTest::addColumn<int>("expiresIn");
+    QTest::addColumn<std::chrono::seconds>("waitTimeForExpiration");
     QTest::addColumn<bool>("autoRefresh");
     QTest::addColumn<bool>("expectExpirationSignal");
     QTest::addColumn<QString>("refreshToken");
-    QTest::addColumn<bool>("expectWarning");
+    QTest::addColumn<bool>("expectRefreshRequest");
 
     const QString refreshToken = u"refreshToken"_s;
 
+    // wait-time: 20s - 18s = 2s, + 1s for robustness => 3s
     QTest::addRow("validSetExpiration")
-            << 18s << 20 << true  << true  << refreshToken << false;
+        << 18s << 20 << 3s << true  << true  << refreshToken << true;
+
+    // wait-time calculation: 15s - 10s = 5s, + 1s for robustness => 6s
     QTest::addRow("validCalculatedExpiration")
-            << 0s  << 21 << true  << true  << refreshToken << false;
-    QTest::addRow("tooShortExpiration")
-            << 0s  << 1  << true  << true  << refreshToken << true;
-    QTest::addRow("thresholdPastExpiration")
-            << 2s  << 1  << true  << true  << refreshToken << true;
-    QTest::addRow("thresholdBeforeExpiration")
-            << 1s  << 2  << true  << false << refreshToken << true;
-    QTest::addRow("tokenExpired")
-            << 1s  << 0  << true  << false << refreshToken << false;
+        << 0s  << 15 << 6s << true  << true  << refreshToken << true;
+
+    // wait-time: 5s - 10s = -5s => 2s minimum + 1s for robustness => 3s
+    QTest::addRow("tooShortCalculatedExpiration")
+        << 0s  << 5 << 3s  << true  << true  << refreshToken << true;
+
+    // wait-time: 5s - 10s = -5s => 2s minimum + 1s for robustness => 3s
+    QTest::addRow("tooShortSetExpiration")
+        << 10s  << 5 << 3s << true  << true  << refreshToken << true;
+
+    // wait-time: 3s - 1s = 2s, +1s for robustness => 3s
+    QTest::addRow("thresholdNearExpiration")
+        << 1s  << 3 << 3s  << true  << true << refreshToken << true;
+
+    QTest::addRow("invalidExpirationTime")
+        << 1s  << 0 << 3s  << true  << false << refreshToken << false;
+
+    // wait-time: 2s - 1s = 1s, => minimum 2s + 1s for robustness => 2s
     QTest::addRow("autoRefreshDisabled")
-            << 1s  << 2  << false << true  << refreshToken << true;
+        << 1s  << 2 << 3s  << false << true  << refreshToken << false;
+
     QTest::addRow("emptyRefreshToken")
-            << 18s << 20 << true  << false << QString()    << false;
+        << 18s << 20 << 3s << true  << true << QString() << false;
 }
 
 void tst_OAuth2DeviceFlow::refreshThreshold()
 {
     QFETCH(std::chrono::seconds, refreshThreshold);
     QFETCH(int, expiresIn);
+    QFETCH(std::chrono::seconds, waitTimeForExpiration);
     QFETCH(bool, autoRefresh);
     QFETCH(bool, expectExpirationSignal);
     QFETCH(QString, refreshToken);
-    QFETCH(bool, expectWarning);
-
-    constexpr auto expectedWarning = [](QString text) {
-        const QRegularExpression warning{text};
-        QTest::ignoreMessage(QtWarningMsg, warning);
-    };
+    QFETCH(bool, expectRefreshRequest);
 
     const QString authBody = Responses::authorizationSuccess;
     const QString authHttpStatus = Responses::OK_200;
@@ -1308,12 +1317,9 @@ void tst_OAuth2DeviceFlow::refreshThreshold()
     QSignalSpy expiredSpy(&oauth2, &QAbstractOAuth2::accessTokenAboutToExpire);
     QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::grantedScopeChanged);
 
-    if (expectWarning)
-        expectedWarning("Token expiration soon");
-
     tokenBody = R"(
     {
-        "access_token": "an-access-token",
+        "access_token": "initial-access-token",
         "token_type": "bearer",
         "expires_in": ")" + QString::number(expiresIn) + R"(",
         "scope": "s",
@@ -1322,115 +1328,32 @@ void tst_OAuth2DeviceFlow::refreshThreshold()
     oauth2.grant();
 
     QTRY_COMPARE(grantedSpy.size(), 1);
-    if (expectExpirationSignal)
-        QTRY_COMPARE_WITH_TIMEOUT(expiredSpy.size(), 1, std::chrono::seconds(expiresIn));
-}
+    QCOMPARE(oauth2.token(), u"initial-access-token"_s);
 
-void tst_OAuth2DeviceFlow::refreshRequestSent()
-{
-    constexpr auto expectWarning = [](const QString &text) {
-        const QRegularExpression warning{text};
-        QTest::ignoreMessage(QtWarningMsg, warning);
-    };
+    // Clear initial token request
+    receivedTokenRequests.clear();
 
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-            authBody, authHttpStatus, tokenBody, tokenHttpStatus));
-
-    DeviceFlow oauth2;
-    oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
-    oauth2.setState("a-state"_L1);
-    oauth2.setRefreshToken("refreshToken");
-    oauth2.setRefreshThreshold(17s);
-    oauth2.setAutoRefresh(true);
-
-    QSignalSpy expirationSpy(&oauth2, &QAbstractOAuth2::accessTokenAboutToExpire);
-    QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::granted);
-    const auto clearTestVariables = [&]() {
-        expirationSpy.clear();
-        receivedTokenRequests.clear();
-        receivedAuthorizationRequests.clear();
-        grantedSpy.clear();
-    };
-    // Conclude initial authorization.
-    tokenBody = R"(
-    {
-        "access_token": "initial-access-token",
-        "token_type": "bearer",
-        "expires_in": 21,
-        "scope": "s",
-        "refresh_token": "refresh-token"
-    })"_L1;
-    oauth2.grant();
-    QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
-    QVERIFY(expirationSpy.isEmpty());
-    QCOMPARE(oauth2.token(), "initial-access-token"_L1);
-    // Wait for token to expire. We should get an expiration signal and a token refresh request
-    clearTestVariables();
-    tokenBody = R"(
-    {
-        "access_token": "refreshed-access-token",
-        "token_type": "bearer",
-        "expires_in": 21,
-        "scope": "s",
-        "refresh_token": "refresh-token"
-    })"_L1;
-    expectWarning("Token expiration soon");
-    QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
-    QCOMPARE(receivedAuthorizationRequests.size(), 0);
-    QCOMPARE(expirationSpy.size(), 1);
-    QCOMPARE(oauth2.token(), "refreshed-access-token"_L1);
-
-    // Autorefresh disabled, but we should get an expiration signal
-    oauth2.setAutoRefresh(false);
-    clearTestVariables();
-    tokenBody = R"(
-    {
-        "access_token": "newer-refreshed-access-token",
-        "token_type": "bearer",
-        "expires_in": 21,
-        "scope": "s",
-        "refresh_token": "refresh-token"
-    })"_L1;
-    QTRY_COMPARE(expirationSpy.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 0);
-    QCOMPARE(receivedAuthorizationRequests.size(), 0);
-    QCOMPARE(oauth2.token(), "refreshed-access-token"_L1);
-
-    // Change expiration threshold to too large
-    oauth2.setAutoRefresh(true);
-    clearTestVariables();
-    expectWarning("Token expiration soon");
-    oauth2.setRefreshThreshold(100s);
-    QTRY_COMPARE(expirationSpy.size(), 1);
-
-    // Change back to valid
-    clearTestVariables();
-    oauth2.setRefreshThreshold(17s);
-    tokenBody = R"(
-    {
-        "access_token": "more-refreshed-access-token",
-        "token_type": "bearer",
-        "expires_in": 21,
-        "scope": "s",
-        "refresh_token": "refresh-token"
-    })"_L1;
-    QTRY_COMPARE(oauth2.token(), "more-refreshed-access-token"_L1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
-    QCOMPARE(receivedAuthorizationRequests.size(), 0);
-    QTRY_COMPARE(expirationSpy.size(), 1);
-
-    // Change expiration threshold to invalid
-    clearTestVariables();
-    expectWarning("Invalid refresh threshold");
-    oauth2.setRefreshThreshold(-5s);
+    if (expectExpirationSignal) {
+        tokenBody = R"(
+            {
+                "access_token": "refreshed-access-token",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "scope": "s",
+                "refresh_token": "a-refresh-token"
+            })"_L1;
+        QTRY_COMPARE_WITH_TIMEOUT(expiredSpy.size(), 1, waitTimeForExpiration);
+        if (expectRefreshRequest) {
+            QTRY_COMPARE(oauth2.token(), "refreshed-access-token"_L1);
+            QCOMPARE(receivedTokenRequests.size(), 1);
+            QCOMPARE(expiredSpy.size(), 1);
+        } else {
+            // Refresh request isn't expected. To be sure that it isn't sent, allow a bit time
+            // for the network stack to process before testing that it indeed wasn't sent
+            QTest::qWait(100);
+            QCOMPARE(receivedTokenRequests.size(), 0);
+        }
+    }
 }
 
 void tst_OAuth2DeviceFlow::destruction_data()

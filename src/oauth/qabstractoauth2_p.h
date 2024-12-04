@@ -78,7 +78,7 @@ public:
     bool verifyThreadAffinity(const QObject *contextObject);
 
     void initializeRefreshTimer();
-    void updateRefreshTimer();
+    void updateRefreshTimer(bool clientSideUpdate);
 
     QString clientIdentifierSharedKey;
 #if QT_DEPRECATED_SINCE(6, 11)
@@ -99,6 +99,8 @@ public:
     QString nonce;
     QString idToken;
     QString tokenType;
+    // RFC (6749) doesn't state any maximum value for the lifetime, use long just in case
+    qlonglong tokenLifetime = 0;
 #ifndef QT_NO_SSL
     std::optional<QSslConfiguration> sslConfiguration;
 #endif

@@ -177,8 +177,7 @@ void QOAuth2AuthorizationCodeFlowPrivate::initializeAutoRefresh()
 {
     Q_Q(QOAuth2AuthorizationCodeFlow);
     QObject::connect(q, &QAbstractOAuth2::accessTokenAboutToExpire, q, [q] {
-        if (q->autoRefresh() && !(q->refreshToken().isEmpty())
-            && (!(q->status() == QOAuth2AuthorizationCodeFlow::Status::RefreshingToken)))
+        if (q->autoRefresh() && !q->refreshToken().isEmpty())
             q->refreshAccessToken();
     });
 }

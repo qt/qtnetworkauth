@@ -561,7 +561,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::initializeAutoRefresh()
 {
     Q_Q(QOAuth2DeviceAuthorizationFlow);
     QObject::connect(q, &QAbstractOAuth2::accessTokenAboutToExpire, q, [q] {
-        if (q->autoRefresh() && !(q->refreshToken().isEmpty()) && !(q->isPolling()))
+        if (q->autoRefresh() && !q->refreshToken().isEmpty())
             q->refreshAccessToken();
     });
 }

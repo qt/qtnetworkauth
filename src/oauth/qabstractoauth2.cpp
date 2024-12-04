@@ -322,9 +322,10 @@ using namespace std::chrono_literals;
     This interval allows the application to refresh the token well
     in advance, ensuring continuous authorization without interruptions.
 
-    If this property is not explicitly set, the threshold defaults to
+    If this property is not explicitly set, or the provided threshold is
+    larger than the token's lifetime, the threshold defaults to
     5% of the token's remaining lifetime, but not less than 10 seconds ahead
-    of expiration, leaving time for the refresh request to complete.
+    of expiration (leaving time for the refresh request to complete).
 
     \note Expiration signal only works if the authorization server has provided
     a proper expiration time.
@@ -459,13 +460,13 @@ void QAbstractOAuth2Private::initializeRefreshTimer()
     Q_Q(QAbstractOAuth2);
     refreshTimer.setSingleShot(true);
     QObject::connect(q, &QAbstractOAuth2::expirationAtChanged, q, [this]() {
-        updateRefreshTimer();
+        updateRefreshTimer(false);
     });
     QObject::connect(&refreshTimer, &QChronoTimer::timeout, q,
                      &QAbstractOAuth2::accessTokenAboutToExpire);
 }
 
-void QAbstractOAuth2Private::updateRefreshTimer()
+void QAbstractOAuth2Private::updateRefreshTimer(bool clientSideUpdate)
 {
     Q_Q(QAbstractOAuth2);
     qCDebug(loggingCategory, "Updating refresh timer");
@@ -481,18 +482,30 @@ void QAbstractOAuth2Private::updateRefreshTimer()
     std::chrono::seconds untilNextExpiration = std::chrono::seconds(
             QDateTime::currentDateTime().secsTo(q->expirationAt()));
 
-    // Threshold zero means we estimate a decent expiration time, at minimum 10s
-    if (threshold == 0s)
+    // If threshold is zero, or larger than token's lifetime, estimate a decent threshold
+    // (minimum 10 seconds)
+    if (threshold == 0s || threshold.count() >= tokenLifetime) {
         threshold = qMax(10s, untilNextExpiration / 20);
-
-    // If expiration is very soon, send signal immediately
-    if (untilNextExpiration < 10s || untilNextExpiration <= threshold) {
-        qCWarning(loggingCategory, "Token expiration soon");
-        Q_EMIT q->accessTokenAboutToExpire();
-        return;
+        qCDebug(loggingCategory, "Adjusted expiration threshold to %lld seconds",
+                static_cast<long long>(threshold.count()));
     }
 
     std::chrono::seconds interval = untilNextExpiration - threshold;
+
+    if (interval < 10s) {
+        if (clientSideUpdate) {
+            // Refresh timer update was triggered by the application, and the pre-existing
+            // token is near expiration => emit expiration immediately
+            qCDebug(loggingCategory, "Token expiration immediate");
+            emit q->accessTokenAboutToExpire();
+            return;
+        }
+        // Refresh update was triggered by a response from authorization server,
+        // and the token is already near expiration. Use a miminum update interval to avoid
+        // intense refresh request looping (treat as a misconfigured authorization server)
+        interval = qMax(interval, 2s);
+    }
+
     qCDebug(loggingCategory, "Token refresh timer will expire in %lld seconds",
             static_cast<long long>(interval.count()));
     refreshTimer.setInterval(interval);
@@ -551,9 +564,9 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     bool ok;
     const QString accessToken = values.value(QtOAuth2RfcKeywords::accessToken).toString();
     tokenType = values.value(QtOAuth2RfcKeywords::tokenType).toString();
-    int expiresIn = values.value(QtOAuth2RfcKeywords::expiresIn).toInt(&ok);
+    tokenLifetime = values.value(QtOAuth2RfcKeywords::expiresIn).toLongLong(&ok);
     if (!ok)
-        expiresIn = -1;
+        tokenLifetime = 0;
     if (values.value(QtOAuth2RfcKeywords::refreshToken).isValid())
         q->setRefreshToken(values.value(QtOAuth2RfcKeywords::refreshToken).toString());
 
@@ -597,8 +610,8 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     }
     setIdToken(receivedIdToken);
 
-    if (expiresIn > 0)
-        setExpiresAt(QDateTime::currentDateTimeUtc().addSecs(expiresIn));
+    if (tokenLifetime > 0)
+        setExpiresAt(QDateTime::currentDateTimeUtc().addSecs(tokenLifetime));
     else
         setExpiresAt(QDateTime());
 
@@ -1172,7 +1185,7 @@ void QAbstractOAuth2::setRefreshThreshold(std::chrono::seconds threshold)
     if (d->refreshThreshold == threshold)
         return;
     d->refreshThreshold = threshold;
-    d->updateRefreshTimer();
+    d->updateRefreshTimer(true);
     Q_EMIT refreshThresholdChanged(threshold);
 }
 
