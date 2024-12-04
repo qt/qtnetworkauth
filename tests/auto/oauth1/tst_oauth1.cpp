@@ -180,6 +180,11 @@ const auto oauthSignature = QStringLiteral("oauth_signature");
 
 bool hostReachable(const QLatin1String &host)
 {
+    // http://term.ie/oauth/example testing backend is no longer available.
+    // For the time being return false, so that tests relying on it skip rather than
+    // fail trying. QTBUG-131869
+    return false;
+
     // check host exists
     QHostInfo hostInfo = QHostInfo::fromName(host);
     if (hostInfo.error() != QHostInfo::NoError)
