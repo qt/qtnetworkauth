@@ -90,7 +90,7 @@ public:
     QString userAgent = QStringLiteral("QtOAuth/1.0 (+https://www.qt.io)");
     QString responseType;
     const QString bearerFormat = QStringLiteral("Bearer %1"); // Case sensitive
-    QDateTime expiresAt;
+    QDateTime expiresAtUtc;
     QString refreshToken;
     std::chrono::seconds refreshThreshold = std::chrono::seconds::zero();
     QChronoTimer refreshTimer;
