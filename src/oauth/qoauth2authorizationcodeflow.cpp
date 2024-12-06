@@ -151,11 +151,10 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
     if (!scope.isEmpty())
         q->setScope(scope);
 
-    const QDateTime currentDateTime = QDateTime::currentDateTime();
-    if (expiresIn > 0 && currentDateTime.secsTo(expiresAt) != expiresIn) {
-        expiresAt = currentDateTime.addSecs(expiresIn);
-        Q_EMIT q->expirationAtChanged(expiresAt);
-    }
+    if (expiresIn > 0)
+        setExpiresAt(QDateTime::currentDateTime().addSecs(expiresIn));
+    else
+        setExpiresAt(QDateTime());
 
     QVariantMap copy(values);
     copy.remove(Key::accessToken);
