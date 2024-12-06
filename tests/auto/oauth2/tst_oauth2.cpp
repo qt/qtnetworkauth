@@ -51,6 +51,7 @@ private Q_SLOTS:
     void tlsAuthentication();
 #endif
     void extraTokens();
+    void expirationAt();
 
 private:
     QString testDataDir;
@@ -1427,6 +1428,87 @@ void tst_OAuth2::extraTokens()
     QCOMPARE(extraTokens.size(), 2);
     QCOMPARE(extraTokens.value(name1).toString(), value1);
     QCOMPARE(extraTokens.value(name2).toString(), value2);
+}
+
+void tst_OAuth2::expirationAt()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl({"authorizationEndpoint"_L1});
+    oauth2.setAccessTokenUrl({"tokenEndpoint"_L1});
+    oauth2.setState("a_state"_L1);
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    QSignalSpy expirationAtSpy(&oauth2, &QAbstractOAuth2::expirationAtChanged);
+
+    const auto expiresAtIsInSecondsFromNow = [&](int fromNow) -> bool {
+        // For test robustness check that the time is within +/- 2 seconds
+        return qAbs(
+            oauth2.expirationAt().secsTo(QDateTime::currentDateTime().addSecs(fromNow))) <= 2;
+    };
+    // Initial value
+    QVERIFY(!oauth2.expirationAt().isValid());
+
+    // Conclude authorization stage
+    oauth2.grant();
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+    QVERIFY(expirationAtSpy.isEmpty());
+
+    // Test expiration in 50 seconds from now
+    int expires_in = 50;
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"expires_in", expires_in}});
+    QCOMPARE(expirationAtSpy.size(), 1);
+    QCOMPARE(expirationAtSpy.at(0).at(0).toDateTime(), oauth2.expirationAt());
+    QVERIFY(expiresAtIsInSecondsFromNow(expires_in));
+    expirationAtSpy.clear();
+
+    // Changes to 100 seconds from now
+    expires_in = 100;
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"expires_in", expires_in}});
+    QCOMPARE(expirationAtSpy.size(), 1);
+    QCOMPARE(expirationAtSpy.at(0).at(0).toDateTime(), oauth2.expirationAt());
+    QVERIFY(expiresAtIsInSecondsFromNow(expires_in));
+    expirationAtSpy.clear();
+
+    // Zero expires_in value, expiresAt should become invalid
+    expires_in = 0;
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"expires_in", expires_in}});
+    QCOMPARE(expirationAtSpy.size(), 1);
+    QCOMPARE(expirationAtSpy.at(0).at(0).toDateTime(), oauth2.expirationAt());
+    QVERIFY(!oauth2.expirationAt().isValid());
+    expirationAtSpy.clear();
+
+    // Negative expires_in value, expiresAt should remain invalid
+    expires_in = -10;
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"expires_in", expires_in}});
+    QCOMPARE(expirationAtSpy.size(), 0);
+    QVERIFY(!oauth2.expirationAt().isValid());
+    expirationAtSpy.clear();
+
+    // Non-number expires_in value, expiresAt should remain invalid
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"expires_in", "garbage"}});
+    QCOMPARE(expirationAtSpy.size(), 0);
+    QVERIFY(!oauth2.expirationAt().isValid());
+    expirationAtSpy.clear();
+
+    // Expiration goes back to valid
+    expires_in = 70;
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"expires_in", expires_in}});
+    QCOMPARE(expirationAtSpy.size(), 1);
+    QCOMPARE(expirationAtSpy.at(0).at(0).toDateTime(), oauth2.expirationAt());
+    QVERIFY(expiresAtIsInSecondsFromNow(expires_in));
+    expirationAtSpy.clear();
+
+    // Expiration is not provided, expiresAt should become invalid
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}});
+    QCOMPARE(expirationAtSpy.size(), 1);
+    QCOMPARE(expirationAtSpy.at(0).at(0).toDateTime(), oauth2.expirationAt());
+    QVERIFY(!oauth2.expirationAt().isValid());
+    expirationAtSpy.clear();
+
+    // Expiration is still not provided, expiresAt should remain unchanged
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}});
+    QCOMPARE(expirationAtSpy.size(), 0);
+    QVERIFY(!oauth2.expirationAt().isValid());
 }
 
 QTEST_MAIN(tst_OAuth2)

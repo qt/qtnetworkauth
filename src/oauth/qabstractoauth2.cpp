@@ -289,7 +289,10 @@ using namespace std::chrono_literals;
 /*!
     \property QAbstractOAuth2::expiration
     This property holds the expiration time of the current access
-    token.
+    token. An invalid value means that the authorization server hasn't
+    provided a valid expiration time.
+
+    \sa QDateTime::isValid()
 */
 
 /*!
@@ -398,6 +401,15 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
 
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
 {}
+
+void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
+{
+    if (expiresAt == expiration)
+        return;
+    Q_Q(QAbstractOAuth2);
+    expiresAt = expiration;
+    emit q->expirationAtChanged(expiresAt);
+}
 
 void QAbstractOAuth2Private::setGrantedScope(const QStringList &newScope)
 {
@@ -584,11 +596,10 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     }
     setIdToken(receivedIdToken);
 
-    const QDateTime currentDateTime = QDateTime::currentDateTime();
-    if (expiresIn > 0 && currentDateTime.secsTo(expiresAt) != expiresIn) {
-        expiresAt = currentDateTime.addSecs(expiresIn);
-        Q_EMIT q->expirationAtChanged(expiresAt);
-    }
+    if (expiresIn > 0)
+        setExpiresAt(QDateTime::currentDateTime().addSecs(expiresIn));
+    else
+        setExpiresAt(QDateTime());
 
     QVariantMap copy(values);
     copy.remove(QtOAuth2RfcKeywords::accessToken);

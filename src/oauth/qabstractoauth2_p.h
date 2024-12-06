@@ -45,6 +45,7 @@ public:
                            const QUrl &authorizationUrl, QNetworkAccessManager *manager = nullptr);
     ~QAbstractOAuth2Private();
 
+    void setExpiresAt(const QDateTime &expiration);
     void setGrantedScope(const QStringList &scope);
     static QString generateRandomState();
     static QString generateNonce();
