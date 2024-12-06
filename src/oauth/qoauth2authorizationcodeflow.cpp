@@ -152,7 +152,7 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_accessTokenRequestFinished(const QV
         q->setScope(scope);
 
     if (expiresIn > 0)
-        setExpiresAt(QDateTime::currentDateTime().addSecs(expiresIn));
+        setExpiresAt(QDateTime::currentDateTimeUtc().addSecs(expiresIn));
     else
         setExpiresAt(QDateTime());
 

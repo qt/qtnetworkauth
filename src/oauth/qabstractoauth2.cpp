@@ -134,11 +134,12 @@ QAbstractOAuth2Private::~QAbstractOAuth2Private()
 
 void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
 {
-    if (expiresAt == expiration)
+    Q_ASSERT(!expiration.isValid() || expiration.timeSpec() == Qt::TimeSpec::UTC);
+    if (expiresAtUtc == expiration)
         return;
     Q_Q(QAbstractOAuth2);
-    expiresAt = expiration;
-    emit q->expirationAtChanged(expiresAt);
+    expiresAtUtc = expiration;
+    emit q->expirationAtChanged(expiresAtUtc.toLocalTime());
 }
 
 QString QAbstractOAuth2Private::generateRandomState()
@@ -469,7 +470,7 @@ void QAbstractOAuth2::setState(const QString &state)
 QDateTime QAbstractOAuth2::expirationAt() const
 {
     Q_D(const QAbstractOAuth2);
-    return d->expiresAt;
+    return d->expiresAtUtc.toLocalTime();
 }
 
 /*!
