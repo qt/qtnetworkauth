@@ -43,6 +43,7 @@ public:
                            const QUrl &authorizationUrl, QNetworkAccessManager *manager = nullptr);
     ~QAbstractOAuth2Private();
 
+    void setExpiresAt(const QDateTime &expiration);
     static QString generateRandomState();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
 

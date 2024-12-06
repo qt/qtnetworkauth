@@ -139,7 +139,10 @@ using namespace Qt::StringLiterals;
 /*!
     \property QAbstractOAuth2::expiration
     This property holds the expiration time of the current access
-    token.
+    token. An invalid value means that the authorization server hasn't
+    provided a valid expiration time.
+
+    \sa QDateTime::isValid()
 */
 
 /*!
@@ -196,6 +199,15 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
 
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
 {}
+
+void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
+{
+    if (expiresAt == expiration)
+        return;
+    Q_Q(QAbstractOAuth2);
+    expiresAt = expiration;
+    emit q->expirationAtChanged(expiresAt);
+}
 
 QString QAbstractOAuth2Private::generateRandomState()
 {
