@@ -53,7 +53,7 @@ public:
     QString userAgent = QStringLiteral("QtOAuth/1.0 (+https://www.qt.io)");
     QString responseType;
     const QString bearerFormat = QStringLiteral("Bearer %1"); // Case sensitive
-    QDateTime expiresAt;
+    QDateTime expiresAtUtc;
     QString refreshToken;
 #ifndef QT_NO_SSL
     std::optional<QSslConfiguration> sslConfiguration;
