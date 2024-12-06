@@ -492,6 +492,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::reset()
     setVerificationUrlComplete({});
     setUserCodeExpiration(QDateTime());
     setExtraTokens({});
+    setExpiresAt(QDateTime());
     deviceCode.clear();
     if (q->isPolling()) {
         tokenPollingTimer.stop();
