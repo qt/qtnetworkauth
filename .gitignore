@@ -1,0 +1,139 @@
+# This file is used to ignore files which are generated in the Qt build system
+# ----------------------------------------------------------------------------
+
+# Specific files/paths
+
+# qmake/configure stuff
+/.qmake.cache
+/.qmake.stash
+/config.opt
+/config.status*
+/config.summary
+/config.log
+/config.cache
+
+tst_*
+!tst_*.*
+tst_*.log
+tst_*.debug
+tst_*~
+
+# Generic directories
+.metadata/
+.pc/
+debug/
+release/
+tmp/
+tmp-debug/
+tmp-debug-shared/
+tmp-release/
+tmp-release-shared/
+qtc-qmldump/
+qtc-qmldbg/
+*.app/
+*.d/
+
+# Generic files
+.#*
+._*
+.com.apple.timemachine.supported
+.DS_Store
+callgrind.out.*
+core
+Makefile*
+!/qmake/Makefile.win32*
+!/qmake/Makefile.unix
+pcviewer.cfg
+tags
+*~
+*.a
+*.la
+*.core
+*.dll
+*.exe
+*.dylib
+*.gcov
+*.gcda
+*.gcno
+*.lib
+!Info.plist.lib
+*.o
+*.obj
+*.orig
+*.swp
+*.rej
+*.so
+*.so.*
+*.pbxuser
+*.mode1
+*.mode1v3
+*_resource.rc
+*.*#
+*.debug
+.cache
+
+# xemacs temporary files
+*.flc
+
+# Vim temporary files
+.*.swp
+
+# Visual Studio generated files
+*.ib_pdb_index
+*.idb
+*.ilk
+*.pdb
+*.sln
+*.suo
+*.ncb
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.exe.embed.manifest
+*.exe_manifest.rc
+*.exe_manifest.res
+
+# Visual Studio Code generated files
+.vscode
+
+# CLion generated files
+.idea
+
+# Qt Creator generated files
+*.pro.user*
+*.qmlproject.user*
+CMakeLists.txt.user*
+
+# INTEGRITY generated files
+*.ael
+*.dla
+*.dnm
+*.dep
+*.map
+
+# Precompiled headers
+*.gch
+*.pchi
+*.pchi.cpp
+*_pch.obj
+*_pch.pch
+
+# Qt-specific files
+codeattributions.qdoc
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.moc
+*.prl
+*.rcc
+
+# cmake related artifacts
+/build*
+CMakeFiles
+CTestTestfile.cmake
+cmake_install.cmake
+*_autogen
+tst_*.xml
+CMakeUserPresets.json
+/.vs/
+/out/

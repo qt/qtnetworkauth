@@ -1,7 +1,7 @@
 version = 1
 
 [[annotations]]
-path = [".tag", "**/.gitattributes"]
+path = [".tag", "**/.gitattributes", "**.gitignore"]
 precedence = "closest"
 comment = "not sure at all"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
