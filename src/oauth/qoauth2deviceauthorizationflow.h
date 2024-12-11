@@ -47,7 +47,7 @@ public:
 
 public Q_SLOTS:
     void grant() override;
-    bool refreshAccessToken();
+    void refreshAccessToken();
     bool startTokenPolling();
     void stopTokenPolling();
 

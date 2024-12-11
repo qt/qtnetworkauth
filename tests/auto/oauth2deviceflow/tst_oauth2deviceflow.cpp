@@ -218,7 +218,9 @@ do { \
     VALUE_SET = QByteArray(VALUE_PREFIX) + "_refresh_token"; \
     receivedTokenRequests.clear(); \
     STAGES_RECEIVED.clear(); \
-    QVERIFY(oauth2.refreshAccessToken()); \
+    requestFailedSpy.clear(); \
+    oauth2.refreshAccessToken(); \
+    QVERIFY(requestFailedSpy.isEmpty()); \
     QCOMPARE(oauth2.status(), Status::RefreshingToken); \
     QTRY_COMPARE(STAGES_RECEIVED.size(), 1); \
     QCOMPARE(STAGES_RECEIVED.at(0), Stage::RefreshingAccessToken); \
@@ -240,7 +242,9 @@ do { \
     QTRY_COMPARE(receivedTokenRequests.size(), 1); \
     QVERIFY(receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
     receivedTokenRequests.clear(); \
-    QVERIFY(oauth2.refreshAccessToken()); \
+    requestFailedSpy.clear(); \
+    oauth2.refreshAccessToken(); \
+    QVERIFY(requestFailedSpy.isEmpty()); \
     QCOMPARE(oauth2.status(), Status::RefreshingToken); \
     QTRY_COMPARE(oauth2.status(), Status::Granted); \
     QTRY_COMPARE(receivedTokenRequests.size(), 1); \
@@ -267,6 +271,8 @@ void tst_OAuth2DeviceFlow::modifyTokenRequests()
     oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
     oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
     oauth2.setRefreshToken(u"refresh_token"_s);
+
+    QSignalSpy requestFailedSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::requestFailed);
 
     QList<Stage> stagesReceivedByModifier;
     auto modifierLambda = [&](QNetworkRequest &request, Stage stage) {
@@ -526,6 +532,7 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
     QSignalSpy tokenUrlSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::tokenUrlChanged);
     QSignalSpy tokenSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::tokenChanged);
     QSignalSpy refreshTokenSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::refreshTokenChanged);
+    QSignalSpy requestFailedSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::requestFailed);
 
     // Initial values
     QCOMPARE(oauth2.status(), Status::NotAuthenticated);
@@ -605,7 +612,9 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
 
     statusSpy.clear();
     receivedTokenRequests.clear();
-    QVERIFY(oauth2.refreshAccessToken());
+    requestFailedSpy.clear();
+    oauth2.refreshAccessToken();
+    QVERIFY(requestFailedSpy.isEmpty());
     QTRY_COMPARE(statusSpy.size(), 2);
     QCOMPARE(receivedTokenRequests.size(), 1);
     {
@@ -649,7 +658,7 @@ void tst_OAuth2DeviceFlow::clientError()
     // Refresh token missing for refreshing
     requestFailedSpy.clear();
     expectWarning("empty refresh token");
-    QVERIFY(!oauth2.refreshAccessToken());
+    oauth2.refreshAccessToken();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::ClientError);
 
@@ -657,7 +666,7 @@ void tst_OAuth2DeviceFlow::clientError()
     requestFailedSpy.clear();
     oauth2.setRefreshToken("a-refresh-token"_L1);
     expectWarning("No token URL");
-    QVERIFY(!oauth2.refreshAccessToken());
+    oauth2.refreshAccessToken();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::ClientError);
 
@@ -674,7 +683,7 @@ void tst_OAuth2DeviceFlow::clientError()
     oauth2.grant();
     QTRY_VERIFY(oauth2.isPolling());
     expectWarning("polling in progress");
-    QVERIFY(!oauth2.refreshAccessToken());
+    oauth2.refreshAccessToken();
     QCOMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::ClientError);
 
@@ -690,9 +699,9 @@ void tst_OAuth2DeviceFlow::clientError()
     requestFailedSpy.clear();
     oauth2.stopTokenPolling();
     oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
-    QVERIFY(oauth2.refreshAccessToken());
-    QVERIFY(oauth2.refreshAccessToken());
-    QVERIFY(oauth2.refreshAccessToken());
+    oauth2.refreshAccessToken();
+    oauth2.refreshAccessToken();
+    oauth2.refreshAccessToken();
     QVERIFY(requestFailedSpy.isEmpty());
 }
 
@@ -970,7 +979,8 @@ void tst_OAuth2DeviceFlow::tokenRequestErrors()
     tokenHttpStatus = Responses::OK_200;
     clearTestVariables();
     expectWarning("token not received");
-    QVERIFY(oauth2.refreshAccessToken());
+    oauth2.refreshAccessToken();
+    QCOMPARE(oauth2.status(), QAbstractOAuth2::Status::RefreshingToken);
     QTRY_COMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(receivedTokenRequests.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::OAuthTokenNotFoundError);

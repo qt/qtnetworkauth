@@ -733,38 +733,42 @@ void QOAuth2DeviceAuthorizationFlow::grant()
 /*!
     Call this function to refresh the tokens.
 
-    If refreshing the token fails and an access token exists, the status is
-    set to QAbstractOAuth::Status::Granted, and to
-    QAbstractOAuth::Status::NotAuthenticated if an access token
-    does not exist.
+    If the refresh request was initiated successfully, the status is set to
+    \l QAbstractOAuth::Status::RefreshingToken; otherwise the \l requestFailed()
+    signal is emitted and the status is not changed. Tokens cannot be refreshed
+    while \l {isPolling} is \c {true}.
 
-    Returns \c {true} if refresh request was initiated successfully
-    (or was already in progress), and \c {false} otherwise. Tokens
-    cannot be refreshed while \l {isPolling} is \c {true}.
+    This function has no effect if the token refresh process is already in
+    progress.
+
+    If refreshing the token fails and an access token exists, the status is
+    set to \l QAbstractOAuth::Status::Granted, and to
+    \l QAbstractOAuth::Status::NotAuthenticated if an access token
+    does not exist.
 
     \sa QAbstractOAuth::requestFailed()
 */
-bool QOAuth2DeviceAuthorizationFlow::refreshAccessToken()
+void QOAuth2DeviceAuthorizationFlow::refreshAccessToken()
 {
     Q_D(QOAuth2DeviceAuthorizationFlow);
     if (d->status == Status::RefreshingToken && d->currentTokenReply) {
         qCDebug(d->loggingCategory, "refresh already in progress");
-        return true;
+        return;
     }
     if (isPolling()) {
         d->logTokenStageWarning("polling in progress, cannot refresh"_L1);
         emit requestFailed(Error::ClientError);
-        return false;
+        return;
     }
     if (d->refreshToken.isEmpty()) {
         d->logTokenStageWarning("empty refresh token"_L1);
         emit requestFailed(Error::ClientError);
-        return false;
+        return;
     }
     if (d->tokenUrl.isEmpty()) {
         d->logTokenStageWarning("No token URL set"_L1);
         emit requestFailed(Error::ClientError);
-        return false;
+        return;
     }
 
     d->resetCurrentTokenReply();
@@ -781,7 +785,6 @@ bool QOAuth2DeviceAuthorizationFlow::refreshAccessToken()
         d->tokenReplyFinished(reply);
     });
     setStatus(Status::RefreshingToken);
-    return true;
 }
 
 /*!
