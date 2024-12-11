@@ -27,6 +27,9 @@ QT_BEGIN_NAMESPACE
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
 
+static constexpr auto MinimumRefreshThreshold = 10s;
+static constexpr auto FallbackRefreshInterval = 2s;
+
 /*!
     \class QAbstractOAuth2
     \inmodule QtNetworkAuth
@@ -483,16 +486,15 @@ void QAbstractOAuth2Private::updateRefreshTimer(bool clientSideUpdate)
             QDateTime::currentDateTime().secsTo(q->expirationAt()));
 
     // If threshold is zero, or larger than token's lifetime, estimate a decent threshold
-    // (minimum 10 seconds)
     if (threshold == 0s || threshold.count() >= tokenLifetime) {
-        threshold = qMax(10s, untilNextExpiration / 20);
+        threshold = qMax(MinimumRefreshThreshold, untilNextExpiration / 20);
         qCDebug(loggingCategory, "Adjusted expiration threshold to %lld seconds",
                 static_cast<long long>(threshold.count()));
     }
 
     std::chrono::seconds interval = untilNextExpiration - threshold;
 
-    if (interval < 10s) {
+    if (interval < MinimumRefreshThreshold) {
         if (clientSideUpdate) {
             // Refresh timer update was triggered by the application, and the pre-existing
             // token is near expiration => emit expiration immediately
@@ -503,7 +505,7 @@ void QAbstractOAuth2Private::updateRefreshTimer(bool clientSideUpdate)
         // Refresh update was triggered by a response from authorization server,
         // and the token is already near expiration. Use a miminum update interval to avoid
         // intense refresh request looping (treat as a misconfigured authorization server)
-        interval = qMax(interval, 2s);
+        interval = qMax(interval, FallbackRefreshInterval);
     }
 
     qCDebug(loggingCategory, "Token refresh timer will expire in %lld seconds",
