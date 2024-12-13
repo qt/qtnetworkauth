@@ -24,9 +24,6 @@
 #include <QtNetwork/qrestreply.h>
 #include <QtNetwork/qnetworkrequestfactory.h>
 
-#include <QtQml/qqmlregistration.h>
-#include <QtQml/qqmlapplicationengine.h>
-
 #include <QtWidgets/qapplication.h>
 
 #include <QtGui/qdesktopservices.h>

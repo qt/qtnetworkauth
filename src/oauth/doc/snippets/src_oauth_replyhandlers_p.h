@@ -14,7 +14,9 @@
 #include <QtNetwork/qnetworkrequestfactory.h>
 #include <QtNetwork/qrestaccessmanager.h>
 
+#ifdef QT_QML_LIB
 #include <QtQml/qqmlregistration.h>
+#endif
 
 #include <QtGui/qdesktopservices.h>
 
@@ -29,7 +31,9 @@ using namespace Qt::StringLiterals;
 class HttpExample : public QObject
 {
     Q_OBJECT
+#ifdef QT_QML_LIB
     QML_NAMED_ELEMENT(OAuth2)
+#endif
 public:
     Q_INVOKABLE void authorize();
 

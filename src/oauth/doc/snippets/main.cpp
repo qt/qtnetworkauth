@@ -5,7 +5,9 @@
 
 #include <QtWidgets/qapplication.h>
 
+#ifdef QT_QML_LIB
 #include <QtQml/qqmlapplicationengine.h>
+#endif
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qcommandlineparser.h>
@@ -16,7 +18,9 @@ int main(int argc, char *argv[])
 {
     QLoggingCategory::setFilterRules(u"qt.networkauth* = true"_s);
     QApplication app(argc, argv);
+#ifdef QT_QML_LIB
     QQmlApplicationEngine engine;
+#endif
 
     QCommandLineParser parser;
     // For example: ./networkauth_oauth_snippets --agent widgets --scheme https
