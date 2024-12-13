@@ -539,3 +539,37 @@ void UriSchemeExample::setupWebEngineWidgetsHttps()
     qWarning("QtWebEngine not available");
 #endif
 }
+
+//! [custom-class-def]
+class MyClass : public QAbstractOAuth2
+{
+    Q_OBJECT
+public:
+    MyClass();
+    void refreshAccessToken(); // issue a refresh request
+public Q_SLOTS:
+    void grant() override;
+};
+//! [custom-class-def]
+
+//! [custom-class-impl]
+MyClass::MyClass() : QAbstractOAuth2()
+{
+    connect(this, &QAbstractOAuth2::accessTokenAboutToExpire, this, [this] {
+        if (autoRefresh() && !refreshToken().isEmpty())
+            refreshAccessToken();
+    });
+}
+//! [custom-class-impl]
+
+void MyClass::refreshAccessToken()
+{
+    qDebug("refresh");
+}
+
+void MyClass::grant()
+{
+    qDebug("grant");
+}
+
+#include "src_oauth_replyhandlers.moc"

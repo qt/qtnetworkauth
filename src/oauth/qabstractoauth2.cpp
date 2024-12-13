@@ -307,6 +307,14 @@ static constexpr auto FallbackRefreshInterval = 2s;
     Emitting this signal requires that the access token has
     a valid expiration time.
 
+    The developers who implement custom authorization flows by deriving from
+    this class, should connect to this signal also in order to implement the
+    auto-refresh functionality:
+
+    \snippet src_oauth_replyhandlers.cpp custom-class-def
+    \dots
+    \snippet src_oauth_replyhandlers.cpp custom-class-impl
+
     \sa refreshThreshold, autoRefresh
 */
 
@@ -349,6 +357,11 @@ static constexpr auto FallbackRefreshInterval = 2s;
 
     This is useful for applications that require uninterrupted
     authorization without user intervention.
+
+    \note Due to the implementation details and the binary compatibility
+    promises, developers who implement custom authorization flows by deriving
+    from this class should still implement the support for automatic refresh on
+    their own. See \l accessTokenAboutToExpire() for more details.
 
     \sa refreshThreshold
 */
