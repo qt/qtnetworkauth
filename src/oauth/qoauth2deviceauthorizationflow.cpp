@@ -551,6 +551,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::handleTokenSuccessResponse(const QJs
     stopTokenPolling();
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 void QOAuth2DeviceAuthorizationFlowPrivate::initializeAutoRefresh()
 {
     Q_Q(QOAuth2DeviceAuthorizationFlow);
@@ -559,6 +560,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::initializeAutoRefresh()
             q->refreshAccessToken();
     });
 }
+#endif
 
 /*!
     Constructs a QOAuth2DeviceAuthorizationFlow object.
@@ -586,7 +588,9 @@ QOAuth2DeviceAuthorizationFlow::QOAuth2DeviceAuthorizationFlow(QNetworkAccessMan
     : QAbstractOAuth2(*new QOAuth2DeviceAuthorizationFlowPrivate(manager), parent)
 {
     Q_D(QOAuth2DeviceAuthorizationFlow);
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     d->initializeAutoRefresh();
+#endif
     d->tokenPollingTimer.setInterval(d->defaultPollingInterval);
     d->tokenPollingTimer.setSingleShot(false);
     connect(&d->tokenPollingTimer, &QChronoTimer::timeout, this, [d]() {
@@ -726,7 +730,11 @@ void QOAuth2DeviceAuthorizationFlow::grant()
 
     \sa QAbstractOAuth::requestFailed()
 */
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 void QOAuth2DeviceAuthorizationFlow::refreshAccessToken()
+#else
+void QOAuth2DeviceAuthorizationFlow::refreshTokens()
+#endif
 {
     Q_D(QOAuth2DeviceAuthorizationFlow);
     if (d->status == Status::RefreshingToken && d->currentTokenReply) {

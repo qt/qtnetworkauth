@@ -64,7 +64,9 @@ public:
     void resetCurrentTokenReply();
     void resetCurrentAuthorizationReply();
 
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     void initializeAutoRefresh();
+#endif
 
     QRestAccessManager *network();
 

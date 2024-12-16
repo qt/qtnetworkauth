@@ -273,8 +273,12 @@ are also available when refreshing tokens.
 To refresh the tokens after an application startup,
 the application needs to persist the refresh token securely,
 and set it with \l {QAbstractOAuth2::setRefreshToken()}.
+\if !defined(qt7)
 \l {QOAuth2AuthorizationCodeFlow::refreshAccessToken()}
 or \l {QOAuth2DeviceAuthorizationFlow::refreshAccessToken()} can
+\else
+\l QAbstractOAuth2::refreshTokens() can
+\endif
 then be called to request new tokens.
 
 Since Qt 6.9, applications can also use refresh convenience

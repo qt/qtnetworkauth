@@ -176,6 +176,11 @@ public:
     }
     void clearNetworkRequestModifier();
 
+#if QT_VERSION >= QT_VERSION_CHECK(7, 0, 0)
+public Q_SLOTS:
+    virtual void refreshTokens() = 0;
+#endif
+
 Q_SIGNALS:
 #if QT_DEPRECATED_SINCE(6, 11)
     QT_DEPRECATED_VERSION_X_6_11("Use requestedScope and grantedScope properties instead.")

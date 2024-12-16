@@ -178,6 +178,7 @@ QByteArray QOAuth2AuthorizationCodeFlowPrivate::createPKCEChallenge()
     Q_UNREACHABLE_RETURN({});
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 void QOAuth2AuthorizationCodeFlowPrivate::initializeAutoRefresh()
 {
     Q_Q(QOAuth2AuthorizationCodeFlow);
@@ -186,6 +187,7 @@ void QOAuth2AuthorizationCodeFlowPrivate::initializeAutoRefresh()
             q->refreshAccessToken();
     });
 }
+#endif
 
 /*!
     Constructs a QOAuth2AuthorizationCodeFlow object with parent
@@ -219,8 +221,10 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
                                                              manager),
                     parent)
 {
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     Q_D(QOAuth2AuthorizationCodeFlow);
     d->initializeAutoRefresh();
+#endif
 }
 
 /*!
@@ -237,8 +241,10 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QUrl &authentic
                                                              QString(), manager),
                     parent)
 {
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     Q_D(QOAuth2AuthorizationCodeFlow);
     d->initializeAutoRefresh();
+#endif
 }
 
 /*!
@@ -257,8 +263,10 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
                                                              clientIdentifier, manager),
                     parent)
 {
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     Q_D(QOAuth2AuthorizationCodeFlow);
     d->initializeAutoRefresh();
+#endif
 }
 
 /*!
@@ -402,7 +410,11 @@ void QOAuth2AuthorizationCodeFlow::grant()
     \sa {https://tools.ietf.org/html/rfc6749#section-1.5}{Refresh
     Token}
 */
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
+#else
+void QOAuth2AuthorizationCodeFlow::refreshTokens()
+#endif
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
 

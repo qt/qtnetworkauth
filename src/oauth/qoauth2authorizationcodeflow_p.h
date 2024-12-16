@@ -43,7 +43,9 @@ public:
 
     QByteArray createPKCEChallenge();
 
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     void initializeAutoRefresh();
+#endif
 
     QOAuth2AuthorizationCodeFlow::PkceMethod pkceMethod
         = QOAuth2AuthorizationCodeFlow::PkceMethod::S256;
