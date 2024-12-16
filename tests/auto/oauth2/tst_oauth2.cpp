@@ -106,7 +106,7 @@ void tst_OAuth2::state()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl(QUrl{"accessTokenUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     QSignalSpy statePropertySpy(&oauth2, &QAbstractOAuth2::stateChanged);
@@ -159,7 +159,9 @@ void tst_OAuth2::tokenUrlChanged()
     QOAuth2AuthorizationCodeFlow oauth2;
 
     QCOMPARE_EQ(oauth2.tokenUrl(), QUrl());
-    QCOMPARE_EQ(oauth2.accessTokenUrl(), QUrl());
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+    QT_IGNORE_DEPRECATIONS(QCOMPARE_EQ(oauth2.accessTokenUrl(), QUrl());)
+#endif
 
     const QUrl someTokenUrl{"accessToken"_L1};
     const QUrl otherTokenUrl{"otherAccessToken"_L1};
@@ -185,6 +187,9 @@ void tst_OAuth2::tokenUrlChanged()
     QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
     QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
 
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     // old property
     tokenUrlChangedSpy.clear();
     QSignalSpy accessTokenUrlChangedSpy(&oauth2,
@@ -217,6 +222,8 @@ void tst_OAuth2::tokenUrlChanged()
     QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
     QCOMPARE_EQ(accessTokenUrlChangedSpy.size(), 1);
     QCOMPARE_EQ(accessTokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
+QT_WARNING_POP
+#endif
 }
 
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
@@ -412,7 +419,7 @@ void tst_OAuth2::modifyTokenRequests()
     oauth2.setReplyHandler(&replyHandler);
     oauth2.setRefreshToken(u"refresh_token"_s);
     oauth2.setAuthorizationUrl(tokenServer.url(QLatin1String("authorization")));
-    oauth2.setAccessTokenUrl(tokenServer.url(QLatin1String("accessToken")));
+    oauth2.setTokenUrl(tokenServer.url(QLatin1String("accessToken")));
     oauth2.setState("a_state"_L1);
 
     QAbstractOAuth::Stage stageReceivedByModifier =
@@ -497,7 +504,7 @@ void tst_OAuth2::getToken()
     });
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(webServer.url(QLatin1String("authorization")));
-    oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));
+    oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
@@ -530,7 +537,11 @@ void tst_OAuth2::refreshToken()
         }
     });
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+    QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));)
+#else
+    oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
+#endif
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     oauth2.setRefreshToken(QLatin1String("refresh_token"));
@@ -561,7 +572,7 @@ void tst_OAuth2::getAndRefreshToken()
     });
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(webServer.url(QLatin1String("authorization")));
-    oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));
+    oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
@@ -600,7 +611,7 @@ void tst_OAuth2::tokenRequestErrors()
 
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(authServer.url(QLatin1String("authorization")));
-    oauth2.setAccessTokenUrl(authServer.url(QLatin1String("accessToken")));
+    oauth2.setTokenUrl(authServer.url(QLatin1String("accessToken")));
 
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -734,7 +745,7 @@ void tst_OAuth2::pkce()
 
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(QUrl("authorization_url"));
-    oauth2.setAccessTokenUrl(QUrl("access_token_url"));
+    oauth2.setTokenUrl(QUrl("access_token_url"));
     oauth2.setState("a_state"_L1);
     QCOMPARE(oauth2.pkceMethod(), Method::S256); // the default
     oauth2.setPkceMethod(method, verifierLength);
@@ -800,7 +811,7 @@ void tst_OAuth2::nonce()
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
 
     QByteArray nonceInAuthorizationUrl;
     connect(&oauth2, &QAbstractOAuth::authorizeWithBrowser, this, [&](const QUrl &url){
@@ -873,7 +884,7 @@ void tst_OAuth2::idToken()
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setRequestedScope({"openid"_L1});
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -1091,7 +1102,7 @@ void tst_OAuth2::requestedScope()
 
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
     QVERIFY(oauth2.requestedScope().isEmpty());
 
     QSignalSpy requestedScopeSpy(&oauth2, &QAbstractOAuth2::requestedScopeChanged);
@@ -1148,7 +1159,7 @@ void tst_OAuth2::grantedScope()
     QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::grantedScopeChanged);
     oauth2.setRequestedScope(requested_scope);
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -1259,7 +1270,7 @@ void tst_OAuth2::refreshThreshold()
     });
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(webServer.url("authorizationUrl"));
-    oauth2.setAccessTokenUrl(webServer.url("accessToken"));
+    oauth2.setTokenUrl(webServer.url("accessToken"));
     oauth2.setState("s"_L1);
     oauth2.setRefreshThreshold(refreshThreshold);
     oauth2.setAutoRefresh(autoRefresh);
@@ -1299,7 +1310,7 @@ void tst_OAuth2::alreadyExpiredTokenClientSideRefresh()
     // that the pre-existing token is updated immediately
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(QUrl("authorizationEndpoint"_L1));
-    oauth2.setAccessTokenUrl(QUrl("accessTokenEndpoint"_L1));
+    oauth2.setTokenUrl(QUrl("accessTokenEndpoint"_L1));
     oauth2.setState("s"_L1);
 
     ReplyHandler replyHandler;
@@ -1382,7 +1393,7 @@ void tst_OAuth2::tlsAuthentication()
     oauth2.setNetworkAccessManager(&nam);
     oauth2.setSslConfiguration(clientConfig);
     oauth2.setAuthorizationUrl(tlsServer.url(QLatin1String("authorization")));
-    oauth2.setAccessTokenUrl(tlsServer.url(QLatin1String("accessToken")));
+    oauth2.setTokenUrl(tlsServer.url(QLatin1String("accessToken")));
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
@@ -1413,7 +1424,7 @@ void tst_OAuth2::extraTokens()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -1464,7 +1475,7 @@ void tst_OAuth2::expirationAt()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl({"authorizationEndpoint"_L1});
-    oauth2.setAccessTokenUrl({"tokenEndpoint"_L1});
+    oauth2.setTokenUrl({"tokenEndpoint"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);

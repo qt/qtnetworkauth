@@ -44,8 +44,12 @@ using namespace Qt::StringLiterals;
     QOAuthHttpServerReplyHandler, and QOAuthUriSchemeReplyHandler.
 */
 
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
 /*!
     \property QOAuth2AuthorizationCodeFlow::accessTokenUrl
+    \deprecated [6.9] Use QAbstractOAuth2::tokenUrl instead. This property will
+    be removed in Qt 7.0.
+
     \brief This property holds the URL used to convert the temporary
     code received during the authorization response.
 
@@ -53,6 +57,7 @@ using namespace Qt::StringLiterals;
     \l {https://tools.ietf.org/html/rfc6749#section-4.1.3}{Access
     Token Request}
 */
+#endif
 
 QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
         const QUrl &authorizationUrl, const QUrl &accessTokenUrl, const QString &clientIdentifier,
@@ -262,7 +267,11 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
 QOAuth2AuthorizationCodeFlow::~QOAuth2AuthorizationCodeFlow()
 {}
 
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
 /*!
+    \deprecated [6.13] Use QAbstractOAuth2::tokenUrl() instead. This method
+    will be removed in Qt 7.0.
+
     Returns the URL used to request the access token.
     \sa setAccessTokenUrl()
 */
@@ -273,6 +282,9 @@ QUrl QOAuth2AuthorizationCodeFlow::accessTokenUrl() const
 }
 
 /*!
+    \deprecated [6.13] Use QAbstractOAuth2::setTokenUrl() instead. This method
+    will be removed in Qt 7.0.
+
     Sets the URL used to request the access token to
     \a accessTokenUrl.
 */
@@ -283,8 +295,9 @@ void QOAuth2AuthorizationCodeFlow::setAccessTokenUrl(const QUrl &accessTokenUrl)
         return;
 
     setTokenUrl(accessTokenUrl);
-    Q_EMIT accessTokenUrlChanged(accessTokenUrl);
+    QT_IGNORE_DEPRECATIONS(Q_EMIT accessTokenUrlChanged(accessTokenUrl);)
 }
+#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
 
 /*!
     \enum QOAuth2AuthorizationCodeFlow::PkceMethod

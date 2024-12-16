@@ -165,7 +165,11 @@ void tst_QOAuthUriSchemeReplyHandler::authorization()
 
     QOAuth2AuthorizationCodeFlow oauth;
     oauth.setAuthorizationUrl(authorizationUrl);
-    oauth.setAccessTokenUrl(accessTokenUrl);
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+    QT_IGNORE_DEPRECATIONS(oauth.setAccessTokenUrl(accessTokenUrl);)
+#else
+    oauth.setTokenUrl(accessTokenUrl);
+#endif
     oauth.setState(state);
     oauth.setReplyHandler(&rh);
 

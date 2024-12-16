@@ -67,7 +67,7 @@ HttpExample::HttpExample()
 
     //! [httpserver-service-configuration]
     m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
-    m_oauth.setAccessTokenUrl(QUrl(accessTokenUrl));
+    m_oauth.setTokenUrl(QUrl(accessTokenUrl));
     m_oauth.setClientIdentifier(clientIdentifier);
     m_oauth.setRequestedScope({scope});
     //! [httpserver-service-configuration]
@@ -336,7 +336,7 @@ void HttpExample::authorize()
 {
     if (!m_handler) {
         m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
-        m_oauth.setAccessTokenUrl(QUrl(accessTokenUrl));
+        m_oauth.setTokenUrl(QUrl(accessTokenUrl));
         m_oauth.setClientIdentifier(clientIdentifier);
         m_oauth.setRequestedScope({scope});
 
@@ -434,7 +434,7 @@ UriSchemeExample::UriSchemeExample()
 
     //! [uri-service-configuration]
     m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
-    m_oauth.setAccessTokenUrl(QUrl(accessTokenUrl));
+    m_oauth.setTokenUrl(QUrl(accessTokenUrl));
     m_oauth.setClientIdentifier(clientIdentifier);
     m_oauth.setRequestedScope({scope});
     //! [uri-service-configuration]

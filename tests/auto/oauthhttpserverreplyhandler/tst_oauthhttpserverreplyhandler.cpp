@@ -143,7 +143,7 @@ void tst_QOAuthHttpServerReplyHandler::networkReplyErrors()
     QOAuthHttpServerReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     oauth2.setAuthorizationUrl(QUrl{"authorizationEndpoint"_L1});
-    oauth2.setAccessTokenUrl(authorizationServer.url("tokenEndpoint"_L1));
+    oauth2.setTokenUrl(authorizationServer.url("tokenEndpoint"_L1));
     oauth2.setState("a-state"_L1);
     QSignalSpy tokenErrorSpy(&replyHandler, &QAbstractOAuthReplyHandler::tokenRequestErrorOccurred);
 

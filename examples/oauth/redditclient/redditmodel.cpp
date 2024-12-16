@@ -32,7 +32,7 @@ RedditModel::RedditModel(const QString &clientId, QObject *parent) :
     auto replyHandler = new QOAuthHttpServerReplyHandler(QHostAddress::Any, 1337, this);
     oauth2.setReplyHandler(replyHandler);
     oauth2.setAuthorizationUrl(QUrl(authorizationUrl));
-    oauth2.setAccessTokenUrl(QUrl(accessTokenUrl));
+    oauth2.setTokenUrl(QUrl(accessTokenUrl));
     oauth2.setRequestedScope({"identity"_L1, "read"_L1});
     oauth2.setClientIdentifier(clientId);
 
