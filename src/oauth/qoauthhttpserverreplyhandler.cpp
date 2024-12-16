@@ -18,6 +18,7 @@
 #include <QtCore/private/qlocale_p.h>
 
 #ifndef QT_NO_SSL
+#include <QtNetwork/qsslconfiguration.h>
 #include <QtNetwork/qsslserver.h>
 #include <QtNetwork/qsslsocket.h>
 #endif

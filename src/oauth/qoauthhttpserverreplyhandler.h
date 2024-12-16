@@ -10,13 +10,13 @@
 #include <QtNetworkAuth/qoauthoobreplyhandler.h>
 
 #include <QtNetwork/qhostaddress.h>
-#ifndef QT_NO_SSL
-#include <QtNetwork/qsslconfiguration.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
 class QUrlQuery;
+#ifndef QT_NO_SSL
+class QSslConfiguration;
+#endif
 
 class QOAuthHttpServerReplyHandlerPrivate;
 class Q_OAUTH_EXPORT QOAuthHttpServerReplyHandler : public QOAuthOobReplyHandler
