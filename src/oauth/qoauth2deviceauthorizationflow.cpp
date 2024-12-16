@@ -90,12 +90,6 @@ using Stage = QAbstractOAuth::Stage;
 */
 
 /*!
-    \property QOAuth2DeviceAuthorizationFlow::tokenUrl
-
-    This property holds the token endpoint URL that is used in token polling.
-*/
-
-/*!
     \property QOAuth2DeviceAuthorizationFlow::userCode
 
     This property holds the
@@ -634,22 +628,6 @@ QDateTime QOAuth2DeviceAuthorizationFlow::userCodeExpirationAt() const
 {
     Q_D(const QOAuth2DeviceAuthorizationFlow);
     return d->userCodeExpirationUtc.toLocalTime();
-}
-
-QUrl QOAuth2DeviceAuthorizationFlow::tokenUrl() const
-{
-    Q_D(const QOAuth2DeviceAuthorizationFlow);
-    return d->tokenUrl;
-}
-
-void QOAuth2DeviceAuthorizationFlow::setTokenUrl(const QUrl &tokenUrl)
-{
-    Q_D(QOAuth2DeviceAuthorizationFlow);
-    if (d->tokenUrl == tokenUrl)
-        return;
-
-    d->tokenUrl = tokenUrl;
-    emit tokenUrlChanged(d->tokenUrl);
 }
 
 /*!

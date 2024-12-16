@@ -49,6 +49,7 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
     Q_PROPERTY(NonceMode nonceMode READ nonceMode WRITE setNonceMode NOTIFY nonceModeChanged)
     Q_PROPERTY(QString nonce READ nonce WRITE setNonce NOTIFY nonceChanged)
     Q_PROPERTY(QString idToken READ idToken NOTIFY idTokenChanged)
+    Q_PROPERTY(QUrl tokenUrl READ tokenUrl WRITE setTokenUrl NOTIFY tokenUrlChanged)
 
     using NetworkRequestModifierPrototype = void(*)(QNetworkRequest&, QAbstractOAuth::Stage);
     template <typename Functor>
@@ -154,6 +155,9 @@ public:
 
     QString idToken() const;
 
+    QUrl tokenUrl() const;
+    void setTokenUrl(const QUrl &tokenUrl);
+
 #ifndef QT_NO_SSL
     QSslConfiguration sslConfiguration() const;
     void setSslConfiguration(const QSslConfiguration &configuration);
@@ -191,6 +195,7 @@ Q_SIGNALS:
     void nonceModeChanged(NonceMode mode);
     void nonceChanged(const QString &nonce);
     void idTokenChanged(const QString &idToken);
+    void tokenUrlChanged(const QUrl &tokenUrl);
 #ifndef QT_NO_SSL
     void sslConfigurationChanged(const QSslConfiguration &configuration);
 #endif

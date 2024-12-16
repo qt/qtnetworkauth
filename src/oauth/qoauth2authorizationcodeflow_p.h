@@ -50,7 +50,6 @@ public:
     quint8 pkceVerifierLength = 43; // RFC 7636 Section 4.1
     QByteArray pkceCodeVerifier;
 
-    QUrl accessTokenUrl;
     QPointer<QNetworkReply> currentReply;
 };
 

@@ -99,6 +99,7 @@ public:
     QString nonce;
     QString idToken;
     QString tokenType;
+    QUrl tokenUrl;
     // RFC (6749) doesn't state any maximum value for the lifetime, use long just in case
     qlonglong tokenLifetime = 0;
 #ifndef QT_NO_SSL

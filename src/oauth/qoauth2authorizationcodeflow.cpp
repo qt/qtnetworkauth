@@ -57,9 +57,9 @@ using namespace Qt::StringLiterals;
 QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
         const QUrl &authorizationUrl, const QUrl &accessTokenUrl, const QString &clientIdentifier,
         QNetworkAccessManager *manager) :
-    QAbstractOAuth2Private(qMakePair(clientIdentifier, QString()), authorizationUrl, manager),
-    accessTokenUrl(accessTokenUrl)
+    QAbstractOAuth2Private(qMakePair(clientIdentifier, QString()), authorizationUrl, manager)
 {
+    tokenUrl = accessTokenUrl;
     responseType = QStringLiteral("code");
 }
 
@@ -128,7 +128,7 @@ void QOAuth2AuthorizationCodeFlowPrivate::_q_authenticate(QNetworkReply *reply,
 {
     if (reply == currentReply){
         const auto url = reply->url();
-        if (url == accessTokenUrl) {
+        if (url == tokenUrl) {
             authenticator->setUser(clientIdentifier);
             authenticator->setPassword(QString());
         }
@@ -269,7 +269,7 @@ QOAuth2AuthorizationCodeFlow::~QOAuth2AuthorizationCodeFlow()
 QUrl QOAuth2AuthorizationCodeFlow::accessTokenUrl() const
 {
     Q_D(const QOAuth2AuthorizationCodeFlow);
-    return d->accessTokenUrl;
+    return d->tokenUrl;
 }
 
 /*!
@@ -279,10 +279,11 @@ QUrl QOAuth2AuthorizationCodeFlow::accessTokenUrl() const
 void QOAuth2AuthorizationCodeFlow::setAccessTokenUrl(const QUrl &accessTokenUrl)
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
-    if (d->accessTokenUrl != accessTokenUrl) {
-        d->accessTokenUrl = accessTokenUrl;
-        Q_EMIT accessTokenUrlChanged(accessTokenUrl);
-    }
+    if (accessTokenUrl == d->tokenUrl)
+        return;
+
+    setTokenUrl(accessTokenUrl);
+    Q_EMIT accessTokenUrlChanged(accessTokenUrl);
 }
 
 /*!
@@ -367,7 +368,7 @@ void QOAuth2AuthorizationCodeFlow::grant()
         qCWarning(d->loggingCategory, "No authenticate Url set");
         return;
     }
-    if (d->accessTokenUrl.isEmpty()) {
+    if (d->tokenUrl.isEmpty()) {
         qCWarning(d->loggingCategory, "No request access token Url set");
         return;
     }
@@ -402,7 +403,7 @@ void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
         return;
     }
 
-    const auto [request, body] = d->createRefreshRequestAndBody(d->accessTokenUrl);
+    const auto [request, body] = d->createRefreshRequestAndBody(d->tokenUrl);
     d->currentReply = d->networkAccessManager()->post(request, body);
     setStatus(Status::RefreshingToken);
 
@@ -475,7 +476,7 @@ void QOAuth2AuthorizationCodeFlow::requestAccessToken(const QString &code)
     Q_D(QOAuth2AuthorizationCodeFlow);
 
     QMultiMap<QString, QVariant> parameters;
-    QNetworkRequest request(d->accessTokenUrl);
+    QNetworkRequest request(d->tokenUrl);
 #ifndef QT_NO_SSL
     if (d->sslConfiguration && !d->sslConfiguration->isNull())
         request.setSslConfiguration(*d->sslConfiguration);

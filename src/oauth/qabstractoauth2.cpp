@@ -367,6 +367,25 @@ static constexpr auto FallbackRefreshInterval = 2s;
 */
 
 /*!
+    \property QAbstractOAuth2::tokenUrl
+    \since 6.9
+
+    This property holds the token endpoint URL which is used to obtain tokens.
+    Depending on the use case and authorization server support, these tokens
+    can be access tokens, refresh tokens, and ID tokens.
+
+    Tokens are typically retrieved once the authorization stage is completed,
+    and the token endpoint can also be used to refresh tokens as needed.
+
+    For example, \l QOAuth2AuthorizationCodeFlow uses this url to issue
+    \l {https://tools.ietf.org/html/rfc6749#section-4.1.3}
+    {an access token request},
+    and \l QOAuth2DeviceAuthorizationFlow uses this url
+    \l {https://datatracker.ietf.org/doc/html/rfc8628#section-3.4}
+    {to poll for an access token}.
+*/
+
+/*!
     \deprecated [6.13] Use serverReportedErrorOccurred instead
     \fn QAbstractOAuth2::error(const QString &error, const QString &errorDescription, const QUrl &uri)
 
@@ -1253,6 +1272,22 @@ QString QAbstractOAuth2::idToken() const
 {
     Q_D(const QAbstractOAuth2);
     return d->idToken;
+}
+
+QUrl QAbstractOAuth2::tokenUrl() const
+{
+    Q_D(const QAbstractOAuth2);
+    return d->tokenUrl;
+}
+
+void QAbstractOAuth2::setTokenUrl(const QUrl &tokenUrl)
+{
+    Q_D(QAbstractOAuth2);
+    if (d->tokenUrl == tokenUrl)
+        return;
+
+    d->tokenUrl = tokenUrl;
+    emit tokenUrlChanged(d->tokenUrl);
 }
 
 #ifndef QT_NO_SSL

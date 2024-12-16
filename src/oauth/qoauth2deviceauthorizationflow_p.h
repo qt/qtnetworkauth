@@ -71,7 +71,6 @@ public:
     // https://datatracker.ietf.org/doc/html/rfc8628#section-3.2
     static inline constexpr auto defaultPollingInterval = std::chrono::seconds(5);
     bool useAutoTestDurations = false;
-    QUrl tokenUrl;
     QString userCode;
     QString deviceCode;
     QDateTime userCodeExpirationUtc; // When devicecode and usercode expire

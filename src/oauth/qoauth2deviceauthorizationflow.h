@@ -21,7 +21,6 @@ class QOAuth2DeviceAuthorizationFlowPrivate;
 class Q_OAUTH_EXPORT QOAuth2DeviceAuthorizationFlow : public QAbstractOAuth2
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl tokenUrl READ tokenUrl WRITE setTokenUrl NOTIFY tokenUrlChanged FINAL)
     Q_PROPERTY(QString userCode READ userCode NOTIFY userCodeChanged FINAL)
     Q_PROPERTY(QUrl verificationUrl READ verificationUrl NOTIFY verificationUrlChanged FINAL)
     Q_PROPERTY(QUrl completeVerificationUrl READ completeVerificationUrl
@@ -42,8 +41,6 @@ public:
     QUrl completeVerificationUrl() const;
     bool isPolling() const;
     QDateTime userCodeExpirationAt() const;
-    QUrl tokenUrl() const;
-    void setTokenUrl(const QUrl &tokenUrl);
 
 public Q_SLOTS:
     void grant() override;
@@ -54,7 +51,6 @@ public Q_SLOTS:
 Q_SIGNALS:
     void authorizeWithUserCode(const QUrl &verificationUrl, const QString &userCode,
                                const QUrl &completeVerificationUrl);
-    void tokenUrlChanged(const QUrl &tokenUrl);
     void userCodeChanged(const QString &userCode);
     void verificationUrlChanged(const QUrl &verificationUrl);
     void completeVerificationUrlChanged(const QUrl &completeVerificationUrl);

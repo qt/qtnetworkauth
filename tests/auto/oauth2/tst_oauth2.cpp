@@ -20,6 +20,7 @@ class tst_OAuth2 : public QObject
 private Q_SLOTS:
     void initTestCase();
     void state();
+    void tokenUrlChanged();
     void getToken();
     void refreshToken();
     void getAndRefreshToken();
@@ -151,6 +152,71 @@ void tst_OAuth2::state()
     // matches the original decoded state (ie. the status changes to TemporaryCredentialsReceived)
     replyHandler.emitCallbackReceived({{"code", "acode"}, {"state", stateAsEncoded}});
     QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
+}
+
+void tst_OAuth2::tokenUrlChanged()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+
+    QCOMPARE_EQ(oauth2.tokenUrl(), QUrl());
+    QCOMPARE_EQ(oauth2.accessTokenUrl(), QUrl());
+
+    const QUrl someTokenUrl{"accessToken"_L1};
+    const QUrl otherTokenUrl{"otherAccessToken"_L1};
+
+    // new property
+    QSignalSpy tokenUrlChangedSpy(&oauth2, &QAbstractOAuth2::tokenUrlChanged);
+
+    oauth2.setTokenUrl(someTokenUrl);
+    QCOMPARE_EQ(oauth2.tokenUrl(), someTokenUrl);
+    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
+    QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), someTokenUrl);
+
+    // setting the same value does not trigger any update
+    tokenUrlChangedSpy.clear();
+    oauth2.setTokenUrl(someTokenUrl);
+    QCOMPARE_EQ(oauth2.tokenUrl(), someTokenUrl);
+    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 0);
+
+    // set another value
+    tokenUrlChangedSpy.clear();
+    oauth2.setTokenUrl(otherTokenUrl);
+    QCOMPARE_EQ(oauth2.tokenUrl(), otherTokenUrl);
+    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
+    QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
+
+    // old property
+    tokenUrlChangedSpy.clear();
+    QSignalSpy accessTokenUrlChangedSpy(&oauth2,
+                                        &QOAuth2AuthorizationCodeFlow::accessTokenUrlChanged);
+
+    oauth2.setAccessTokenUrl(someTokenUrl);
+    QCOMPARE_EQ(oauth2.tokenUrl(), someTokenUrl);
+    QCOMPARE_EQ(oauth2.accessTokenUrl(), someTokenUrl);
+    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
+    QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), someTokenUrl);
+    QCOMPARE_EQ(accessTokenUrlChangedSpy.size(), 1);
+    QCOMPARE_EQ(accessTokenUrlChangedSpy.at(0).at(0).toUrl(), someTokenUrl);
+
+    // setting the same value does not trigger any update
+    tokenUrlChangedSpy.clear();
+    accessTokenUrlChangedSpy.clear();
+    oauth2.setAccessTokenUrl(someTokenUrl);
+    QCOMPARE_EQ(oauth2.tokenUrl(), someTokenUrl);
+    QCOMPARE_EQ(oauth2.accessTokenUrl(), someTokenUrl);
+    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 0);
+    QCOMPARE_EQ(accessTokenUrlChangedSpy.size(), 0);
+
+    // set another value
+    tokenUrlChangedSpy.clear();
+    accessTokenUrlChangedSpy.clear();
+    oauth2.setAccessTokenUrl(otherTokenUrl);
+    QCOMPARE_EQ(oauth2.tokenUrl(), otherTokenUrl);
+    QCOMPARE_EQ(oauth2.accessTokenUrl(), otherTokenUrl);
+    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
+    QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
+    QCOMPARE_EQ(accessTokenUrlChangedSpy.size(), 1);
+    QCOMPARE_EQ(accessTokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
 }
 
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
