@@ -490,7 +490,7 @@ QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMa
     return request;
 }
 
-void QAbstractOAuth2Private::initializeRefreshTimer()
+void QAbstractOAuth2Private::initializeRefreshHandling()
 {
     Q_Q(QAbstractOAuth2);
     refreshTimer.setSingleShot(true);
@@ -790,14 +790,14 @@ QAbstractOAuth2::QAbstractOAuth2(QNetworkAccessManager *manager, QObject *parent
                    parent)
 {
     Q_D(QAbstractOAuth2);
-    d->initializeRefreshTimer();
+    d->initializeRefreshHandling();
 }
 
 QAbstractOAuth2::QAbstractOAuth2(QAbstractOAuth2Private &dd, QObject *parent) :
     QAbstractOAuth(dd, parent)
 {
     Q_D(QAbstractOAuth2);
-    d->initializeRefreshTimer();
+    d->initializeRefreshHandling();
 }
 
 void QAbstractOAuth2::setResponseType(const QString &responseType)

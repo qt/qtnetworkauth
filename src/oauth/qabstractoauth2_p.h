@@ -77,7 +77,7 @@ public:
     void callNetworkRequestModifier(QNetworkRequest &request, QAbstractOAuth::Stage stage);
     bool verifyThreadAffinity(const QObject *contextObject);
 
-    void initializeRefreshTimer();
+    void initializeRefreshHandling();
     void updateRefreshTimer(bool clientSideUpdate);
 
     QString clientIdentifierSharedKey;
