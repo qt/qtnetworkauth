@@ -81,7 +81,7 @@ public:
     void updateRefreshTimer(bool clientSideUpdate);
 
     QString clientIdentifierSharedKey;
-#if QT_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
     QString scope;
 #endif
     QStringList requestedScope;

@@ -108,9 +108,10 @@ static constexpr auto FallbackRefreshInterval = 2s;
     with either \l QRestAccessManager or \l QNetworkAccessManager.
 */
 
-#if QT_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
 /*!
     \deprecated [6.11] Use requestedScope and grantedScope properties instead.
+    This property will be removed in Qt 7.
     \property QAbstractOAuth2::scope
     \brief This property holds the desired scope which defines the
     permissions requested by the client.
@@ -659,7 +660,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
         setGrantedScope(requestedScope);
     } else {
         setGrantedScope(splitGrantedScope);
-#if QT_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
         if (receivedGrantedScope != scope) {
             scope = receivedGrantedScope;
             QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(scope);)
@@ -1083,7 +1084,7 @@ QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMa
     return reply;
 }
 
-#if QT_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
 QString QAbstractOAuth2::scope() const
 {
     Q_D(const QAbstractOAuth2);
@@ -1097,7 +1098,7 @@ QStringList QAbstractOAuth2::grantedScope() const
     return d->grantedScope;
 }
 
-#if QT_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
 void QAbstractOAuth2::setScope(const QString &scope)
 {
     Q_D(QAbstractOAuth2);
@@ -1126,7 +1127,7 @@ void QAbstractOAuth2::setRequestedScope(const QStringList &scope)
         d->requestedScope = scope;
         Q_EMIT requestedScopeChanged(scope);
     }
-#if QT_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
     QString joinedScope = scope.join(" "_L1);
     if (joinedScope != d->scope) {
         d->scope = joinedScope;
