@@ -25,6 +25,8 @@
 #include <QtNetwork/qhostaddress.h>
 #include <QtNetwork/qtcpserver.h>
 
+#include <utility>
+
 QT_BEGIN_NAMESPACE
 
 class QOAuthHttpServerReplyHandlerPrivate
@@ -76,7 +78,7 @@ private:
             Delete,
         } method = Method::Unknown;
         QUrl url;
-        QPair<quint8, quint8> version;
+        std::pair<quint8, quint8> version;
         QMap<QByteArray, QByteArray> headers;
     };
 

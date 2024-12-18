@@ -9,7 +9,6 @@
 #include <private/qabstractoauth_p.h>
 
 #include <QtCore/qurl.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qurlquery.h>
 #include <QtCore/qjsondocument.h>
@@ -21,6 +20,8 @@
 
 #include <QtCore/qrandom.h>
 #include <QtCore/private/qlocking_p.h>
+
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
