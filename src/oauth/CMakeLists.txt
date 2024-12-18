@@ -20,6 +20,8 @@ qt_internal_add_module(NetworkAuth
         qoauthglobal.h
         qoauthhttpserverreplyhandler.cpp qoauthhttpserverreplyhandler.h qoauthhttpserverreplyhandler_p.h
         qoauthoobreplyhandler.cpp qoauthoobreplyhandler.h qoauthoobreplyhandler_p.h
+    DEFINES
+        QT_NO_QPAIR
     LIBRARIES
         Qt::CorePrivate
     PUBLIC_LIBRARIES

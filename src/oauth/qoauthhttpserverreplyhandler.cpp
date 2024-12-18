@@ -370,7 +370,7 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readStatus(QTcpSocket *s
             qCWarning(lcReplyHandler, "Invalid version");
             return false;
         }
-        version = qMakePair(fragment.at(fragment.size() - 3) - '0',
+        version = std::make_pair(fragment.at(fragment.size() - 3) - '0',
                             fragment.at(fragment.size() - 1) - '0');
         state = State::ReadingHeader;
         fragment.clear();

@@ -159,7 +159,7 @@ using Stage = QAbstractOAuth::Stage;
 
 QOAuth2DeviceAuthorizationFlowPrivate::QOAuth2DeviceAuthorizationFlowPrivate(
     QNetworkAccessManager *manager)
-    : QAbstractOAuth2Private(qMakePair(QString(), QString()), QString(), manager)
+    : QAbstractOAuth2Private(std::make_pair(QString(), QString()), QString(), manager)
 {
 }
 

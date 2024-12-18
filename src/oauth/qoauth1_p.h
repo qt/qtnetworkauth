@@ -23,12 +23,13 @@
 #include <QtNetworkAuth/qoauthglobal.h>
 
 #include <QtCore/qurl.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 
 #include <QtNetwork/qnetworkreply.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
+
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
@@ -39,7 +40,7 @@ class QOAuth1Private : public QAbstractOAuthPrivate
 public:
     Q_DECLARE_PUBLIC(QOAuth1)
 
-    QOAuth1Private(const QPair<QString, QString> &clientCredentials,
+    QOAuth1Private(const std::pair<QString, QString> &clientCredentials,
                    QNetworkAccessManager *networkAccessManager = nullptr);
 
     void appendCommonHeaders(QVariantMap *headers);
@@ -51,7 +52,7 @@ public:
 
     QNetworkReply *requestToken(QNetworkAccessManager::Operation operation,
                                 const QUrl &url,
-                                const QPair<QString, QString> &token,
+                                const std::pair<QString, QString> &token,
                                 const QVariantMap &additionalParameters);
 
     QString signatureMethodString() const;

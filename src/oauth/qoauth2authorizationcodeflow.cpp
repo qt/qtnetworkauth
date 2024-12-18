@@ -62,7 +62,7 @@ using namespace Qt::StringLiterals;
 QOAuth2AuthorizationCodeFlowPrivate::QOAuth2AuthorizationCodeFlowPrivate(
         const QUrl &authorizationUrl, const QUrl &accessTokenUrl, const QString &clientIdentifier,
         QNetworkAccessManager *manager) :
-    QAbstractOAuth2Private(qMakePair(clientIdentifier, QString()), authorizationUrl, manager)
+    QAbstractOAuth2Private(std::make_pair(clientIdentifier, QString()), authorizationUrl, manager)
 {
     tokenUrl = accessTokenUrl;
     responseType = QStringLiteral("code");

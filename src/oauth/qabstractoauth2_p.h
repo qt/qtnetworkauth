@@ -32,6 +32,8 @@
 
 #include <QtNetwork/qnetworkreply.h>
 
+#include <utility>
+
 QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
@@ -41,7 +43,7 @@ class QAbstractOAuth2Private : public QAbstractOAuthPrivate
     Q_DECLARE_PUBLIC(QAbstractOAuth2)
 
 public:
-    QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
+    QAbstractOAuth2Private(const std::pair<QString, QString> &clientCredentials,
                            const QUrl &authorizationUrl, QNetworkAccessManager *manager = nullptr);
     ~QAbstractOAuth2Private();
 

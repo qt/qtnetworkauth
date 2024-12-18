@@ -455,7 +455,7 @@ static constexpr auto FallbackRefreshInterval = 2s;
 \endif
 */
 
-QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &clientCredentials,
+QAbstractOAuth2Private::QAbstractOAuth2Private(const std::pair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
                                                QNetworkAccessManager *manager) :
     QAbstractOAuthPrivate("qt.networkauth.oauth2",
@@ -820,7 +820,7 @@ QAbstractOAuth2::QAbstractOAuth2(QObject *parent) :
     sets \a manager as the network access manager.
 */
 QAbstractOAuth2::QAbstractOAuth2(QNetworkAccessManager *manager, QObject *parent) :
-    QAbstractOAuth(*new QAbstractOAuth2Private(qMakePair(QString(), QString()),
+    QAbstractOAuth(*new QAbstractOAuth2Private(std::make_pair(QString(), QString()),
                                                QUrl(),
                                                manager),
                    parent)
