@@ -49,9 +49,9 @@ private Q_SLOTS:
     void grantedScope_data();
     void grantedScope();
     void setAutoRefresh();
-    void refreshThreshold_data();
-    void refreshThreshold();
-    void invalidRefreshThreshold();
+    void refreshLeadTime_data();
+    void refreshLeadTime();
+    void invalidRefreshLeadTime();
     void alreadyExpiredTokenClientSideRefresh();
 
 #ifndef QT_NO_SSL
@@ -1206,9 +1206,9 @@ void tst_OAuth2::setAutoRefresh()
     QCOMPARE(autoRefreshSpy.at(0).at(0).toBool(), false);
 }
 
-void tst_OAuth2::refreshThreshold_data()
+void tst_OAuth2::refreshLeadTime_data()
 {
-    QTest::addColumn<std::chrono::seconds>("refreshThreshold");
+    QTest::addColumn<std::chrono::seconds>("refreshLeadTime");
     QTest::addColumn<int>("expiresIn");
     QTest::addColumn<std::chrono::seconds>("waitTimeForExpiration");
     QTest::addColumn<bool>("autoRefresh");
@@ -1235,7 +1235,7 @@ void tst_OAuth2::refreshThreshold_data()
             << 10s  << 5 << 3s << true  << true  << refreshToken << true;
 
     // wait-time: 3s - 1s = 2s, +1s for robustness => 3s
-    QTest::addRow("thresholdNearExpiration")
+    QTest::addRow("leadTimeNearExpiration")
             << 1s  << 3 << 3s  << true  << true << refreshToken << true;
 
     QTest::addRow("invalidExpirationTime")
@@ -1249,9 +1249,9 @@ void tst_OAuth2::refreshThreshold_data()
             << 18s << 20 << 3s << true  << true << QString() << false;
 }
 
-void tst_OAuth2::refreshThreshold()
+void tst_OAuth2::refreshLeadTime()
 {
-    QFETCH(std::chrono::seconds, refreshThreshold);
+    QFETCH(std::chrono::seconds, refreshLeadTime);
     QFETCH(int, expiresIn);
     QFETCH(std::chrono::seconds, waitTimeForExpiration);
     QFETCH(bool, autoRefresh);
@@ -1278,7 +1278,7 @@ void tst_OAuth2::refreshThreshold()
     oauth2.setAuthorizationUrl(webServer.url("authorizationUrl"));
     oauth2.setTokenUrl(webServer.url("accessToken"));
     oauth2.setState("s"_L1);
-    oauth2.setRefreshThreshold(refreshThreshold);
+    oauth2.setRefreshLeadTime(refreshLeadTime);
     oauth2.setAutoRefresh(autoRefresh);
 
     ReplyHandler replyHandler;
@@ -1301,18 +1301,18 @@ void tst_OAuth2::refreshThreshold()
     }
 }
 
-void tst_OAuth2::invalidRefreshThreshold()
+void tst_OAuth2::invalidRefreshLeadTime()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
-    QCOMPARE(oauth2.refreshThreshold(), 0s);
-    QTest::ignoreMessage(QtWarningMsg, "Invalid refresh threshold");
-    oauth2.setRefreshThreshold(-5s);
-    QCOMPARE(oauth2.refreshThreshold(), 0s);
+    QCOMPARE(oauth2.refreshLeadTime(), 0s);
+    QTest::ignoreMessage(QtWarningMsg, "Invalid refresh leadTime");
+    oauth2.setRefreshLeadTime(-5s);
+    QCOMPARE(oauth2.refreshLeadTime(), 0s);
 }
 
 void tst_OAuth2::alreadyExpiredTokenClientSideRefresh()
 {
-    // This tests a particular corner-case where user adjusts threshold such
+    // This tests a particular corner-case where user adjusts leadTime such
     // that the pre-existing token is updated immediately
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(QUrl("authorizationEndpoint"_L1));
@@ -1330,10 +1330,10 @@ void tst_OAuth2::alreadyExpiredTokenClientSideRefresh()
                                      {"refresh_token"_L1, "refreshToken"_L1},
                                      {"expires_in"_L1, 3}});
     QTRY_COMPARE(grantedSpy.size(), 1);
-    // Triggers an immediate expiration because from threshold point-of-view the
+    // Triggers an immediate expiration because from leadTime point-of-view the
     // token is either expired or should've expired already
     expiredSpy.clear();
-    oauth2.setRefreshThreshold(10s);
+    oauth2.setRefreshLeadTime(10s);
     QCOMPARE(expiredSpy.size(), 1);
 }
 

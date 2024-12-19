@@ -94,7 +94,7 @@ public:
     const QString bearerFormat = QStringLiteral("Bearer %1"); // Case sensitive
     QDateTime expiresAtUtc;
     QString refreshToken;
-    std::chrono::seconds refreshThreshold = std::chrono::seconds::zero();
+    std::chrono::seconds refreshLeadTime = std::chrono::seconds::zero();
     QChronoTimer refreshTimer;
     bool autoRefresh = false;
     QAbstractOAuth2::NonceMode nonceMode = QAbstractOAuth2::NonceMode::Automatic;

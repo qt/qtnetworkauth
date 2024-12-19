@@ -285,7 +285,7 @@ Since Qt 6.9, applications can also use refresh convenience
 functionality to automatically refresh the tokens - see
 \l {QAbstractOAuth2::accessTokenAboutToExpire()},
 \l {QAbstractOAuth2::autoRefresh}, and
-\l {QAbstractOAuth2::refreshThreshold}.
+\l {QAbstractOAuth2::refreshLeadTime}.
 
 The expiration time for a refresh token is generally not indicated by
 the authorization server (apart from the server's documentation).

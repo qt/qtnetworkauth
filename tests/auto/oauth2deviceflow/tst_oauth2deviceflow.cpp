@@ -50,8 +50,8 @@ private Q_SLOTS:
     void requestedScope();
     void grantedScope_data();
     void grantedScope();
-    void refreshThreshold_data();
-    void refreshThreshold();
+    void refreshLeadTime_data();
+    void refreshLeadTime();
     void modifyTokenRequests();
     void userCodeExpiration();
     void startStopTokenPolling();
@@ -1267,9 +1267,9 @@ void tst_OAuth2DeviceFlow::grantedScope()
     QCOMPARE(grantedSpy.at(0).at(0).toStringList(), expected_granted_scope);
 }
 
-void tst_OAuth2DeviceFlow::refreshThreshold_data()
+void tst_OAuth2DeviceFlow::refreshLeadTime_data()
 {
-    QTest::addColumn<std::chrono::seconds>("refreshThreshold");
+    QTest::addColumn<std::chrono::seconds>("refreshLeadTime");
     QTest::addColumn<int>("expiresIn");
     QTest::addColumn<std::chrono::seconds>("waitTimeForExpiration");
     QTest::addColumn<bool>("autoRefresh");
@@ -1296,7 +1296,7 @@ void tst_OAuth2DeviceFlow::refreshThreshold_data()
         << 10s  << 5 << 3s << true  << true  << refreshToken << true;
 
     // wait-time: 3s - 1s = 2s, +1s for robustness => 3s
-    QTest::addRow("thresholdNearExpiration")
+    QTest::addRow("leadTimeNearExpiration")
         << 1s  << 3 << 3s  << true  << true << refreshToken << true;
 
     QTest::addRow("invalidExpirationTime")
@@ -1310,9 +1310,9 @@ void tst_OAuth2DeviceFlow::refreshThreshold_data()
         << 18s << 20 << 3s << true  << true << QString() << false;
 }
 
-void tst_OAuth2DeviceFlow::refreshThreshold()
+void tst_OAuth2DeviceFlow::refreshLeadTime()
 {
-    QFETCH(std::chrono::seconds, refreshThreshold);
+    QFETCH(std::chrono::seconds, refreshLeadTime);
     QFETCH(int, expiresIn);
     QFETCH(std::chrono::seconds, waitTimeForExpiration);
     QFETCH(bool, autoRefresh);
@@ -1331,7 +1331,7 @@ void tst_OAuth2DeviceFlow::refreshThreshold()
     oauth2.flowPrivate()->useAutoTestDurations = true;
     oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
     oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
-    oauth2.setRefreshThreshold(refreshThreshold);
+    oauth2.setRefreshLeadTime(refreshLeadTime);
     oauth2.setAutoRefresh(autoRefresh);
 
     QSignalSpy expiredSpy(&oauth2, &QAbstractOAuth2::accessTokenAboutToExpire);

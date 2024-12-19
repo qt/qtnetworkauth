@@ -27,7 +27,7 @@ QT_BEGIN_NAMESPACE
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
 
-static constexpr auto MinimumRefreshThreshold = 10s;
+static constexpr auto MinimumRefreshLeadTime = 10s;
 static constexpr auto FallbackRefreshInterval = 2s;
 
 /*!
@@ -323,14 +323,14 @@ static constexpr auto FallbackRefreshInterval = 2s;
     \snippet src_oauth_replyhandlers.cpp custom-class-impl
 \endif
 
-    \sa refreshThreshold, autoRefresh
+    \sa refreshLeadTime, autoRefresh
 \if defined(qt7)
     \sa refreshTokens()
 \endif
 */
 
 /*!
-    \property QAbstractOAuth2::refreshThreshold
+    \property QAbstractOAuth2::refreshLeadTime
     \since 6.9
     \brief This property defines how far in advance
     \l {accessTokenAboutToExpire()} signal is emitted relative
@@ -344,8 +344,8 @@ static constexpr auto FallbackRefreshInterval = 2s;
     This interval allows the application to refresh the token well
     in advance, ensuring continuous authorization without interruptions.
 
-    If this property is not explicitly set, or the provided threshold is
-    larger than the token's lifetime, the threshold defaults to
+    If this property is not explicitly set, or the provided leadTime is
+    larger than the token's lifetime, the leadTime defaults to
     5% of the token's remaining lifetime, but not less than 10 seconds ahead
     of expiration (leaving time for the refresh request to complete).
 
@@ -376,7 +376,7 @@ static constexpr auto FallbackRefreshInterval = 2s;
     their own. See \l accessTokenAboutToExpire() for more details.
 \endif
 
-    \sa refreshThreshold
+    \sa refreshLeadTime
 */
 
 /*!
@@ -549,20 +549,20 @@ void QAbstractOAuth2Private::updateRefreshTimer(bool clientSideUpdate)
         return;
     }
 
-    auto threshold = q->refreshThreshold();
+    auto leadTime = q->refreshLeadTime();
     std::chrono::seconds untilNextExpiration = std::chrono::seconds(
             QDateTime::currentDateTime().secsTo(q->expirationAt()));
 
-    // If threshold is zero, or larger than token's lifetime, estimate a decent threshold
-    if (threshold == 0s || threshold.count() >= tokenLifetime) {
-        threshold = qMax(MinimumRefreshThreshold, untilNextExpiration / 20);
-        qCDebug(loggingCategory, "Adjusted expiration threshold to %lld seconds",
-                static_cast<long long>(threshold.count()));
+    // If leadTime is zero, or larger than token's lifetime, estimate a decent leadTime
+    if (leadTime == 0s || leadTime.count() >= tokenLifetime) {
+        leadTime = qMax(MinimumRefreshLeadTime, untilNextExpiration / 20);
+        qCDebug(loggingCategory, "Adjusted expiration leadTime to %lld seconds",
+                static_cast<long long>(leadTime.count()));
     }
 
-    std::chrono::seconds interval = untilNextExpiration - threshold;
+    std::chrono::seconds interval = untilNextExpiration - leadTime;
 
-    if (interval < MinimumRefreshThreshold) {
+    if (interval < MinimumRefreshLeadTime) {
         if (clientSideUpdate) {
             // Refresh timer update was triggered by the application, and the pre-existing
             // token is near expiration => emit expiration immediately
@@ -1239,24 +1239,24 @@ void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)
     }
 }
 
-std::chrono::seconds QAbstractOAuth2::refreshThreshold() const
+std::chrono::seconds QAbstractOAuth2::refreshLeadTime() const
 {
     Q_D(const QAbstractOAuth2);
-    return d->refreshThreshold;
+    return d->refreshLeadTime;
 }
 
-void QAbstractOAuth2::setRefreshThreshold(std::chrono::seconds threshold)
+void QAbstractOAuth2::setRefreshLeadTime(std::chrono::seconds leadTime)
 {
     Q_D(QAbstractOAuth2);
-    if (threshold < 0s) {
-        qCWarning(d->loggingCategory, "Invalid refresh threshold");
+    if (leadTime < 0s) {
+        qCWarning(d->loggingCategory, "Invalid refresh leadTime");
         return;
     }
-    if (d->refreshThreshold == threshold)
+    if (d->refreshLeadTime == leadTime)
         return;
-    d->refreshThreshold = threshold;
+    d->refreshLeadTime = leadTime;
     d->updateRefreshTimer(true);
-    Q_EMIT refreshThresholdChanged(threshold);
+    Q_EMIT refreshLeadTimeChanged(leadTime);
 }
 
 bool QAbstractOAuth2::autoRefresh() const
