@@ -38,7 +38,7 @@ private Q_SLOTS:
     void pkce();
     void nonce();
     void idToken();
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
     void scope_data();
     void scope();
     void scopeAndRequestedScope_data();
@@ -940,7 +940,7 @@ void tst_OAuth2::idToken()
     QVERIFY(oauth2.idToken().isEmpty());
 }
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 void tst_OAuth2::scope_data()
 {
@@ -1084,7 +1084,7 @@ void tst_OAuth2::scopeAndRequestedScope()
     QCOMPARE(resultingRequestScope, expected_resulting_request_scope);
 }
 QT_WARNING_POP
-#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
+#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
 
 void tst_OAuth2::requestedScope_data()
 {

@@ -19,7 +19,7 @@ class QAbstractOAuth2Private;
 class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
 {
     Q_OBJECT
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
     Q_PROPERTY(QString scope READ scope WRITE setScope NOTIFY scopeChanged)
 #endif
     Q_PROPERTY(QStringList grantedScope READ grantedScope NOTIFY grantedScopeChanged)
@@ -113,10 +113,10 @@ public:
                                  "See https://doc.qt.io/qt-6/oauth-http-method-alternatives.html")
     Q_INVOKABLE QNetworkReply *deleteResource(const QUrl &url,
                                               const QVariantMap &parameters = QVariantMap()) override;
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
-    QT_DEPRECATED_VERSION_X_6_11("Use requestedScope and grantedScope properties instead.")
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+    QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
     QString scope() const;
-    QT_DEPRECATED_VERSION_X_6_11("Use requestedScope and grantedScope properties instead.")
+    QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
     void setScope(const QString &scope);
 #endif
 
@@ -182,8 +182,8 @@ public Q_SLOTS:
 #endif
 
 Q_SIGNALS:
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 11)
-    QT_DEPRECATED_VERSION_X_6_11("Use requestedScope and grantedScope properties instead.")
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+    QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
     void scopeChanged(const QString &scope);
 #endif
     void grantedScopeChanged(const QStringList &scope);
