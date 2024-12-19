@@ -427,7 +427,7 @@ void tst_OAuth2DeviceFlow::startStopTokenPolling()
     oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
     oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    QSignalSpy pollingSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::isPollingChanged);
+    QSignalSpy pollingSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::pollingChanged);
     QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
 
     auto clearTestVariables = [&](){

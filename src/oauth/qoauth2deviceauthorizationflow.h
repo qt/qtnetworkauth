@@ -25,7 +25,7 @@ class Q_OAUTH_EXPORT QOAuth2DeviceAuthorizationFlow : public QAbstractOAuth2
     Q_PROPERTY(QUrl verificationUrl READ verificationUrl NOTIFY verificationUrlChanged FINAL)
     Q_PROPERTY(QUrl completeVerificationUrl READ completeVerificationUrl
                NOTIFY completeVerificationUrlChanged FINAL)
-    Q_PROPERTY(bool isPolling READ isPolling NOTIFY isPollingChanged FINAL)
+    Q_PROPERTY(bool polling READ isPolling NOTIFY pollingChanged FINAL)
     Q_PROPERTY(QDateTime userCodeExpirationAt READ userCodeExpirationAt
                NOTIFY userCodeExpirationAtChanged FINAL)
 
@@ -58,7 +58,7 @@ Q_SIGNALS:
     void userCodeChanged(const QString &userCode);
     void verificationUrlChanged(const QUrl &verificationUrl);
     void completeVerificationUrlChanged(const QUrl &completeVerificationUrl);
-    void isPollingChanged(bool isPolling);
+    void pollingChanged(bool polling);
     void userCodeExpirationAtChanged(const QDateTime &expiration);
 
 protected:

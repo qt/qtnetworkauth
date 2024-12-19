@@ -121,7 +121,7 @@ using Stage = QAbstractOAuth::Stage;
 */
 
 /*!
-    \property QOAuth2DeviceAuthorizationFlow::isPolling
+    \property QOAuth2DeviceAuthorizationFlow::polling
 
     This property holds whether or not the flow is actively polling
     for tokens.
@@ -404,7 +404,7 @@ bool QOAuth2DeviceAuthorizationFlowPrivate::startTokenPolling()
     qCDebug(loggingCategory) << "Token stage: starting polling with interval:"
              << std::chrono::duration_cast<std::chrono::milliseconds>(tokenPollingTimer.interval());
     tokenPollingTimer.start();
-    emit q->isPollingChanged(true);
+    emit q->pollingChanged(true);
     return true;
 }
 
@@ -417,7 +417,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::stopTokenPolling()
     qCDebug(loggingCategory, "Token stage: Stopping token polling");
     resetCurrentTokenReply();
     tokenPollingTimer.stop();
-    emit q->isPollingChanged(false);
+    emit q->pollingChanged(false);
 }
 
 void QOAuth2DeviceAuthorizationFlowPrivate::pollTokens()
@@ -490,7 +490,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::reset()
     deviceCode.clear();
     if (q->isPolling()) {
         tokenPollingTimer.stop();
-        emit q->isPollingChanged(false);
+        emit q->pollingChanged(false);
     }
     tokenPollingTimer.setInterval(defaultPollingInterval);
     setStatus(Status::NotAuthenticated);
@@ -652,7 +652,7 @@ QDateTime QOAuth2DeviceAuthorizationFlow::userCodeExpirationAt() const
     Calling this function will reset any previous authorization data.
 
     \sa authorizeWithUserCode(), granted(), QAbstractOAuth::requestFailed(),
-        isPolling, startTokenPolling(), stopTokenPolling(), {Device Flow Usage}
+        polling, startTokenPolling(), stopTokenPolling(), {Device Flow Usage}
 */
 void QOAuth2DeviceAuthorizationFlow::grant()
 {
@@ -790,7 +790,7 @@ void QOAuth2DeviceAuthorizationFlow::refreshTokens()
     typically 5 seconds. First poll request is sent once the first interval
     has elapsed.
 
-    \sa isPolling, stopTokenPolling(), {Device Flow Usage}
+    \sa polling, stopTokenPolling(), {Device Flow Usage}
  */
 bool QOAuth2DeviceAuthorizationFlow::startTokenPolling()
 {
@@ -802,7 +802,7 @@ bool QOAuth2DeviceAuthorizationFlow::startTokenPolling()
     Stops token polling. Any potential outstanding poll requests
     are silently discarded.
 
-    \sa isPolling, startTokenPolling()
+    \sa polling, startTokenPolling()
  */
 void QOAuth2DeviceAuthorizationFlow::stopTokenPolling()
 {
