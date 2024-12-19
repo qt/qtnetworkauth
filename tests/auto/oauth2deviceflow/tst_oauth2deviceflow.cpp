@@ -15,6 +15,10 @@
 #include <QtNetwork/qsslkey.h>
 #endif
 
+
+#include <QtCore/qoperatingsystemversion.h>
+#include <QtCore/qsystemdetection.h>
+
 #include <QtCore/qcryptographichash.h>
 
 using namespace Qt::StringLiterals;
@@ -1484,6 +1488,16 @@ void tst_OAuth2DeviceFlow::tlsAuthentication()
 {
     if (!QSslSocket::supportsSsl())
         QSKIP("This test will fail because the backend does not support TLS");
+
+#ifdef Q_OS_MACOS
+#if !QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(150000, 180000)
+    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSSequoia
+        && QSslSocket::activeBackend() == QLatin1String("securetransport")) {
+        // Built with SDK < 15, with file-based keychains that no longer work on macOS >= 15.
+        QSKIP("SecureTransport will block the test server while accessing the login keychain");
+    }
+#endif
+#endif // Q_OS_MACOS
 
     auto rollback = useTemporaryKeychain();
 
