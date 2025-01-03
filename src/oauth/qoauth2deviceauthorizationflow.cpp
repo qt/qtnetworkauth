@@ -7,6 +7,7 @@
 #include <QtNetworkAuth/qoauth2deviceauthorizationflow.h>
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 
+#include <QtCore/qdatetime.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>

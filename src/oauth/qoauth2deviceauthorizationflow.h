@@ -9,10 +9,9 @@
 #include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qabstractoauth2.h>
 
-#include <QtCore/qdatetime.h>
-
 QT_BEGIN_NAMESPACE
 
+class QDateTime;
 class QUrl;
 class QString;
 class QNetworkAccessManager;
