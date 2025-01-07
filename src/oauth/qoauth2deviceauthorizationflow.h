@@ -4,9 +4,10 @@
 #ifndef QOAUTH2DEVICEAUTHORIZATIONFLOW_H
 #define QOAUTH2DEVICEAUTHORIZATIONFLOW_H
 
+#include <QtNetworkAuth/qoauthglobal.h>
+
 #ifndef QT_NO_HTTP
 
-#include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qabstractoauth2.h>
 
 QT_BEGIN_NAMESPACE
