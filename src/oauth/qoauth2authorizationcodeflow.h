@@ -20,7 +20,7 @@ class QOAuth2AuthorizationCodeFlowPrivate;
 class Q_OAUTH_EXPORT QOAuth2AuthorizationCodeFlow : public QAbstractOAuth2
 {
     Q_OBJECT
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
     Q_PROPERTY(QUrl accessTokenUrl
                READ accessTokenUrl
                WRITE setAccessTokenUrl
@@ -50,7 +50,7 @@ public:
 
     ~QOAuth2AuthorizationCodeFlow();
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
     QT_DEPRECATED_VERSION_X_6_13("Use QAbstractOAuth2::tokenUrl() instead.")
     QUrl accessTokenUrl() const;
     QT_DEPRECATED_VERSION_X_6_13("Use QAbstractOAuth2::setTokenUrl() instead.")
@@ -82,7 +82,7 @@ protected:
                                     const QMultiMap<QString, QVariant> &parameters = {}) override;
 
 Q_SIGNALS:
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
     QT_DEPRECATED_VERSION_X_6_13("Use QAbstractOAuth2::tokenUrlChanged() instead.")
     void accessTokenUrlChanged(const QUrl &accessTokenUrl);
 #endif

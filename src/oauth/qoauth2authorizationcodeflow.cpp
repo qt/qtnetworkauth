@@ -275,10 +275,9 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
 QOAuth2AuthorizationCodeFlow::~QOAuth2AuthorizationCodeFlow()
 {}
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
 /*!
-    \deprecated [6.13] Use QAbstractOAuth2::tokenUrl() instead. This method
-    will be removed in Qt 7.0.
+    \deprecated [6.13] Use QAbstractOAuth2::tokenUrl() instead.
 
     Returns the URL used to request the access token.
     \sa setAccessTokenUrl()
@@ -290,8 +289,7 @@ QUrl QOAuth2AuthorizationCodeFlow::accessTokenUrl() const
 }
 
 /*!
-    \deprecated [6.13] Use QAbstractOAuth2::setTokenUrl() instead. This method
-    will be removed in Qt 7.0.
+    \deprecated [6.13] Use QAbstractOAuth2::setTokenUrl() instead.
 
     Sets the URL used to request the access token to
     \a accessTokenUrl.
@@ -305,7 +303,7 @@ void QOAuth2AuthorizationCodeFlow::setAccessTokenUrl(const QUrl &accessTokenUrl)
     setTokenUrl(accessTokenUrl);
     QT_IGNORE_DEPRECATIONS(Q_EMIT accessTokenUrlChanged(accessTokenUrl);)
 }
-#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#endif // QT_DEPRECATED_SINCE(6, 13)
 
 /*!
     \enum QOAuth2AuthorizationCodeFlow::PkceMethod
