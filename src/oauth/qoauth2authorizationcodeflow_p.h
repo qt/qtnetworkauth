@@ -15,8 +15,6 @@
 #ifndef QOAUTH2AUTHORIZATIONCODEFLOW_P_H
 #define QOAUTH2AUTHORIZATIONCODEFLOW_P_H
 
-#ifndef QT_NO_HTTP
-
 #include <private/qabstractoauth2_p.h>
 
 #include <QtNetworkAuth/qoauthglobal.h>
@@ -56,7 +54,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
 
 #endif // QOAUTH2AUTHORIZATIONCODEFLOW_P_H

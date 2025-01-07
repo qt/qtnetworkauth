@@ -1,10 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtNetwork/qtnetwork-config.h>
-
-#ifndef QT_NO_HTTP
-
 #include "qoauth1.h"
 #include "qoauth1_p.h"
 #include "qoauth1signature.h"
@@ -932,5 +928,3 @@ void QOAuth1::continueGrantWithVerifier(const QString &verifier)
 }
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
