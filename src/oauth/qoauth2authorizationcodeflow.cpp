@@ -1,8 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef QT_NO_HTTP
-
 #include <qoauth2authorizationcodeflow.h>
 #include <private/qoauth2authorizationcodeflow_p.h>
 
@@ -572,5 +570,3 @@ void QOAuth2AuthorizationCodeFlow::resourceOwnerAuthorization(const QUrl &url,
 QT_END_NAMESPACE
 
 #include "moc_qoauth2authorizationcodeflow.cpp"
-
-#endif // QT_NO_HTTP

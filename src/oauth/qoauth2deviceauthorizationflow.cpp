@@ -1,8 +1,6 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef QT_NO_HTTP
-
 #include <private/qoauth2deviceauthorizationflow_p.h>
 #include <QtNetworkAuth/qoauth2deviceauthorizationflow.h>
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
@@ -820,5 +818,3 @@ bool QOAuth2DeviceAuthorizationFlow::event(QEvent* event)
 QT_END_NAMESPACE
 
 #include "moc_qoauth2deviceauthorizationflow.cpp"
-
-#endif // QT_NO_HTTP

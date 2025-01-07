@@ -15,8 +15,6 @@
 #ifndef QOAUTHHTTPSERVERREPLYHANDLER_P_H
 #define QOAUTHHTTPSERVERREPLYHANDLER_P_H
 
-#ifndef QT_NO_HTTP
-
 #include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 
@@ -91,7 +89,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
 
 #endif // QOAUTHHTTPSERVERREPLYHANDLER_P_H

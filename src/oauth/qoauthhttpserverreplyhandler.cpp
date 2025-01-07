@@ -1,10 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtNetwork/qtnetwork-config.h>
-
-#ifndef QT_NO_HTTP
-
 #include <qabstractoauth.h>
 #include <qoauthhttpserverreplyhandler.h>
 #include "qabstractoauthreplyhandler_p.h"
@@ -667,5 +663,3 @@ bool QOAuthHttpServerReplyHandler::isListening() const
 QT_END_NAMESPACE
 
 #include "moc_qoauthhttpserverreplyhandler.cpp"
-
-#endif // QT_NO_HTTP

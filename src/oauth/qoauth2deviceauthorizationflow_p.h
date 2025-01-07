@@ -15,8 +15,6 @@
 #ifndef QOAUTH2DEVICEAUTHORIZATIONFLOW_P_H
 #define QOAUTH2DEVICEAUTHORIZATIONFLOW_P_H
 
-#ifndef QT_NO_HTTP
-
 #include <private/qabstractoauth2_p.h>
 
 #include <QtNetworkAuth/qoauth2deviceauthorizationflow.h>
@@ -85,7 +83,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
 
 #endif // QOAUTH2DEVICEAUTHORIZATIONFLOW_P_H

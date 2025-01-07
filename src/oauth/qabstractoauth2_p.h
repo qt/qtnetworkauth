@@ -15,8 +15,6 @@
 #ifndef QABSTRACTOAUTH2_P_H
 #define QABSTRACTOAUTH2_P_H
 
-#ifndef QT_NO_HTTP
-
 #include <chrono>
 #include <optional>
 
@@ -144,7 +142,5 @@ namespace QtOAuth2RfcKeywords
 }
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
 
 #endif // QABSTRACTOAUTH2_P_H

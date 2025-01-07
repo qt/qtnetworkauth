@@ -15,8 +15,6 @@
 #ifndef QABSTRACTQOAUTH_P_H
 #define QABSTRACTQOAUTH_P_H
 
-#ifndef QT_NO_HTTP
-
 #include <private/qobject_p.h>
 
 #include <QtNetworkAuth/qoauthglobal.h>
@@ -76,7 +74,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
 
 #endif // QABSTRACTQOAUTH_H

@@ -1,8 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef QT_NO_HTTP
-
 #include <qabstractoauth.h>
 #include <qabstractoauthreplyhandler.h>
 
@@ -645,5 +643,3 @@ QByteArray QAbstractOAuth::generateRandomString(quint8 length)
 }
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
