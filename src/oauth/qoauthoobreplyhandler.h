@@ -4,9 +4,10 @@
 #ifndef QOAUTHOOBREPLYHANDLER_H
 #define QOAUTHOOBREPLYHANDLER_H
 
+#include <QtNetworkAuth/qoauthglobal.h>
+
 #ifndef QT_NO_HTTP
 
-#include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qabstractoauthreplyhandler.h>
 
 QT_BEGIN_NAMESPACE
