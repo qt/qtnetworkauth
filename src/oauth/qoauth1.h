@@ -4,9 +4,10 @@
 #ifndef QOAUTH1_H
 #define QOAUTH1_H
 
+#include <QtNetworkAuth/qoauthglobal.h>
+
 #ifndef QT_NO_HTTP
 
-#include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qabstractoauth.h>
 
 #include <QtNetwork/qnetworkaccessmanager.h>
