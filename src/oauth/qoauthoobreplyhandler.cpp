@@ -1,8 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#ifndef QT_NO_HTTP
-
 #include "qoauthoobreplyhandler.h"
 #include "qabstractoauthreplyhandler_p.h"
 
@@ -85,5 +83,3 @@ QVariantMap QOAuthOobReplyHandler::parseResponse(const QByteArray &response)
 QT_END_NAMESPACE
 
 #include "moc_qoauthoobreplyhandler.cpp"
-
-#endif // QT_NO_HTTP

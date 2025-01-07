@@ -1,10 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include <QtNetwork/qtnetwork-config.h>
-
-#ifndef QT_NO_HTTP
-
 #include <qabstractoauth2.h>
 #include <private/qabstractoauth2_p.h>
 
@@ -551,5 +547,3 @@ void QAbstractOAuth2::setSslConfiguration(const QSslConfiguration &configuration
 QT_END_NAMESPACE
 
 #include "moc_qabstractoauth2.cpp"
-
-#endif // QT_NO_HTTP
