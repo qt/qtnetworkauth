@@ -65,6 +65,9 @@ flows supported by QtNetworkAuth module:
     \li TVs, Consoles, HMIs, IoT Devices
 \endtable
 
+OAuth2 requires using a user-agent which is typically a browser.
+For further information, see \l {Qt OAuth2 Browser Support}.
+
 \section1 Qt OAuth2 Classes
 
 QtNetworkAuth provides both concrete and abstract OAuth2 classes.
