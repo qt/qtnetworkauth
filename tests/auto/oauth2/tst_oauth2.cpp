@@ -13,12 +13,6 @@
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
 
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-#define REFRESH_TOKENS(obj) obj.refreshAccessToken()
-#else
-#define REFRESH_TOKENS(obj) obj.refreshTokens()
-#endif
-
 class tst_OAuth2 : public QObject
 {
     Q_OBJECT
@@ -377,7 +371,7 @@ public:
         VALUE_SET = QByteArray(VALUE_PREFIX) + "_refresh_token"; \
         valueReceivedByTokenServer.clear(); \
         STAGE_RECEIVED = QAbstractOAuth::Stage::RequestingTemporaryCredentials; \
-        REFRESH_TOKENS(oauth2); \
+        oauth2.refreshTokens(); \
         QCOMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken); \
         QTRY_COMPARE(STAGE_RECEIVED, QAbstractOAuth::Stage::RefreshingAccessToken); \
         QTRY_COMPARE(valueReceivedByTokenServer, VALUE_SET); \
@@ -394,7 +388,7 @@ public:
         replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}}); \
         QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
         QVERIFY(valueReceivedByTokenServer.isEmpty()); \
-        REFRESH_TOKENS(oauth2); \
+        oauth2.refreshTokens(); \
         QCOMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken); \
         QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
         QVERIFY(valueReceivedByTokenServer.isEmpty()); \
@@ -552,9 +546,13 @@ void tst_OAuth2::refreshToken()
     oauth2.setReplyHandler(&replyHandler);
     oauth2.setRefreshToken(QLatin1String("refresh_token"));
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
-    REFRESH_TOKENS(oauth2);
+    oauth2.refreshTokens();
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("token"));
+
+    // Verify that refreshAccessToken also works
+    oauth2.refreshAccessToken();
+    QTRY_COMPARE(grantedSpy.size(), 2);
 }
 
 void tst_OAuth2::getAndRefreshToken()
@@ -595,7 +593,7 @@ void tst_OAuth2::getAndRefreshToken()
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("authorization_code"));
     grantedSpy.clear();
-    REFRESH_TOKENS(oauth2);
+    oauth2.refreshTokens();
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("refresh_token"));
 }
@@ -693,7 +691,7 @@ void tst_OAuth2::tokenRequestErrors()
 
     // Successfully refresh access token
     clearSpies();
-    REFRESH_TOKENS(oauth2);
+    oauth2.refreshTokens();
     QTRY_COMPARE(statusSpy.size(), 2);
     QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
              QAbstractOAuth::Status::RefreshingToken);
@@ -706,7 +704,7 @@ void tst_OAuth2::tokenRequestErrors()
     clearSpies();
     replyHandler.aTokenRequestError = QAbstractOAuth::Error::ServerError;
     expectWarning();
-    REFRESH_TOKENS(oauth2);
+    oauth2.refreshTokens();
     QTRY_COMPARE(statusSpy.size(), 2);
     QCOMPARE(statusSpy.takeFirst().at(0).value<QAbstractOAuth::Status>(),
              QAbstractOAuth::Status::RefreshingToken);

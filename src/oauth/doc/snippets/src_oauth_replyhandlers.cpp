@@ -540,32 +540,32 @@ void UriSchemeExample::setupWebEngineWidgetsHttps()
 #endif
 }
 
-//! [custom-class-def]
+//! [custom-class-def-start]
 class MyClass : public QAbstractOAuth2
 {
+//! [custom-class-def-start]
     Q_OBJECT
 public:
     MyClass();
-    void refreshAccessToken(); // issue a refresh request
 public Q_SLOTS:
     void grant() override;
-};
-//! [custom-class-def]
 
-//! [custom-class-impl]
+//! [custom-class-def-end]
+protected Q_SLOTS:
+    void refreshTokensImplementation() QT7_ONLY(override);
+};
+//! [custom-class-def-end]
+
 MyClass::MyClass() : QAbstractOAuth2()
 {
-    connect(this, &QAbstractOAuth2::accessTokenAboutToExpire, this, [this] {
-        if (autoRefresh() && !refreshToken().isEmpty())
-            refreshAccessToken();
-    });
 }
-//! [custom-class-impl]
 
-void MyClass::refreshAccessToken()
+//! [custom-class-impl]
+void MyClass::refreshTokensImplementation()
 {
     qDebug("refresh");
 }
+//! [custom-class-impl]
 
 void MyClass::grant()
 {

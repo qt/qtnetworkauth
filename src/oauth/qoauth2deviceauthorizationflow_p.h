@@ -62,10 +62,6 @@ public:
     void resetCurrentTokenReply();
     void resetCurrentAuthorizationReply();
 
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-    void initializeAutoRefresh();
-#endif
-
     QRestAccessManager *network();
 
     // https://datatracker.ietf.org/doc/html/rfc8628#section-3.2

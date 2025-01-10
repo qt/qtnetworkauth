@@ -302,27 +302,10 @@ static constexpr auto FallbackRefreshInterval = 2s;
     to expire.
 
     Emitting this signal requires that the access token has
-    a valid expiration time.
+    a valid expiration time. An alternative for handling this
+    signal manually is to use \l {autoRefresh}.
 
-\if defined(qt7)
-    \note Starting from Qt 7.0, the \l refreshTokens() slot will be
-    automatically called if this signal is emitted and \l autoRefresh is set
-    to \c true. The developers who implement custom authorization flows need
-    to reimplement the \l refreshTokens() slot in their classes.
-\else
-    The developers who implement custom authorization flows by deriving from
-    this class, should connect to this signal also in order to implement the
-    auto-refresh functionality:
-
-    \snippet src_oauth_replyhandlers.cpp custom-class-def
-    \dots
-    \snippet src_oauth_replyhandlers.cpp custom-class-impl
-\endif
-
-    \sa refreshLeadTime, autoRefresh
-\if defined(qt7)
-    \sa refreshTokens()
-\endif
+    \sa refreshLeadTime, autoRefresh, refreshTokens()
 */
 
 /*!
@@ -358,21 +341,14 @@ static constexpr auto FallbackRefreshInterval = 2s;
     the access token.
 
     This property enables or disables the automatic refresh of the
-    access token. When set to \c {true}, refresh is attempted when
-    \l {accessTokenAboutToExpire()} is sent (provided that
-    \l {refreshToken} is available).
-
-    This is useful for applications that require uninterrupted
+    access token. This is useful for applications that require uninterrupted
     authorization without user intervention.
 
-\if !defined(qt7)
-    \note Due to the implementation details and the binary compatibility
-    promises, developers who implement custom authorization flows by deriving
-    from this class should still implement the support for automatic refresh on
-    their own. See \l accessTokenAboutToExpire() for more details.
-\endif
+    If this property is \c true, \l refreshTokens()
+    will be automatically called when the token is about to expire and
+    a valid \l refreshToken exists.
 
-    \sa refreshLeadTime
+    \sa refreshLeadTime, accessTokenAboutToExpire()
 */
 
 /*!
@@ -432,23 +408,6 @@ static constexpr auto FallbackRefreshInterval = 2s;
     Signal emitted when the reply server receives the authorization
     callback from the server: \a data contains the values received
     from the server.
-*/
-
-/*!
-\if defined(qt7)
-    \fn void QAbstractOAuth2::refreshTokens()
-    \since 7.0
-
-    Call this slot in order to initiate the refresh token request.
-
-    This slot is called automatically if \l autoRefresh is set to \c true and
-    \l accessTokenAboutToExpire() signal is emitted.
-
-    The derived classes \e must reimplement this slot and provide a custom
-    logic to generate and send the refresh token request.
-
-    \sa autoRefresh, accessTokenAboutToExpire()
-\endif
 */
 
 QAbstractOAuth2Private::QAbstractOAuth2Private(const std::pair<QString, QString> &clientCredentials,
@@ -525,12 +484,10 @@ void QAbstractOAuth2Private::initializeRefreshHandling()
     });
     QObject::connect(&refreshTimer, &QChronoTimer::timeout, q,
                      &QAbstractOAuth2::accessTokenAboutToExpire);
-#if QT_VERSION >= QT_VERSION_CHECK(7, 0, 0)
     QObject::connect(q, &QAbstractOAuth2::accessTokenAboutToExpire, q, [q] {
         if (q->autoRefresh() && !q->refreshToken().isEmpty())
             q->refreshTokens();
     });
-#endif
 }
 
 void QAbstractOAuth2Private::updateRefreshTimer(bool clientSideUpdate)
@@ -867,6 +824,55 @@ void QAbstractOAuth2::clearNetworkRequestModifier()
     Q_D(QAbstractOAuth2);
     d->networkRequestModifier = {nullptr, nullptr};
 }
+
+/*!
+    \since 6.9
+
+    Call this function to refresh the tokens. The function calls
+    \l {refreshTokensImplementation()} to perform the actual refresh.
+
+    \sa refreshTokensImplementation(), autoRefresh
+*/
+void QAbstractOAuth2::refreshTokens()
+{
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+    // Due to binary compatibility reasons we can't add new virtuals to this baseclass,
+    // but instead we mimic the virtual by invoking the implementation as a slot
+    QMetaObject::invokeMethod(this, "refreshTokensImplementation", Qt::DirectConnection);
+#else
+    refreshTokensImplementation();
+#endif
+}
+
+/*!
+    \fn void QAbstractOAuth2::refreshTokensImplementation()
+    \since 6.9
+
+    This slot is called by \l refreshTokens() to send the token
+    refresh request.
+
+\if defined(qt7)
+    The derived classes \e must reimplement this slot to support token
+    refreshing:
+\else
+    The derived classes \e should reimplement this slot to support token
+    refreshing:
+\endif
+    \snippet src_oauth_replyhandlers.cpp custom-class-def-start
+    \dots
+    \snippet src_oauth_replyhandlers.cpp custom-class-def-end
+    \codeline
+    \snippet src_oauth_replyhandlers.cpp custom-class-impl
+
+    \sa autoRefresh, accessTokenAboutToExpire()
+*/
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+void QAbstractOAuth2::refreshTokensImplementation()
+{
+    Q_D(QAbstractOAuth2);
+    qCDebug(d->loggingCategory, "%s class does not support refreshing", metaObject()->className());
+}
+#endif // QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 
 /*!
     Destroys the QAbstractOAuth2 instance.
@@ -1223,7 +1229,7 @@ QString QAbstractOAuth2::refreshToken() const
    \brief Sets the new refresh token \a refreshToken to be used.
 
     A custom refresh token can be used to refresh the access token via this method and then
-    the access token can be refreshed via QOAuth2AuthorizationCodeFlow::refreshAccessToken().
+    the access token can be refreshed via \l refreshTokens().
 
 */
 void QAbstractOAuth2::setRefreshToken(const QString &refreshToken)

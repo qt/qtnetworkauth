@@ -71,9 +71,10 @@ public Q_SLOTS:
     void grant() override;
 #if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
     void refreshAccessToken();
-#else
-    void refreshTokens() override;
 #endif
+
+protected Q_SLOTS:
+    void refreshTokensImplementation() QT7_ONLY(override);
 
 protected:
     QUrl buildAuthenticateUrl(const QMultiMap<QString, QVariant> &parameters = {});
