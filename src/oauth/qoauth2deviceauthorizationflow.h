@@ -44,11 +44,6 @@ public:
 
 public Q_SLOTS:
     void grant() override;
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-    void refreshAccessToken();
-#else
-    void refreshTokens() override;
-#endif
     bool startTokenPolling();
     void stopTokenPolling();
 
@@ -63,6 +58,9 @@ Q_SIGNALS:
 
 protected:
     bool event(QEvent *event) override;
+
+protected Q_SLOTS:
+    void refreshTokensImplementation() QT7_ONLY(override);
 
 private:
     Q_DISABLE_COPY_MOVE(QOAuth2DeviceAuthorizationFlow)

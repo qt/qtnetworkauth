@@ -176,17 +176,6 @@ QByteArray QOAuth2AuthorizationCodeFlowPrivate::createPKCEChallenge()
     Q_UNREACHABLE_RETURN({});
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-void QOAuth2AuthorizationCodeFlowPrivate::initializeAutoRefresh()
-{
-    Q_Q(QOAuth2AuthorizationCodeFlow);
-    QObject::connect(q, &QAbstractOAuth2::accessTokenAboutToExpire, q, [q] {
-        if (q->autoRefresh() && !q->refreshToken().isEmpty())
-            q->refreshAccessToken();
-    });
-}
-#endif
-
 /*!
     Constructs a QOAuth2AuthorizationCodeFlow object with parent
     object \a parent.
@@ -219,10 +208,6 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
                                                              manager),
                     parent)
 {
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-    Q_D(QOAuth2AuthorizationCodeFlow);
-    d->initializeAutoRefresh();
-#endif
 }
 
 /*!
@@ -239,10 +224,6 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QUrl &authentic
                                                              QString(), manager),
                     parent)
 {
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-    Q_D(QOAuth2AuthorizationCodeFlow);
-    d->initializeAutoRefresh();
-#endif
 }
 
 /*!
@@ -261,10 +242,6 @@ QOAuth2AuthorizationCodeFlow::QOAuth2AuthorizationCodeFlow(const QString &client
                                                              clientIdentifier, manager),
                     parent)
 {
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-    Q_D(QOAuth2AuthorizationCodeFlow);
-    d->initializeAutoRefresh();
-#endif
 }
 
 /*!
@@ -394,23 +371,37 @@ void QOAuth2AuthorizationCodeFlow::grant()
 }
 
 /*!
-    Call this function to refresh the token. Access tokens are not
-    permanent. After a time specified along with the access token
-    when it was obtained, the access token will become invalid.
+    Call this function to refresh the token.
 
-    If refreshing the token fails and an access token exists, the status is
-    set to QAbstractOAuth::Status::Granted, and to
-    QAbstractOAuth::Status::NotAuthenticated otherwise.
-
-    \sa QAbstractOAuth::requestFailed()
-    \sa {https://tools.ietf.org/html/rfc6749#section-1.5}{Refresh
-    Token}
+    This function calls \l {refreshTokensImplementation()}.
 */
 #if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
-#else
-void QOAuth2AuthorizationCodeFlow::refreshTokens()
+{
+    refreshTokensImplementation();
+}
 #endif
+
+/*!
+    \since 6.9
+
+    This function sends a token refresh request.
+
+    If the refresh request was initiated successfully, the status is set to
+    \l QAbstractOAuth::Status::RefreshingToken; otherwise the \l requestFailed()
+    signal is emitted and the status is not changed.
+
+    This function has no effect if the token refresh process is already in
+    progress.
+
+    If refreshing the token fails and an access token exists, the status is
+    set to \l QAbstractOAuth::Status::Granted, and to
+    \l QAbstractOAuth::Status::NotAuthenticated if an access token
+    does not exist.
+
+    \sa QAbstractOAuth::requestFailed(), QAbstractOAuth2::refreshTokens()
+*/
+void QOAuth2AuthorizationCodeFlow::refreshTokensImplementation()
 {
     Q_D(QOAuth2AuthorizationCodeFlow);
 

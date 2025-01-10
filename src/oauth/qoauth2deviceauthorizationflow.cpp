@@ -550,17 +550,6 @@ void QOAuth2DeviceAuthorizationFlowPrivate::handleTokenSuccessResponse(const QJs
     stopTokenPolling();
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-void QOAuth2DeviceAuthorizationFlowPrivate::initializeAutoRefresh()
-{
-    Q_Q(QOAuth2DeviceAuthorizationFlow);
-    QObject::connect(q, &QAbstractOAuth2::accessTokenAboutToExpire, q, [q] {
-        if (q->autoRefresh() && !q->refreshToken().isEmpty())
-            q->refreshAccessToken();
-    });
-}
-#endif
-
 /*!
     Constructs a QOAuth2DeviceAuthorizationFlow object.
 */
@@ -587,9 +576,6 @@ QOAuth2DeviceAuthorizationFlow::QOAuth2DeviceAuthorizationFlow(QNetworkAccessMan
     : QAbstractOAuth2(*new QOAuth2DeviceAuthorizationFlowPrivate(manager), parent)
 {
     Q_D(QOAuth2DeviceAuthorizationFlow);
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-    d->initializeAutoRefresh();
-#endif
     d->tokenPollingTimer.setInterval(d->defaultPollingInterval);
     d->tokenPollingTimer.setSingleShot(false);
     connect(&d->tokenPollingTimer, &QChronoTimer::timeout, this, [d]() {
@@ -712,7 +698,9 @@ void QOAuth2DeviceAuthorizationFlow::grant()
 }
 
 /*!
-    Call this function to refresh the tokens.
+    \since 6.9
+
+    This function sends a token refresh request.
 
     If the refresh request was initiated successfully, the status is set to
     \l QAbstractOAuth::Status::RefreshingToken; otherwise the \l requestFailed()
@@ -727,13 +715,9 @@ void QOAuth2DeviceAuthorizationFlow::grant()
     \l QAbstractOAuth::Status::NotAuthenticated if an access token
     does not exist.
 
-    \sa QAbstractOAuth::requestFailed()
+    \sa QAbstractOAuth::requestFailed(), QAbstractOAuth2::refreshTokens()
 */
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
-void QOAuth2DeviceAuthorizationFlow::refreshAccessToken()
-#else
-void QOAuth2DeviceAuthorizationFlow::refreshTokens()
-#endif
+void QOAuth2DeviceAuthorizationFlow::refreshTokensImplementation()
 {
     Q_D(QOAuth2DeviceAuthorizationFlow);
     if (d->status == Status::RefreshingToken && d->currentTokenReply) {

@@ -177,10 +177,11 @@ public:
     }
     void clearNetworkRequestModifier();
 
-#if QT_VERSION >= QT_VERSION_CHECK(7, 0, 0)
+protected Q_SLOTS:
+    QT7_ONLY(virtual) void refreshTokensImplementation() QT7_ONLY(= 0);
+
 public Q_SLOTS:
-    virtual void refreshTokens() = 0;
-#endif
+   void refreshTokens();
 
 Q_SIGNALS:
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
