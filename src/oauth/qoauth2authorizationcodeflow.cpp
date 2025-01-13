@@ -370,17 +370,19 @@ void QOAuth2AuthorizationCodeFlow::grant()
     resourceOwnerAuthorization(d->authorizationUrl);
 }
 
+#if QT_DEPRECATED_SINCE(6, 13)
 /*!
+    \deprecated [6.13] Use QAbstractOAuth2::refreshTokens() instead.
+
     Call this function to refresh the token.
 
     This function calls \l {refreshTokensImplementation()}.
 */
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 void QOAuth2AuthorizationCodeFlow::refreshAccessToken()
 {
     refreshTokensImplementation();
 }
-#endif
+#endif // QT_DEPRECATED_SINCE(6, 13)
 
 /*!
     \since 6.9
