@@ -83,6 +83,7 @@ protected:
 
 Q_SIGNALS:
 #if QT_DEPRECATED_SINCE(6, 13)
+    QT_MOC_COMPAT
     QT_DEPRECATED_VERSION_X_6_13("Use QAbstractOAuth2::tokenUrlChanged() instead.")
     void accessTokenUrlChanged(const QUrl &accessTokenUrl);
 #endif

@@ -184,6 +184,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+    QT_MOC_COMPAT
     QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
     void scopeChanged(const QString &scope);
 #endif
@@ -207,6 +208,7 @@ Q_SIGNALS:
 #endif
 
 #if QT_DEPRECATED_SINCE(6, 13)
+    QT_MOC_COMPAT
     QT_DEPRECATED_VERSION_X_6_13("Use serverReportedErrorOccurred instead.")
     void error(const QString &error, const QString &errorDescription, const QUrl &uri);
 #endif
