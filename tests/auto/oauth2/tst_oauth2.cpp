@@ -724,7 +724,10 @@ void tst_OAuth2::tlsAuthentication()
     });
     connect(&nam, &QNetworkAccessManager::sslErrors, this,
         [&expectedErrors](QNetworkReply *r, const QList<QSslError> &errors) {
-            QCOMPARE(errors.size(), 2);
+            // On some Windows machines the test might report all
+            // three expected errors.
+            QCOMPARE_GE(errors.size(), 2);
+            QCOMPARE_LE(errors.size(), 3);
             for (const auto &err : errors)
                 QVERIFY(expectedErrors.contains(err.error()));
             r->ignoreSslErrors();
