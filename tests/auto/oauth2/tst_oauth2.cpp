@@ -550,9 +550,11 @@ void tst_OAuth2::refreshToken()
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), QLatin1String("token"));
 
+#if QT_DEPRECATED_SINCE(6, 13)
     // Verify that refreshAccessToken also works
-    oauth2.refreshAccessToken();
+    QT_IGNORE_DEPRECATIONS(oauth2.refreshAccessToken();)
     QTRY_COMPARE(grantedSpy.size(), 2);
+#endif
 }
 
 void tst_OAuth2::getAndRefreshToken()

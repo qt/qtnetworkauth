@@ -69,7 +69,8 @@ public:
 
 public Q_SLOTS:
     void grant() override;
-#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+#if QT_DEPRECATED_SINCE(6, 13)
+    QT_DEPRECATED_VERSION_X_6_13("Use QAbstractOAuth2::refreshTokens() instead")
     void refreshAccessToken();
 #endif
 
