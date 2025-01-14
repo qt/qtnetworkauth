@@ -159,7 +159,7 @@ void tst_OAuth2::tokenUrlChanged()
     QOAuth2AuthorizationCodeFlow oauth2;
 
     QCOMPARE_EQ(oauth2.tokenUrl(), QUrl());
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
     QT_IGNORE_DEPRECATIONS(QCOMPARE_EQ(oauth2.accessTokenUrl(), QUrl());)
 #endif
 
@@ -187,7 +187,7 @@ void tst_OAuth2::tokenUrlChanged()
     QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
     QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
     // old property
@@ -239,7 +239,11 @@ void tst_OAuth2::authorizationErrors()
 
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(QUrl{"authorization"_L1});
+#if QT_DEPRECATED_SINCE(6, 13)
     oauth2.setAccessTokenUrl(QUrl{"accessToken"_L1});
+#else
+    oauth2.setTokenUrl(QUrl{"accessToken"_L1});
+#endif
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
 
@@ -537,7 +541,7 @@ void tst_OAuth2::refreshToken()
         }
     });
     QOAuth2AuthorizationCodeFlow oauth2;
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
     QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));)
 #else
     oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
@@ -989,7 +993,11 @@ void tst_OAuth2::scope()
         }
     });
     oauth2.setAuthorizationUrl(webServer.url("authorizationUrl"_L1));
-    oauth2.setAccessTokenUrl(webServer.url("accessTokenUrl"_L1));
+#if QT_DEPRECATED_SINCE(6, 13)
+    QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(webServer.url("accessTokenUrl"_L1));)
+#else
+    oauth2.setTokenUrl(webServer.url("accessTokenUrl"_L1));
+#endif
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -1035,7 +1043,7 @@ void tst_OAuth2::scopeAndRequestedScope()
 
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
     QVERIFY(oauth2.scope().isEmpty());
     QVERIFY(oauth2.requestedScope().isEmpty());
 
