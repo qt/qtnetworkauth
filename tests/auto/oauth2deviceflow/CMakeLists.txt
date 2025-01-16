@@ -7,6 +7,7 @@ qt_internal_add_test(tst_oauth2deviceflow
     SOURCES
         ../shared/webserver.h
         ../shared/tlswebserver.h
+        ../shared/oauthtestutils.h ../shared/oauthtestutils.cpp
         tst_oauth2deviceflow.cpp
     INCLUDE_DIRECTORIES
         ../shared
