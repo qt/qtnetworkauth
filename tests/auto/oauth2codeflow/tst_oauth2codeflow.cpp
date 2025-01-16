@@ -48,11 +48,9 @@ private Q_SLOTS:
     void scopeCharacterWarnings();
     void refreshLeadTime_data();
     void refreshLeadTime();
-    void invalidRefreshLeadTime();
     void alreadyExpiredTokenClientSideRefresh();
 
 #ifndef QT_NO_SSL
-    void setSslConfig();
     void tlsAuthentication();
 #endif
     void extraTokens();
@@ -1382,15 +1380,6 @@ void tst_OAuth2CodeFlow::refreshLeadTime()
     }
 }
 
-void tst_OAuth2CodeFlow::invalidRefreshLeadTime()
-{
-    QOAuth2AuthorizationCodeFlow oauth2;
-    QCOMPARE(oauth2.refreshLeadTime(), 0s);
-    QTest::ignoreMessage(QtWarningMsg, "Invalid refresh leadTime");
-    oauth2.setRefreshLeadTime(-5s);
-    QCOMPARE(oauth2.refreshLeadTime(), 0s);
-}
-
 void tst_OAuth2CodeFlow::alreadyExpiredTokenClientSideRefresh()
 {
     // This tests a particular corner-case where user adjusts leadTime such
@@ -1419,33 +1408,6 @@ void tst_OAuth2CodeFlow::alreadyExpiredTokenClientSideRefresh()
 }
 
 #ifndef QT_NO_SSL
-void tst_OAuth2CodeFlow::setSslConfig()
-{
-    QOAuth2AuthorizationCodeFlow oauth2;
-    QSignalSpy sslConfigSpy(&oauth2, &QAbstractOAuth2::sslConfigurationChanged);
-
-    QVERIFY(sslConfigSpy.isValid());
-    QCOMPARE(oauth2.sslConfiguration(), QSslConfiguration());
-    QCOMPARE(sslConfigSpy.size(), 0);
-
-    auto config = createSslConfiguration(testDataDir + "certs/selfsigned-server.key",
-                                         testDataDir + "certs/selfsigned-server.crt");
-    oauth2.setSslConfiguration(config);
-
-    QCOMPARE(oauth2.sslConfiguration(), config);
-    QCOMPARE(sslConfigSpy.size(), 1);
-
-    // set same config - nothing happens
-    oauth2.setSslConfiguration(config);
-    QCOMPARE(sslConfigSpy.size(), 1);
-
-    // change config
-    config.setPeerVerifyMode(QSslSocket::VerifyNone);
-    oauth2.setSslConfiguration(config);
-    QCOMPARE(oauth2.sslConfiguration(), config);
-    QCOMPARE(sslConfigSpy.size(), 2);
-}
-
 void tst_OAuth2CodeFlow::tlsAuthentication()
 {
     if (!QSslSocket::supportsSsl())

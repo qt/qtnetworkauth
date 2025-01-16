@@ -4,7 +4,10 @@
 #include <QtTest>
 #include <QtNetworkAuth/qabstractoauth2.h>
 
+#include "oauthtestutils.h"
+
 using namespace Qt::StringLiterals;
+using namespace std::chrono_literals;
 
 class tst_AbstractOAuth2 : public QObject
 {
@@ -12,8 +15,13 @@ class tst_AbstractOAuth2 : public QObject
 
 private Q_SLOTS:
     void initTestCase();
+    void sslConfig();
+    void invalidRefreshLeadTime();
     void tokenUrl();
     void autoRefresh();
+
+private:
+    QString testDataDir;
 };
 
 class TestFlow : public QAbstractOAuth2
@@ -32,6 +40,52 @@ protected Q_SLOTS:
 
 void tst_AbstractOAuth2::initTestCase()
 {
+    // QLoggingCategory::setFilterRules(QStringLiteral("qt.networkauth* = true"));
+    testDataDir = QFileInfo(QFINDTESTDATA("../shared/certs")).absolutePath();
+    if (testDataDir.isEmpty())
+        testDataDir = QCoreApplication::applicationDirPath();
+    if (!testDataDir.endsWith(QLatin1String("/")))
+        testDataDir += QLatin1String("/");
+}
+
+void tst_AbstractOAuth2::sslConfig()
+{
+#ifdef QT_NO_SSL
+    QSKIP("Skipping SSL test, not supported by build");
+#else
+    TestFlow oauth2;
+    QSignalSpy sslConfigSpy(&oauth2, &QAbstractOAuth2::sslConfigurationChanged);
+
+    QVERIFY(sslConfigSpy.isValid());
+    QCOMPARE(oauth2.sslConfiguration(), QSslConfiguration());
+    QCOMPARE(sslConfigSpy.size(), 0);
+
+    auto config = createSslConfiguration(testDataDir + "certs/selfsigned-server.key",
+                                         testDataDir + "certs/selfsigned-server.crt");
+    oauth2.setSslConfiguration(config);
+
+    QCOMPARE(oauth2.sslConfiguration(), config);
+    QCOMPARE(sslConfigSpy.size(), 1);
+
+    // set same config - nothing happens
+    oauth2.setSslConfiguration(config);
+    QCOMPARE(sslConfigSpy.size(), 1);
+
+    // change config
+    config.setPeerVerifyMode(QSslSocket::VerifyNone);
+    oauth2.setSslConfiguration(config);
+    QCOMPARE(oauth2.sslConfiguration(), config);
+    QCOMPARE(sslConfigSpy.size(), 2);
+#endif // QT_NO_SSL
+}
+
+void tst_AbstractOAuth2::invalidRefreshLeadTime()
+{
+    TestFlow oauth2;
+    QCOMPARE(oauth2.refreshLeadTime(), 0s);
+    QTest::ignoreMessage(QtWarningMsg, "Invalid refresh leadTime");
+    oauth2.setRefreshLeadTime(-5s);
+    QCOMPARE(oauth2.refreshLeadTime(), 0s);
 }
 
 void tst_AbstractOAuth2::tokenUrl()
