@@ -13,6 +13,7 @@ qt_internal_add_test(tst_oauth2
     SOURCES
         ../shared/webserver.h
         ../shared/tlswebserver.h
+        ../shared/oauthtestutils.h ../shared/oauthtestutils.cpp
         tst_oauth2.cpp
     INCLUDE_DIRECTORIES
         ../shared
