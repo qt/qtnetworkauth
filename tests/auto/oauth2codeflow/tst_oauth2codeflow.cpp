@@ -13,7 +13,7 @@
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
 
-class tst_OAuth2 : public QObject
+class tst_OAuth2CodeFlow : public QObject
 {
     Q_OBJECT
 
@@ -94,7 +94,7 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
     }
 };
 
-void tst_OAuth2::initTestCase()
+void tst_OAuth2CodeFlow::initTestCase()
 {
     // QLoggingCategory::setFilterRules(QStringLiteral("qt.networkauth* = true"));
     testDataDir = QFileInfo(QFINDTESTDATA("../shared/certs")).absolutePath();
@@ -104,7 +104,7 @@ void tst_OAuth2::initTestCase()
         testDataDir += QLatin1String("/");
 }
 
-void tst_OAuth2::state()
+void tst_OAuth2CodeFlow::state()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
@@ -156,7 +156,7 @@ void tst_OAuth2::state()
     QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
 }
 
-void tst_OAuth2::tokenUrlChanged()
+void tst_OAuth2CodeFlow::tokenUrlChanged()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
 
@@ -229,7 +229,7 @@ QT_WARNING_POP
 }
 
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
-void tst_OAuth2::authorizationErrors()
+void tst_OAuth2CodeFlow::authorizationErrors()
 {
     // This tests failures in authorization stage. For this test we don't need a web server
     // as we emit the final (failing) callbackReceived directly.
@@ -401,7 +401,7 @@ public:
         oauth2.clearNetworkRequestModifier(); \
     } \
 
-void tst_OAuth2::modifyTokenRequests()
+void tst_OAuth2CodeFlow::modifyTokenRequests()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     std::unique_ptr<RequestModifier> context(new RequestModifier);
@@ -494,7 +494,7 @@ void tst_OAuth2::modifyTokenRequests()
     // oauth2.setRequestModifier(&context, [](int wrongType, QAbstractOAuth::Stage stage){});
 }
 
-void tst_OAuth2::getToken()
+void tst_OAuth2CodeFlow::getToken()
 {
     WebServer webServer([](const WebServer::HttpRequest &request, QTcpSocket *socket) {
         if (request.url.path() == QLatin1String("/accessToken")) {
@@ -528,7 +528,7 @@ void tst_OAuth2::getToken()
     QCOMPARE(oauth2.token(), QLatin1String("token"));
 }
 
-void tst_OAuth2::refreshToken()
+void tst_OAuth2CodeFlow::refreshToken()
 {
     WebServer webServer([](const WebServer::HttpRequest &request, QTcpSocket *socket) {
         if (request.url.path() == QLatin1String("/accessToken")) {
@@ -563,7 +563,7 @@ void tst_OAuth2::refreshToken()
 #endif
 }
 
-void tst_OAuth2::getAndRefreshToken()
+void tst_OAuth2CodeFlow::getAndRefreshToken()
 {
     // In this test we use the grant_type as a token to be able to
     // identify the token request from the token refresh.
@@ -606,7 +606,7 @@ void tst_OAuth2::getAndRefreshToken()
     QCOMPARE(oauth2.token(), QLatin1String("refresh_token"));
 }
 
-void tst_OAuth2::tokenRequestErrors()
+void tst_OAuth2CodeFlow::tokenRequestErrors()
 {
     // This test tests the token acquisition and refreshing errors.
     // Helper to catch the expected warning messages:
@@ -722,7 +722,7 @@ void tst_OAuth2::tokenRequestErrors()
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
 }
 
-void tst_OAuth2::prepareRequest()
+void tst_OAuth2CodeFlow::prepareRequest()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setToken(QStringLiteral("access_token"));
@@ -734,7 +734,7 @@ void tst_OAuth2::prepareRequest()
 
 using Method = QOAuth2AuthorizationCodeFlow::PkceMethod;
 
-void tst_OAuth2::pkce_data()
+void tst_OAuth2CodeFlow::pkce_data()
 {
     QTest::addColumn<Method>("method");
     QTest::addColumn<quint8>("verifierLength");
@@ -746,7 +746,7 @@ void tst_OAuth2::pkce_data()
     QTest::addRow("S256_88") << Method::S256 << quint8(88);
 }
 
-void tst_OAuth2::pkce()
+void tst_OAuth2CodeFlow::pkce()
 {
     QFETCH(Method, method);
     QFETCH(quint8, verifierLength);
@@ -815,7 +815,7 @@ void tst_OAuth2::pkce()
     }
 }
 
-void tst_OAuth2::nonce()
+void tst_OAuth2CodeFlow::nonce()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     const auto nonce = "a_nonce"_ba;
@@ -891,7 +891,7 @@ void tst_OAuth2::nonce()
     QCOMPARE(nonceInAuthorizationUrl, oauth2.nonce());
 }
 
-void tst_OAuth2::idToken()
+void tst_OAuth2CodeFlow::idToken()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setRequestedScopeTokens({"openid"});
@@ -948,7 +948,7 @@ void tst_OAuth2::idToken()
 
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
-void tst_OAuth2::scope_data()
+void tst_OAuth2CodeFlow::scope_data()
 {
     static const auto requestedScopeTokens = u"requested"_s;
     QTest::addColumn<QString>("scope");
@@ -963,7 +963,7 @@ void tst_OAuth2::scope_data()
         << requestedScopeTokens << u""_s << requestedScopeTokens;
 }
 
-void tst_OAuth2::scope()
+void tst_OAuth2CodeFlow::scope()
 {
     QFETCH(QString, scope);
     QFETCH(QString, granted_scope);
@@ -1024,7 +1024,7 @@ void tst_OAuth2::scope()
     }
 }
 
-void tst_OAuth2::setInvalidScope()
+void tst_OAuth2CodeFlow::setInvalidScope()
 {
     const auto zeroth = u"zeroth"_s;
     const auto zerothU8 = zeroth.toUtf8();
@@ -1076,7 +1076,7 @@ void tst_OAuth2::setInvalidScope()
     }
 }
 
-void tst_OAuth2::scopeAndRequestedScope_data()
+void tst_OAuth2CodeFlow::scopeAndRequestedScope_data()
 {
     const QByteArray f = "first";
     const QByteArray s = "second";
@@ -1091,7 +1091,7 @@ void tst_OAuth2::scopeAndRequestedScope_data()
     QTest::addRow("multiscope") << fs << fs << QSet{f, s} << fs;
 }
 
-void tst_OAuth2::scopeAndRequestedScope()
+void tst_OAuth2CodeFlow::scopeAndRequestedScope()
 {
     QFETCH(QByteArray, scope);
     QFETCH(QByteArray, expected_scope);
@@ -1160,7 +1160,7 @@ void tst_OAuth2::scopeAndRequestedScope()
 QT_WARNING_POP
 #endif // QOAUTH2_NO_LEGACY_SCOPE
 
-void tst_OAuth2::requestedScopeTokens_data()
+void tst_OAuth2CodeFlow::requestedScopeTokens_data()
 {
     const QByteArray f = "first";
     const QByteArray s = "second";
@@ -1172,7 +1172,7 @@ void tst_OAuth2::requestedScopeTokens_data()
     QTest::addRow("multiscope")  << QSet{f, s} << QSet{f, s};
 }
 
-void tst_OAuth2::requestedScopeTokens()
+void tst_OAuth2CodeFlow::requestedScopeTokens()
 {
     QFETCH(QSet<QByteArray>, requested_scope);
     QFETCH(QSet<QByteArray>, expected_requested_scope);
@@ -1204,7 +1204,7 @@ void tst_OAuth2::requestedScopeTokens()
         QVERIFY2(requested_scope.contains(token), token.data());
 }
 
-void tst_OAuth2::grantedScopeTokens_data()
+void tst_OAuth2CodeFlow::grantedScopeTokens_data()
 {
     const QSet<QByteArray> requestedScopeTokens = {"first", "second"};
     const QByteArray scope = "first second";
@@ -1230,7 +1230,7 @@ void tst_OAuth2::grantedScopeTokens_data()
         << requestedScopeTokens << ""_ba << requestedScopeTokens;
 }
 
-void tst_OAuth2::grantedScopeTokens()
+void tst_OAuth2CodeFlow::grantedScopeTokens()
 {
     QFETCH(QSet<QByteArray>, requested_scope);
     QFETCH(QByteArray, granted_scope);
@@ -1262,7 +1262,7 @@ void tst_OAuth2::grantedScopeTokens()
     QCOMPARE(grantedSpy.at(0).at(0).value<QSet<QByteArray>>(), expected_granted_scope);
 }
 
-void tst_OAuth2::scopeCharacterWarnings()
+void tst_OAuth2CodeFlow::scopeCharacterWarnings()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     QCOMPARE_EQ(oauth2.requestedScopeTokens(), {});
@@ -1313,7 +1313,7 @@ void tst_OAuth2::scopeCharacterWarnings()
 #endif // QOAUTH2_NO_LEGACY_SCOPE
 }
 
-void tst_OAuth2::setAutoRefresh()
+void tst_OAuth2CodeFlow::setAutoRefresh()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     QSignalSpy autoRefreshSpy(&oauth2, &QAbstractOAuth2::autoRefreshChanged);
@@ -1332,7 +1332,7 @@ void tst_OAuth2::setAutoRefresh()
     QCOMPARE(autoRefreshSpy.at(0).at(0).toBool(), false);
 }
 
-void tst_OAuth2::refreshLeadTime_data()
+void tst_OAuth2CodeFlow::refreshLeadTime_data()
 {
     QTest::addColumn<std::chrono::seconds>("refreshLeadTime");
     QTest::addColumn<int>("expiresIn");
@@ -1375,7 +1375,7 @@ void tst_OAuth2::refreshLeadTime_data()
             << 18s << 20 << 3s << true  << true << QString() << false;
 }
 
-void tst_OAuth2::refreshLeadTime()
+void tst_OAuth2CodeFlow::refreshLeadTime()
 {
     QFETCH(std::chrono::seconds, refreshLeadTime);
     QFETCH(int, expiresIn);
@@ -1427,7 +1427,7 @@ void tst_OAuth2::refreshLeadTime()
     }
 }
 
-void tst_OAuth2::invalidRefreshLeadTime()
+void tst_OAuth2CodeFlow::invalidRefreshLeadTime()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     QCOMPARE(oauth2.refreshLeadTime(), 0s);
@@ -1436,7 +1436,7 @@ void tst_OAuth2::invalidRefreshLeadTime()
     QCOMPARE(oauth2.refreshLeadTime(), 0s);
 }
 
-void tst_OAuth2::alreadyExpiredTokenClientSideRefresh()
+void tst_OAuth2CodeFlow::alreadyExpiredTokenClientSideRefresh()
 {
     // This tests a particular corner-case where user adjusts leadTime such
     // that the pre-existing token is updated immediately
@@ -1464,7 +1464,7 @@ void tst_OAuth2::alreadyExpiredTokenClientSideRefresh()
 }
 
 #ifndef QT_NO_SSL
-void tst_OAuth2::setSslConfig()
+void tst_OAuth2CodeFlow::setSslConfig()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     QSignalSpy sslConfigSpy(&oauth2, &QAbstractOAuth2::sslConfigurationChanged);
@@ -1491,7 +1491,7 @@ void tst_OAuth2::setSslConfig()
     QCOMPARE(sslConfigSpy.size(), 2);
 }
 
-void tst_OAuth2::tlsAuthentication()
+void tst_OAuth2CodeFlow::tlsAuthentication()
 {
     if (!QSslSocket::supportsSsl())
         QSKIP("This test will fail because the backend does not support TLS");
@@ -1555,7 +1555,7 @@ void tst_OAuth2::tlsAuthentication()
 }
 #endif // !QT_NO_SSL
 
-void tst_OAuth2::extraTokens()
+void tst_OAuth2CodeFlow::extraTokens()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
@@ -1606,7 +1606,7 @@ void tst_OAuth2::extraTokens()
     QCOMPARE(extraTokens.value(name2).toString(), value2);
 }
 
-void tst_OAuth2::expirationAt()
+void tst_OAuth2CodeFlow::expirationAt()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setAuthorizationUrl({"authorizationEndpoint"_L1});
@@ -1687,5 +1687,5 @@ void tst_OAuth2::expirationAt()
     QVERIFY(!oauth2.expirationAt().isValid());
 }
 
-QTEST_MAIN(tst_OAuth2)
-#include "tst_oauth2.moc"
+QTEST_MAIN(tst_OAuth2CodeFlow)
+#include "tst_oauth2codeflow.moc"
