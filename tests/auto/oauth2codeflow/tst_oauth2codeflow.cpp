@@ -20,7 +20,9 @@ class tst_OAuth2CodeFlow : public QObject
 private Q_SLOTS:
     void initTestCase();
     void state();
-    void tokenUrlChanged();
+#if QT_DEPRECATED_SINCE(6, 13)
+    void accessTokenUrl();
+#endif
     void getToken();
     void refreshToken();
     void getAndRefreshToken();
@@ -44,7 +46,6 @@ private Q_SLOTS:
     void grantedScopeTokens_data();
     void grantedScopeTokens();
     void scopeCharacterWarnings();
-    void setAutoRefresh();
     void refreshLeadTime_data();
     void refreshLeadTime();
     void invalidRefreshLeadTime();
@@ -156,44 +157,17 @@ void tst_OAuth2CodeFlow::state()
     QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
 }
 
-void tst_OAuth2CodeFlow::tokenUrlChanged()
-{
-    QOAuth2AuthorizationCodeFlow oauth2;
-
-    QCOMPARE_EQ(oauth2.tokenUrl(), QUrl());
-#if QT_DEPRECATED_SINCE(6, 13)
-    QT_IGNORE_DEPRECATIONS(QCOMPARE_EQ(oauth2.accessTokenUrl(), QUrl());)
-#endif
-
-    const QUrl someTokenUrl{"accessToken"_L1};
-    const QUrl otherTokenUrl{"otherAccessToken"_L1};
-
-    // new property
-    QSignalSpy tokenUrlChangedSpy(&oauth2, &QAbstractOAuth2::tokenUrlChanged);
-
-    oauth2.setTokenUrl(someTokenUrl);
-    QCOMPARE_EQ(oauth2.tokenUrl(), someTokenUrl);
-    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
-    QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), someTokenUrl);
-
-    // setting the same value does not trigger any update
-    tokenUrlChangedSpy.clear();
-    oauth2.setTokenUrl(someTokenUrl);
-    QCOMPARE_EQ(oauth2.tokenUrl(), someTokenUrl);
-    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 0);
-
-    // set another value
-    tokenUrlChangedSpy.clear();
-    oauth2.setTokenUrl(otherTokenUrl);
-    QCOMPARE_EQ(oauth2.tokenUrl(), otherTokenUrl);
-    QCOMPARE_EQ(tokenUrlChangedSpy.size(), 1);
-    QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
-
 #if QT_DEPRECATED_SINCE(6, 13)
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
-    // old property
-    tokenUrlChangedSpy.clear();
+void tst_OAuth2CodeFlow::accessTokenUrl()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    QCOMPARE_EQ(oauth2.accessTokenUrl(), QUrl());
+
+    const QUrl someTokenUrl{"accessToken"_L1};
+    const QUrl otherTokenUrl{"otherAccessToken"_L1};
+    QSignalSpy tokenUrlChangedSpy(&oauth2, &QAbstractOAuth2::tokenUrlChanged);
     QSignalSpy accessTokenUrlChangedSpy(&oauth2,
                                         &QOAuth2AuthorizationCodeFlow::accessTokenUrlChanged);
 
@@ -224,9 +198,9 @@ QT_WARNING_DISABLE_DEPRECATED
     QCOMPARE_EQ(tokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
     QCOMPARE_EQ(accessTokenUrlChangedSpy.size(), 1);
     QCOMPARE_EQ(accessTokenUrlChangedSpy.at(0).at(0).toUrl(), otherTokenUrl);
+}
 QT_WARNING_POP
 #endif
-}
 
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 void tst_OAuth2CodeFlow::authorizationErrors()
@@ -1311,25 +1285,6 @@ void tst_OAuth2CodeFlow::scopeCharacterWarnings()
 
     QT_WARNING_POP
 #endif // QOAUTH2_NO_LEGACY_SCOPE
-}
-
-void tst_OAuth2CodeFlow::setAutoRefresh()
-{
-    QOAuth2AuthorizationCodeFlow oauth2;
-    QSignalSpy autoRefreshSpy(&oauth2, &QAbstractOAuth2::autoRefreshChanged);
-
-    QCOMPARE(oauth2.autoRefresh(), false);
-
-    oauth2.setAutoRefresh(true);
-    QTRY_COMPARE(autoRefreshSpy.size(), 1);
-    QCOMPARE(oauth2.autoRefresh(), true);
-    QCOMPARE(autoRefreshSpy.at(0).at(0).toBool(), true);
-
-    autoRefreshSpy.clear();
-    oauth2.setAutoRefresh(false);
-    QTRY_COMPARE(autoRefreshSpy.size(), 1);
-    QCOMPARE(oauth2.autoRefresh(), false);
-    QCOMPARE(autoRefreshSpy.at(0).at(0).toBool(), false);
 }
 
 void tst_OAuth2CodeFlow::refreshLeadTime_data()
