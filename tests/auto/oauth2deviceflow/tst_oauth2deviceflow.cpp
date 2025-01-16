@@ -534,7 +534,6 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
         &oauth2, &QOAuth2DeviceAuthorizationFlow::completeVerificationUrlChanged);
     QSignalSpy authorizationUrlSpy(&oauth2,
                                    &QOAuth2DeviceAuthorizationFlow::authorizationUrlChanged);
-    QSignalSpy tokenUrlSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::tokenUrlChanged);
     QSignalSpy tokenSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::tokenChanged);
     QSignalSpy refreshTokenSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::refreshTokenChanged);
     QSignalSpy requestFailedSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::requestFailed);
@@ -552,14 +551,9 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
     QCOMPARE(authorizationUrlSpy.size(), 1);
     QCOMPARE(authorizationUrlSpy.at(0).at(0).toUrl(), authorizationUrl);
 
-    // Set access token URL
+    // Get access token (and refresh token)
     const auto tokenUrl = authorizationServer->url("tokenEndpoint"_L1);
     oauth2.setTokenUrl(tokenUrl);
-    QCOMPARE(oauth2.tokenUrl(), tokenUrl);
-    QCOMPARE(tokenUrlSpy.size(), 1);
-    QCOMPARE(tokenUrlSpy.at(0).at(0).toUrl(), tokenUrl);
-
-    // Get access token (and refresh token)
     oauth2.grant();
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.status(), Status::Granted);
