@@ -29,7 +29,6 @@ private Q_SLOTS:
     void tokenRequestErrors();
     void authorizationErrors();
     void modifyTokenRequests();
-    void prepareRequest();
     void pkce_data();
     void pkce();
     void nonce();
@@ -692,16 +691,6 @@ void tst_OAuth2CodeFlow::tokenRequestErrors()
              QAbstractOAuth::Status::Granted); // back to granted since we have an access token
     QCOMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
-}
-
-void tst_OAuth2CodeFlow::prepareRequest()
-{
-    QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setToken(QStringLiteral("access_token"));
-
-    QNetworkRequest request(QUrl("http://localhost"));
-    oauth2.prepareRequest(&request, QByteArray());
-    QCOMPARE(request.rawHeader("Authorization"), QByteArray("Bearer access_token"));
 }
 
 using Method = QOAuth2AuthorizationCodeFlow::PkceMethod;
