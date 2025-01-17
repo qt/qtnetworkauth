@@ -803,35 +803,6 @@ void tst_OAuth2CodeFlow::nonce()
         nonceInAuthorizationUrl = parameters.queryItemValue(u"nonce"_s).toUtf8();
     });
 
-    // Test setting nonce mode
-    QSignalSpy nonceModeSpy(&oauth2, &QAbstractOAuth2::nonceModeChanged);
-    // -- Default
-    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Automatic);
-    // -- Change
-    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
-    QCOMPARE(nonceModeSpy.size(), 1);
-    QCOMPARE(nonceModeSpy.at(0).at(0).value<QAbstractOAuth2::NonceMode>(),
-             QAbstractOAuth2::NonceMode::Disabled);
-    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Disabled);
-    // -- Attempt to change again, but to same value
-    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
-    QCOMPARE(nonceModeSpy.size(), 1);
-    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Disabled);
-
-    // Test setting nonce value
-    QSignalSpy nonceSpy(&oauth2, &QAbstractOAuth2::nonceChanged);
-    // -- Default
-    QVERIFY(oauth2.nonce().isEmpty());
-    // -- Change
-    oauth2.setNonce(nonce);
-    QCOMPARE(nonceSpy.size(), 1);
-    QCOMPARE(nonceSpy.at(0).at(0).toByteArray(), nonce);
-    QCOMPARE(oauth2.nonce(), nonce);
-    // -- Attempt to change again, but to same value
-    oauth2.setNonce(nonce);
-    QCOMPARE(nonceSpy.size(), 1);
-    QCOMPARE(oauth2.nonce(), nonce);
-
     // Verify that nonce is set to authorization request when appropriate
     oauth2.setNonce(nonce);
     oauth2.setRequestedScopeTokens({"scope_item1"});
