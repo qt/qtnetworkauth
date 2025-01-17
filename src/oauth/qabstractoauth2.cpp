@@ -7,6 +7,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qurlquery.h>
 #include <QtCore/qbytearray.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qmessageauthenticationcode.h>
 
 #include <QtNetwork/qnetworkreply.h>
@@ -19,6 +20,8 @@
 #endif
 
 QT_BEGIN_NAMESPACE
+
+Q_STATIC_LOGGING_CATEGORY(lcOAuth2Validation, "qt.networkauth.oauth2.validation")
 
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
@@ -1194,7 +1197,7 @@ void QAbstractOAuth2::setState(const QString &state)
     // VSCHAR     = %x20-7E
     for (QChar c : state) {
         if (c < u'\x20' || c > u'\x7E') {
-            qCWarning(d->loggingCategory, "setState() contains illegal character(s), ignoring");
+            qCWarning(lcOAuth2Validation, "setState() contains illegal character(s), ignoring");
             return;
         }
     }
