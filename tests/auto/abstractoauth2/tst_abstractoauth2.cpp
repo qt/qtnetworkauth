@@ -15,6 +15,7 @@ class tst_AbstractOAuth2 : public QObject
 
 private Q_SLOTS:
     void initTestCase();
+    void prepareRequest();
     void nonce();
     void sslConfig();
     void invalidRefreshLeadTime();
@@ -47,6 +48,16 @@ void tst_AbstractOAuth2::initTestCase()
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+}
+
+void tst_AbstractOAuth2::prepareRequest()
+{
+    TestFlow oauth2;
+    oauth2.setToken(QStringLiteral("access_token"));
+
+    QNetworkRequest request(QUrl("http://localhost"));
+    oauth2.prepareRequest(&request, QByteArray());
+    QCOMPARE(request.rawHeader("Authorization"), QByteArray("Bearer access_token"));
 }
 
 void tst_AbstractOAuth2::nonce()
