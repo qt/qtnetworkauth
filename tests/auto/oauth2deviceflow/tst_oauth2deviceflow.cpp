@@ -160,7 +160,7 @@ class DeviceFlow : public QOAuth2DeviceAuthorizationFlow
 public:
     QOAuth2DeviceAuthorizationFlowPrivate *flowPrivate()
     {
-        return static_cast<QOAuth2DeviceAuthorizationFlowPrivate*>(d_ptr.data());
+        return static_cast<QOAuth2DeviceAuthorizationFlowPrivate*>(d_ptr.get());
     }
 };
 
