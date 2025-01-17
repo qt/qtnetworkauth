@@ -15,6 +15,7 @@ class tst_AbstractOAuth2 : public QObject
 
 private Q_SLOTS:
     void initTestCase();
+    void nonce();
     void sslConfig();
     void invalidRefreshLeadTime();
     void tokenUrl();
@@ -46,6 +47,41 @@ void tst_AbstractOAuth2::initTestCase()
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+}
+
+void tst_AbstractOAuth2::nonce()
+{
+    TestFlow oauth2;
+    const auto nonce = "a_nonce"_ba;
+
+    // Test setting nonce mode
+    QSignalSpy nonceModeSpy(&oauth2, &QAbstractOAuth2::nonceModeChanged);
+    // -- Default
+    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Automatic);
+    // -- Change
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
+    QCOMPARE(nonceModeSpy.size(), 1);
+    QCOMPARE(nonceModeSpy.at(0).at(0).value<QAbstractOAuth2::NonceMode>(),
+             QAbstractOAuth2::NonceMode::Disabled);
+    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Disabled);
+    // -- Attempt to change again, but to same value
+    oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
+    QCOMPARE(nonceModeSpy.size(), 1);
+    QCOMPARE(oauth2.nonceMode(), QAbstractOAuth2::NonceMode::Disabled);
+
+    // Test setting nonce value
+    QSignalSpy nonceSpy(&oauth2, &QAbstractOAuth2::nonceChanged);
+    // -- Default
+    QVERIFY(oauth2.nonce().isEmpty());
+    // -- Change
+    oauth2.setNonce(nonce);
+    QCOMPARE(nonceSpy.size(), 1);
+    QCOMPARE(nonceSpy.at(0).at(0).toByteArray(), nonce);
+    QCOMPARE(oauth2.nonce(), nonce);
+    // -- Attempt to change again, but to same value
+    oauth2.setNonce(nonce);
+    QCOMPARE(nonceSpy.size(), 1);
+    QCOMPARE(oauth2.nonce(), nonce);
 }
 
 void tst_AbstractOAuth2::sslConfig()
