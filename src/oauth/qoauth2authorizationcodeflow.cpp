@@ -456,8 +456,8 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
     p.insert(QtOAuth2RfcKeywords::responseType, responseType());
     p.insert(QtOAuth2RfcKeywords::clientIdentifier, d->clientIdentifier);
     p.insert(QtOAuth2RfcKeywords::redirectUri, callback());
-    if (!d->requestedScope.isEmpty())
-        p.insert(QtOAuth2RfcKeywords::scope, d->requestedScope.join(" "_L1));
+    if (!d->requestedScopeTokens.isEmpty())
+        p.insert(QtOAuth2RfcKeywords::scope, d->requestedScopeTokens.join(" "_L1));
     p.insert(QtOAuth2RfcKeywords::state, toUrlFormEncoding(state));
     if (d->pkceMethod != PkceMethod::None) {
         p.insert(QtOAuth2RfcKeywords::codeChallenge, d->createPKCEChallenge());

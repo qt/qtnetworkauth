@@ -23,11 +23,12 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
     Q_PROPERTY(QString scope READ scope WRITE setScope NOTIFY scopeChanged)
 #endif
-    Q_PROPERTY(QStringList grantedScope READ grantedScope NOTIFY grantedScopeChanged)
-    Q_PROPERTY(QStringList requestedScope
-                READ requestedScope
-                WRITE setRequestedScope
-                NOTIFY requestedScopeChanged)
+    Q_PROPERTY(QStringList grantedScopeTokens
+               READ grantedScopeTokens NOTIFY grantedScopeTokensChanged)
+    Q_PROPERTY(QStringList requestedScopeTokens
+               READ requestedScopeTokens
+               WRITE setRequestedScopeTokens
+               NOTIFY requestedScopeTokensChanged)
     Q_PROPERTY(QString userAgent READ userAgent WRITE setUserAgent NOTIFY userAgentChanged)
     Q_PROPERTY(QString clientIdentifierSharedKey
                READ clientIdentifierSharedKey
@@ -115,16 +116,16 @@ public:
     Q_INVOKABLE QNetworkReply *deleteResource(const QUrl &url,
                                               const QVariantMap &parameters = QVariantMap()) override;
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
-    QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
+    QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     QString scope() const;
-    QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
+    QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     void setScope(const QString &scope);
 #endif
 
-    QStringList grantedScope() const;
+    QStringList grantedScopeTokens() const;
 
-    QStringList requestedScope() const;
-    void setRequestedScope(const QStringList &scope);
+    QStringList requestedScopeTokens() const;
+    void setRequestedScopeTokens(const QStringList &scope);
 
     QString userAgent() const;
     void setUserAgent(const QString &userAgent);
@@ -186,11 +187,11 @@ public Q_SLOTS:
 Q_SIGNALS:
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
     QT_MOC_COMPAT
-    QT_DEPRECATED_VERSION_X_6_13("Use requestedScope and grantedScope properties instead.")
+    QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     void scopeChanged(const QString &scope);
 #endif
-    void grantedScopeChanged(const QStringList &scope);
-    void requestedScopeChanged(const QStringList &scope);
+    void grantedScopeTokensChanged(const QStringList &scope);
+    void requestedScopeTokensChanged(const QStringList &scope);
     void userAgentChanged(const QString &userAgent);
     void responseTypeChanged(const QString &responseType);
     void clientIdentifierSharedKeyChanged(const QString &clientIdentifierSharedKey);

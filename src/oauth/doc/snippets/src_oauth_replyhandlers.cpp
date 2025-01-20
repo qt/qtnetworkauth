@@ -62,14 +62,14 @@ HttpExample::HttpExample()
 #endif
 
     //! [oidc-setting-scope]
-    m_oauth.setRequestedScope({"openid"_L1});
+    m_oauth.setRequestedScopeTokens({"openid"_L1});
     //! [oidc-setting-scope]
 
     //! [httpserver-service-configuration]
     m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
     m_oauth.setTokenUrl(QUrl(accessTokenUrl));
     m_oauth.setClientIdentifier(clientIdentifier);
-    m_oauth.setRequestedScope({scope});
+    m_oauth.setRequestedScopeTokens({scope});
     //! [httpserver-service-configuration]
 
     //! [oidc-setting-nonce-mode]
@@ -338,7 +338,7 @@ void HttpExample::authorize()
         m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
         m_oauth.setTokenUrl(QUrl(accessTokenUrl));
         m_oauth.setClientIdentifier(clientIdentifier);
-        m_oauth.setRequestedScope({scope});
+        m_oauth.setRequestedScopeTokens({scope});
 
         m_handler = new QOAuthHttpServerReplyHandler(1234, this);
 
@@ -364,7 +364,7 @@ void HttpExample::setupDeviceFlow()
     //! [deviceflow-setup]
     m_deviceFlow.setAuthorizationUrl(QUrl(authorizationUrl));
     m_deviceFlow.setTokenUrl(QUrl(accessTokenUrl));
-    m_deviceFlow.setRequestedScope({scope});
+    m_deviceFlow.setRequestedScopeTokens({scope});
     m_deviceFlow.setClientIdentifier(clientIdentifier);
     // The need for a client secret depends on the authorization server
     m_deviceFlow.setClientIdentifierSharedKey(clientSecret);
@@ -436,7 +436,7 @@ UriSchemeExample::UriSchemeExample()
     m_oauth.setAuthorizationUrl(QUrl(authorizationUrl));
     m_oauth.setTokenUrl(QUrl(accessTokenUrl));
     m_oauth.setClientIdentifier(clientIdentifier);
-    m_oauth.setRequestedScope({scope});
+    m_oauth.setRequestedScopeTokens({scope});
     //! [uri-service-configuration]
 }
 

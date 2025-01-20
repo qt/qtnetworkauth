@@ -46,7 +46,7 @@ public:
     ~QAbstractOAuth2Private();
 
     void setExpiresAt(const QDateTime &expiration);
-    void setGrantedScope(const QStringList &scope);
+    void setGrantedScopeTokens(const QStringList &newScope);
     static QString generateRandomState();
     static QString generateNonce();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
@@ -84,8 +84,8 @@ public:
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
     QString scope;
 #endif
-    QStringList requestedScope;
-    QStringList grantedScope;
+    QStringList requestedScopeTokens;
+    QStringList grantedScopeTokens;
     QString state = generateRandomState();
     QString userAgent = QStringLiteral("QtOAuth/1.0 (+https://www.qt.io)");
     QString responseType;
