@@ -468,6 +468,35 @@ QSet<QByteArray> QAbstractOAuth2Private::splitScope(QStringView scope)
     return split;
 }
 
+constexpr auto is_invalid_scope_token_char = [](char ch) noexcept
+{
+    // https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
+    //   scope-token = 1*( %x21 / %x23-5B / %x5D-7E )
+    //   ie. all US-ASCII, except control, SP, DQUOTE, and BACKSLASH
+    return !(ch > ' ' && uchar(ch) <= 0x7E && ch != '\x22' && ch != '\x5C');
+};
+
+void QAbstractOAuth2Private::warnOnInvalidScopeTokens(const QSet<QByteArray> &scopeTokens)
+{
+    if (!lcOAuth2Validation().isWarningEnabled() || scopeTokens.isEmpty())
+        return;
+
+    for (const auto &token : scopeTokens) {
+        if (token.isEmpty()) {
+            qCWarning(lcOAuth2Validation, "An empty scope token detected, it will be ignored");
+            return;
+        }
+        auto invalidCharIt =
+            std::find_if(token.constBegin(), token.constEnd(), is_invalid_scope_token_char);
+        if (invalidCharIt != token.constEnd()) {
+            qCWarning(lcOAuth2Validation, "Scope token contains disallowed character '%c' (%d). "
+                                          "This may cause interoperability issues",
+                                          *invalidCharIt, static_cast<quint8>(*invalidCharIt));
+            return;
+        }
+    }
+}
+
 QString QAbstractOAuth2Private::generateRandomState()
 {
     return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(8));
@@ -635,6 +664,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     // Therefore 'scope' needs to be set if the granted scope differs from 'scope'.
     const QString receivedGrantedScope = values.value(QtOAuth2RfcKeywords::scope).toString();
     const QSet<QByteArray> splitGrantedScope = splitScope(receivedGrantedScope);
+    warnOnInvalidScopeTokens(splitGrantedScope);
     if (splitGrantedScope.isEmpty()) {
         setGrantedScopeTokens(requestedScopeTokens);
     } else {
@@ -1135,6 +1165,7 @@ void QAbstractOAuth2::setScope(const QString &scope)
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(scope);)
     }
     const QSet<QByteArray> splitScope = d->splitScope(scope);
+    d->warnOnInvalidScopeTokens(splitScope);
     if (d->requestedScopeTokens != splitScope) {
         d->requestedScopeTokens = splitScope;
         Q_EMIT requestedScopeTokensChanged(splitScope);
@@ -1151,6 +1182,7 @@ QSet<QByteArray> QAbstractOAuth2::requestedScopeTokens() const
 void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
 {
     Q_D(QAbstractOAuth2);
+    d->warnOnInvalidScopeTokens(tokens);
     if (tokens != d->requestedScopeTokens) {
         d->requestedScopeTokens = tokens;
         Q_EMIT requestedScopeTokensChanged(tokens);
