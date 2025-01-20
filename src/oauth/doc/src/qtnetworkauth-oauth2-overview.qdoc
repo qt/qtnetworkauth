@@ -263,8 +263,9 @@ Refreshing tokens requires that the authorization server provide a
 \l {https://datatracker.ietf.org/doc/html/rfc6749#section-1.5}{refresh token}
 during authorization. Providing a refresh token is up to the
 authorization server: some servers provide it always, some never,
-and some provide it if a specific \l {QAbstractOAuth2::requestedScope}{scope}
-was present in the authorization request.
+and some provide it if a specific
+\l {QAbstractOAuth2::requestedScopeTokens}{scope} was present in the
+authorization request.
 
 The following figure illustrates the token refresh in more detail:
 
