@@ -49,6 +49,7 @@ public:
     void setGrantedScopeTokens(const QSet<QByteArray> &tokens);
     static QByteArray joinedScope(const QSet<QByteArray> &scopeTokens);
     static QSet<QByteArray> splitScope(QStringView scope);
+    static void warnOnInvalidScopeTokens(const QSet<QByteArray> &scopeTokens);
     static QString generateRandomState();
     static QString generateNonce();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);

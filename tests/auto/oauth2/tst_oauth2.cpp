@@ -42,6 +42,7 @@ private Q_SLOTS:
     void requestedScopeTokens();
     void grantedScopeTokens_data();
     void grantedScopeTokens();
+    void scopeCharacterWarnings();
     void setAutoRefresh();
     void refreshLeadTime_data();
     void refreshLeadTime();
@@ -1206,6 +1207,45 @@ void tst_OAuth2::grantedScopeTokens()
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.grantedScopeTokens(), expected_granted_scope);
     QCOMPARE(grantedSpy.at(0).at(0).value<QSet<QByteArray>>(), expected_granted_scope);
+}
+
+void tst_OAuth2::scopeCharacterWarnings()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+
+    const QRegularExpression scopeCharWarning{"Scope token contains disallowed character"};
+    // All characters in acceptable range
+    const QByteArray acceptable = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                  "[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+    // All good
+    oauth2.setRequestedScopeTokens({acceptable});
+
+    // Outside of acceptable range
+    QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
+    oauth2.setRequestedScopeTokens({"\x03"});
+
+    QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
+    oauth2.setRequestedScopeTokens({u"foo€bar"_s.toUtf8()});
+
+    // Empty token
+    QTest::ignoreMessage(QtWarningMsg, QRegularExpression("An empty scope token detected"));
+    oauth2.setRequestedScopeTokens({"", "some"});
+
+#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+    QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
+
+    // All good
+    oauth2.setScope(acceptable);
+
+    QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
+    oauth2.setScope(u"\x03"_s);
+
+    QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
+    oauth2.setScope(u"foo€bar"_s);
+
+    QT_WARNING_POP
+#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
 }
 
 void tst_OAuth2::setAutoRefresh()
