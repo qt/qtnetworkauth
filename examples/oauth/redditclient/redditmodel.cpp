@@ -33,7 +33,7 @@ RedditModel::RedditModel(const QString &clientId, QObject *parent) :
     oauth2.setReplyHandler(replyHandler);
     oauth2.setAuthorizationUrl(QUrl(authorizationUrl));
     oauth2.setTokenUrl(QUrl(accessTokenUrl));
-    oauth2.setRequestedScopeTokens({"identity"_L1, "read"_L1});
+    oauth2.setRequestedScopeTokens({"identity", "read"});
     oauth2.setClientIdentifier(clientId);
 
     QObject::connect(&oauth2, &QAbstractOAuth::granted, this, [this] {

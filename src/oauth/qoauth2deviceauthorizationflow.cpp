@@ -658,7 +658,7 @@ void QOAuth2DeviceAuthorizationFlow::grant()
     QMultiMap<QString, QVariant> parameters;
     parameters.insert(QtOAuth2RfcKeywords::clientIdentifier, d->clientIdentifier);
     if (!d->requestedScopeTokens.isEmpty())
-        parameters.insert(QtOAuth2RfcKeywords::scope, d->requestedScopeTokens.join(" "_L1));
+        parameters.insert(QtOAuth2RfcKeywords::scope, d->joinedScope(d->requestedScopeTokens));
     if (d->authorizationShouldIncludeNonce()) {
         if (d->nonce.isEmpty())
             setNonce(QAbstractOAuth2Private::generateNonce());
