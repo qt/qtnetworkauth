@@ -43,7 +43,7 @@ using namespace Qt::StringLiterals;
 static constexpr auto authorizationUrl = "https://www.myqtapp.example.com/api/v1/authorize"_L1;
 static constexpr auto accessTokenUrl = "https://www.myqtapp.example.com/api/v1/access_token"_L1;
 static constexpr auto clientIdentifier = "some_client_id"_L1;
-static constexpr auto scope = "read"_L1;
+static constexpr auto scope = "read";
 static constexpr auto oidcConfigUrl =
     "https://www.myqtapp.example.com/.well-known/openid-configuration"_L1;
 static constexpr auto oidcJwksUrl = "https://www.myqtapp.example.com/v1/certs"_L1;
@@ -62,7 +62,7 @@ HttpExample::HttpExample()
 #endif
 
     //! [oidc-setting-scope]
-    m_oauth.setRequestedScopeTokens({"openid"_L1});
+    m_oauth.setRequestedScopeTokens({"openid"});
     //! [oidc-setting-scope]
 
     //! [httpserver-service-configuration]

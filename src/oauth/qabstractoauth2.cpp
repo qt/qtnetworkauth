@@ -439,13 +439,33 @@ void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
     emit q->expirationAtChanged(expiresAtUtc.toLocalTime());
 }
 
-void QAbstractOAuth2Private::setGrantedScopeTokens(const QStringList &tokens)
+void QAbstractOAuth2Private::setGrantedScopeTokens(const QSet<QByteArray> &tokens)
 {
     if (tokens == grantedScopeTokens)
         return;
     Q_Q(QAbstractOAuth2);
     grantedScopeTokens = tokens;
     Q_EMIT q->grantedScopeTokensChanged(grantedScopeTokens);
+}
+
+QByteArray QAbstractOAuth2Private::joinedScope(const QSet<QByteArray> &scopeTokens)
+{
+    QByteArray joined;
+    const char *separator = "";
+    for (const auto &token : scopeTokens) {
+        joined += separator;
+        joined += token;
+        separator = " ";
+    }
+    return joined;
+}
+
+QSet<QByteArray> QAbstractOAuth2Private::splitScope(QStringView scope)
+{
+    QSet<QByteArray> split;
+    for (const auto &token : scope.split(u' ', Qt::SkipEmptyParts))
+        split.insert(token.toUtf8());
+    return split;
 }
 
 QString QAbstractOAuth2Private::generateRandomState()
@@ -549,7 +569,7 @@ bool QAbstractOAuth2Private::authorizationShouldIncludeNonce() const
     case QAbstractOAuth2::NonceMode::Disabled:
         return false;
     case QAbstractOAuth2::NonceMode::Automatic:
-        return requestedScopeTokens.contains("openid"_L1);
+        return requestedScopeTokens.contains("openid");
     };
     return false;
 }
@@ -614,7 +634,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     // Note: 'scope' variable has two roles: requested scope, and later granted scope.
     // Therefore 'scope' needs to be set if the granted scope differs from 'scope'.
     const QString receivedGrantedScope = values.value(QtOAuth2RfcKeywords::scope).toString();
-    const QStringList splitGrantedScope = receivedGrantedScope.split(" "_L1, Qt::SkipEmptyParts);
+    const QSet<QByteArray> splitGrantedScope = splitScope(receivedGrantedScope);
     if (splitGrantedScope.isEmpty()) {
         setGrantedScopeTokens(requestedScopeTokens);
     } else {
@@ -631,7 +651,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     // https://openid.net/specs/openid-connect-core-1_0-final.html#AuthRequest (cf. 'scope')
     // https://openid.net/specs/openid-connect-core-1_0-final.html#TokenResponse
     const QString receivedIdToken = values.value(QtOAuth2RfcKeywords::idToken).toString();
-    if (grantedScopeTokens.contains("openid"_L1) && receivedIdToken.isEmpty()) {
+    if (grantedScopeTokens.contains("openid") && receivedIdToken.isEmpty()) {
         setIdToken({});
         _q_tokenRequestFailed(QAbstractOAuth::Error::OAuthTokenNotFoundError,
                                     "ID token not received"_L1);
@@ -1100,7 +1120,7 @@ QString QAbstractOAuth2::scope() const
 }
 #endif
 
-QStringList QAbstractOAuth2::grantedScopeTokens() const
+QSet<QByteArray> QAbstractOAuth2::grantedScopeTokens() const
 {
     Q_D(const QAbstractOAuth2);
     return d->grantedScopeTokens;
@@ -1114,7 +1134,7 @@ void QAbstractOAuth2::setScope(const QString &scope)
         d->scope = scope;
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(scope);)
     }
-    QStringList splitScope = scope.split(" "_L1, Qt::SkipEmptyParts);
+    const QSet<QByteArray> splitScope = d->splitScope(scope);
     if (d->requestedScopeTokens != splitScope) {
         d->requestedScopeTokens = splitScope;
         Q_EMIT requestedScopeTokensChanged(splitScope);
@@ -1122,13 +1142,13 @@ void QAbstractOAuth2::setScope(const QString &scope)
 }
 #endif
 
-QStringList QAbstractOAuth2::requestedScopeTokens() const
+QSet<QByteArray> QAbstractOAuth2::requestedScopeTokens() const
 {
     Q_D(const QAbstractOAuth2);
     return d->requestedScopeTokens;
 }
 
-void QAbstractOAuth2::setRequestedScopeTokens(const QStringList &tokens)
+void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
 {
     Q_D(QAbstractOAuth2);
     if (tokens != d->requestedScopeTokens) {
@@ -1136,7 +1156,7 @@ void QAbstractOAuth2::setRequestedScopeTokens(const QStringList &tokens)
         Q_EMIT requestedScopeTokensChanged(tokens);
     }
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
-    QString joinedScope = tokens.join(" "_L1);
+    QString joinedScope = QString::fromLatin1(d->joinedScope(tokens));
     if (joinedScope != d->scope) {
         d->scope = joinedScope;
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(joinedScope);)

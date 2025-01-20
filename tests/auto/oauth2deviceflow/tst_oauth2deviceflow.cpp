@@ -1,6 +1,7 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtTest/qtestcase.h>
 #include <QtTest>
 
 #include "oauthtestutils.h"
@@ -501,7 +502,7 @@ void tst_OAuth2DeviceFlow::startStopTokenPolling()
 void tst_OAuth2DeviceFlow::getAndRefreshToken()
 {
     static constexpr auto clientId = "a-client-id"_L1;
-    static constexpr auto scope = "a-scope"_L1;
+    static constexpr auto scope = "a-scope";
     static constexpr auto accessToken = "an-access-token"_L1;
     static constexpr auto clientSecret = "a-client-secret"_L1;
     static constexpr auto deviceCode = "a-device-code"_L1;
@@ -1012,7 +1013,7 @@ void tst_OAuth2DeviceFlow::nonce()
         authBody, authHttpStatus, tokenBody, tokenHttpStatus));
 
     QOAuth2DeviceAuthorizationFlow oauth2;
-    oauth2.setRequestedScopeTokens({"openid"_L1});
+    oauth2.setRequestedScopeTokens({"openid"});
     oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
     oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
 
@@ -1047,7 +1048,7 @@ void tst_OAuth2DeviceFlow::nonce()
 
     // Verify that nonce is set to authorization request when appropriate
     oauth2.setNonce(nonce);
-    oauth2.setRequestedScopeTokens({u"scope_item1"_s});
+    oauth2.setRequestedScopeTokens({"scope_item1"});
 
     // -- Nonce is always included
     oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Enabled);
@@ -1073,7 +1074,7 @@ void tst_OAuth2DeviceFlow::nonce()
     parameters.setQuery(receivedAuthorizationRequests.at(0).body);
     QVERIFY(parameters.queryItemValue(u"nonce"_s).toUtf8().isEmpty());
 
-    oauth2.setRequestedScopeTokens({u"scope_item1"_s, u"openid"_s});
+    oauth2.setRequestedScopeTokens({"scope_item1", "openid"});
     receivedAuthorizationRequests.clear();
     oauth2.grant();
     QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
@@ -1102,7 +1103,7 @@ void tst_OAuth2DeviceFlow::idToken()
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setRequestedScopeTokens({"openid"_L1});
+    oauth2.setRequestedScopeTokens({"openid"});
     oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
     oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
 
@@ -1113,7 +1114,7 @@ void tst_OAuth2DeviceFlow::idToken()
     QVERIFY(oauth2.idToken().isEmpty());
 
     // Test without openid and verify idToken doesn't change
-    oauth2.setRequestedScopeTokens({"read"_L1});
+    oauth2.setRequestedScopeTokens({"read"});
     oauth2.grant();
     QTRY_COMPARE(oauth2.status(), Status::Granted);
     QVERIFY(idTokenSpy.isEmpty());
@@ -1123,7 +1124,7 @@ void tst_OAuth2DeviceFlow::idToken()
     // Note: using a proper JWT or setting the matching 'nonce' is not required for this tests
     // purpose as we don't currently validate the received token, but no harm in being thorough
     auto idToken = createSignedJWT({}, {{"nonce"_L1, oauth2.nonce()}});
-    oauth2.setRequestedScopeTokens({"openid"_L1});
+    oauth2.setRequestedScopeTokens({"openid"});
     tokenBody = R"(
         {
             "access_token": "an-access-token",
@@ -1154,23 +1155,20 @@ void tst_OAuth2DeviceFlow::idToken()
 
 void tst_OAuth2DeviceFlow::requestedScopeTokens_data()
 {
-    const QString f = u"first"_s;
-    const QString s = u"second"_s;
-    const QString fs = u"first second"_s;
+    const QByteArray f = "first";
+    const QByteArray s = "second";
 
-    QTest::addColumn<QStringList>("requested_scope");
-    QTest::addColumn<QStringList>("expected_requested_scope");
-    QTest::addColumn<QString>("expected_resulting_request_scope");
+    QTest::addColumn<QSet<QByteArray>>("requested_scope");
+    QTest::addColumn<QSet<QByteArray>>("expected_requested_scope");
 
-    QTest::addRow("singlescope") << QStringList{f} << QStringList{f} << f;
-    QTest::addRow("multiscope")  << QStringList{f, s} << QStringList{f, s} << fs;
+    QTest::addRow("singlescope") << QSet{f} << QSet{f};
+    QTest::addRow("multiscope")  << QSet{f, s} << QSet{f, s};
 }
 
 void tst_OAuth2DeviceFlow::requestedScopeTokens()
 {
-    QFETCH(QStringList, requested_scope);
-    QFETCH(QStringList, expected_requested_scope);
-    QFETCH(QString, expected_resulting_request_scope);
+    QFETCH(QSet<QByteArray>, requested_scope);
+    QFETCH(QSet<QByteArray>, expected_requested_scope);
 
     const QString authBody = Responses::authorizationSuccess;
     const QString authHttpStatus = Responses::OK_200;
@@ -1189,45 +1187,49 @@ void tst_OAuth2DeviceFlow::requestedScopeTokens()
 
     QCOMPARE(requestedScopeTokensSpy.size(), 1);
     QCOMPARE(oauth2.requestedScopeTokens(), expected_requested_scope);
-    QCOMPARE(requestedScopeTokensSpy.at(0).at(0).toStringList(), expected_requested_scope);
+    QCOMPARE(requestedScopeTokensSpy.at(0).at(0).value<QSet<QByteArray>>(),
+             expected_requested_scope);
 
     oauth2.grant();
     QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
     QUrlQuery parameters(receivedAuthorizationRequests.at(0).body);
-    QCOMPARE(parameters.queryItemValue(u"scope"_s), expected_resulting_request_scope);
+    const auto scopeTokens = parameters.queryItemValue(u"scope"_s).toLatin1().split(' ');
+    QCOMPARE_EQ(scopeTokens.size(), requested_scope.size());
+    for (const auto &token : scopeTokens)
+        QVERIFY2(requested_scope.contains(token), token.data());
 }
 
 void tst_OAuth2DeviceFlow::grantedScopeTokens_data()
 {
-    const QStringList requestedScopeTokens = {u"first"_s, u"second"_s};
-    const QString scope = u"first second"_s;
-    const QString granted1 = u"granted1"_s;
-    const QString granted2 = u"granted2"_s;
-    const QString grantedJoined = granted1 + u" "_s + granted2;
-    const QStringList grantedList = {granted1, granted2};
+    const QSet<QByteArray> requestedScopeTokens = {"first", "second"};
+    const QByteArray scope = "first second";
+    const QByteArray granted1 = "granted1";
+    const QByteArray granted2 = "granted2";
+    const QByteArray grantedJoined = granted1 + " " + granted2;
+    const QSet<QByteArray> grantedList = {granted1, granted2};
 
-    QTest::addColumn<QStringList>("requested_scope");
-    QTest::addColumn<QString>("granted_scope");
-    QTest::addColumn<QStringList>("expected_granted_scope");
+    QTest::addColumn<QSet<QByteArray>>("requested_scope");
+    QTest::addColumn<QByteArray>("granted_scope");
+    QTest::addColumn<QSet<QByteArray>>("expected_granted_scope");
 
     QTest::addRow("requested_scope_returned")
         << requestedScopeTokens << scope << requestedScopeTokens;
 
     QTest::addRow("differing_singlescope_returned")
-        << requestedScopeTokens << granted1 << QStringList{granted1};
+        << requestedScopeTokens << granted1 << QSet<QByteArray>{granted1};
 
     QTest::addRow("differing_multiscope_returned")
         << requestedScopeTokens << grantedJoined << grantedList;
 
     QTest::addRow("empty_scope_returned")
-        << requestedScopeTokens << u""_s << requestedScopeTokens;
+        << requestedScopeTokens << ""_ba << requestedScopeTokens;
 }
 
 void tst_OAuth2DeviceFlow::grantedScopeTokens()
 {
-    QFETCH(QStringList, requested_scope);
-    QFETCH(QString, granted_scope);
-    QFETCH(QStringList, expected_granted_scope);
+    QFETCH(QSet<QByteArray>, requested_scope);
+    QFETCH(QByteArray, granted_scope);
+    QFETCH(QSet<QByteArray>, expected_granted_scope);
 
     const QString authBody = Responses::authorizationSuccess;
     const QString authHttpStatus = Responses::OK_200;
@@ -1258,7 +1260,7 @@ void tst_OAuth2DeviceFlow::grantedScopeTokens()
 
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.grantedScopeTokens(), expected_granted_scope);
-    QCOMPARE(grantedSpy.at(0).at(0).toStringList(), expected_granted_scope);
+    QCOMPARE(grantedSpy.at(0).at(0).value<QSet<QByteArray>>(), expected_granted_scope);
 }
 
 void tst_OAuth2DeviceFlow::refreshLeadTime_data()

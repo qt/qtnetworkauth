@@ -8,6 +8,7 @@
 
 #ifndef QT_NO_HTTP
 
+#include <QtCore/qcontainerfwd.h>
 #include <QtCore/qdatetime.h>
 
 #include <QtNetworkAuth/qabstractoauth.h>
@@ -23,9 +24,9 @@ class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
     Q_PROPERTY(QString scope READ scope WRITE setScope NOTIFY scopeChanged)
 #endif
-    Q_PROPERTY(QStringList grantedScopeTokens
+    Q_PROPERTY(QSet<QByteArray> grantedScopeTokens
                READ grantedScopeTokens NOTIFY grantedScopeTokensChanged)
-    Q_PROPERTY(QStringList requestedScopeTokens
+    Q_PROPERTY(QSet<QByteArray> requestedScopeTokens
                READ requestedScopeTokens
                WRITE setRequestedScopeTokens
                NOTIFY requestedScopeTokensChanged)
@@ -122,10 +123,10 @@ public:
     void setScope(const QString &scope);
 #endif
 
-    QStringList grantedScopeTokens() const;
+    QSet<QByteArray> grantedScopeTokens() const;
 
-    QStringList requestedScopeTokens() const;
-    void setRequestedScopeTokens(const QStringList &tokens);
+    QSet<QByteArray> requestedScopeTokens() const;
+    void setRequestedScopeTokens(const QSet<QByteArray> &tokens);
 
     QString userAgent() const;
     void setUserAgent(const QString &userAgent);
@@ -190,8 +191,8 @@ Q_SIGNALS:
     QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     void scopeChanged(const QString &scope);
 #endif
-    void grantedScopeTokensChanged(const QStringList &tokens);
-    void requestedScopeTokensChanged(const QStringList &tokens);
+    void grantedScopeTokensChanged(const QSet<QByteArray> &tokens);
+    void requestedScopeTokensChanged(const QSet<QByteArray> &tokens);
     void userAgentChanged(const QString &userAgent);
     void responseTypeChanged(const QString &responseType);
     void clientIdentifierSharedKeyChanged(const QString &clientIdentifierSharedKey);
