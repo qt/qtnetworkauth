@@ -444,7 +444,7 @@ void QAbstractOAuth2Private::setGrantedScope(const QStringList &newScope)
 
 QString QAbstractOAuth2Private::generateRandomState()
 {
-    return QString::fromUtf8(QAbstractOAuthPrivate::generateRandomString(8));
+    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(8));
 }
 
 QString QAbstractOAuth2Private::generateNonce()
@@ -452,7 +452,7 @@ QString QAbstractOAuth2Private::generateNonce()
     // There is no strict minimum or maximum size for nonce, but
     // generating a 32-character base64 URL string provides
     // ~192 bits of entropy (32 characters * 6 bits per character).
-    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomString(32));
+    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(32));
 }
 
 QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMap *parameters)

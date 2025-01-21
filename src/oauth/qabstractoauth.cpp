@@ -285,7 +285,7 @@ void QAbstractOAuthPrivate::setStatus(QAbstractOAuth::Status newStatus)
     }
 }
 
-QByteArray QAbstractOAuthPrivate::generateRandomString(quint8 length)
+QByteArray QAbstractOAuthPrivate::generateRandomBase64String(quint8 length)
 {
     // We'll use QByteArray::toBase64() to create a random-looking string from
     // pure random data. In Base64 encoding, we get 6 bits of randomness per
@@ -639,7 +639,7 @@ void QAbstractOAuth::resourceOwnerAuthorization(const QUrl &url, const QMultiMap
 */
 QByteArray QAbstractOAuth::generateRandomString(quint8 length)
 {
-    return QAbstractOAuthPrivate::generateRandomString(length);
+    return QAbstractOAuthPrivate::generateRandomBase64String(length);
 }
 
 QT_END_NAMESPACE
