@@ -42,11 +42,10 @@ using namespace Qt::StringLiterals;
     QOAuthHttpServerReplyHandler, and QOAuthUriSchemeReplyHandler.
 */
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#if QT_DEPRECATED_SINCE(6, 13)
 /*!
     \property QOAuth2AuthorizationCodeFlow::accessTokenUrl
-    \deprecated [6.9] Use QAbstractOAuth2::tokenUrl instead. This property will
-    be removed in Qt 7.0.
+    \deprecated [6.9] Use QAbstractOAuth2::tokenUrl instead.
 
     \brief This property holds the URL used to convert the temporary
     code received during the authorization response.
