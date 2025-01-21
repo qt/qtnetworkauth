@@ -84,7 +84,7 @@ public:
     void updateRefreshTimer(bool clientSideUpdate);
 
     QString clientIdentifierSharedKey;
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     QString scope;
 #endif
     QSet<QByteArray> requestedScopeTokens;
