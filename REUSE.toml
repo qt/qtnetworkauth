@@ -14,23 +14,22 @@ SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
 
 [[annotations]]
-path = [".cmake.conf", "**.yaml", "**.json", "**.pro"]
+path = [".cmake.conf", "**.yaml", "**.pro", "**ci_config_linux.json"]
 precedence = "closest"
 comment = "build system"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
 SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
-path = ["examples/oauth/redditclient/doc/images/redditclient-example.png"]
+path = ["examples/**"]
 comment = "this must be after the build system table because example and snippets take precedence over build system"
 precedence = "closest"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
 
 [[annotations]]
-path = ["**.qdocconf",
-        "src/oauth/doc/images/oauth2-flow-details.webp",
-        "src/oauth/doc/images/oauth2-stages.webp"]
+path = ["**.qdocconf", "**/doc/images/**",
+        "src/oauth/doc/images/**.webp"]
 comment = "documentation"
 precedence = "closest"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
