@@ -236,12 +236,12 @@ QByteArray QOAuth2AuthorizationCodeFlowPrivate::createPKCEChallenge()
     case QOAuth2AuthorizationCodeFlow::PkceMethod::Plain:
         // RFC 7636 4.2, plain
         // code_challenge = code_verifier
-        pkceCodeVerifier = generateRandomString(pkceVerifierLength);
+        pkceCodeVerifier = generateRandomBase64String(pkceVerifierLength);
         return pkceCodeVerifier;
     case QOAuth2AuthorizationCodeFlow::PkceMethod::S256:
         // RFC 7636 4.2, S256
         // code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
-        pkceCodeVerifier = generateRandomString(pkceVerifierLength);
+        pkceCodeVerifier = generateRandomBase64String(pkceVerifierLength);
         // RFC 7636 3. Terminology:
         // "with all trailing '=' characters omitted"
         return QCryptographicHash::hash(pkceCodeVerifier, QCryptographicHash::Algorithm::Sha256)

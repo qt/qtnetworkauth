@@ -208,7 +208,7 @@ void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
 
 QString QAbstractOAuth2Private::generateRandomState()
 {
-    return QString::fromUtf8(QAbstractOAuthPrivate::generateRandomString(8));
+    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(8));
 }
 
 QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMap *parameters)
