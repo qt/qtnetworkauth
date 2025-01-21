@@ -92,7 +92,7 @@ QVariantMap QOAuthOobReplyHandler::parseResponse(const QByteArray &response)
 {
     QVariantMap ret;
     QUrlQuery query(QString::fromUtf8(response));
-    auto queryItems = query.queryItems(QUrl::FullyDecoded);
+    const auto queryItems = query.queryItems(QUrl::FullyDecoded);
     for (auto it = queryItems.begin(), end = queryItems.end(); it != end; ++it)
         ret.insert(it->first, it->second);
     return ret;
