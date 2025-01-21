@@ -439,12 +439,12 @@ void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
     emit q->expirationAtChanged(expiresAtUtc.toLocalTime());
 }
 
-void QAbstractOAuth2Private::setGrantedScopeTokens(const QStringList &newScope)
+void QAbstractOAuth2Private::setGrantedScopeTokens(const QStringList &tokens)
 {
-    if (newScope == grantedScopeTokens)
+    if (tokens == grantedScopeTokens)
         return;
     Q_Q(QAbstractOAuth2);
-    grantedScopeTokens = newScope;
+    grantedScopeTokens = tokens;
     Q_EMIT q->grantedScopeTokensChanged(grantedScopeTokens);
 }
 
@@ -1128,15 +1128,15 @@ QStringList QAbstractOAuth2::requestedScopeTokens() const
     return d->requestedScopeTokens;
 }
 
-void QAbstractOAuth2::setRequestedScopeTokens(const QStringList &scope)
+void QAbstractOAuth2::setRequestedScopeTokens(const QStringList &tokens)
 {
     Q_D(QAbstractOAuth2);
-    if (scope != d->requestedScopeTokens) {
-        d->requestedScopeTokens = scope;
-        Q_EMIT requestedScopeTokensChanged(scope);
+    if (tokens != d->requestedScopeTokens) {
+        d->requestedScopeTokens = tokens;
+        Q_EMIT requestedScopeTokensChanged(tokens);
     }
 #if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
-    QString joinedScope = scope.join(" "_L1);
+    QString joinedScope = tokens.join(" "_L1);
     if (joinedScope != d->scope) {
         d->scope = joinedScope;
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(joinedScope);)

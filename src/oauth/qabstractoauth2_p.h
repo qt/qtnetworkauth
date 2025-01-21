@@ -46,7 +46,7 @@ public:
     ~QAbstractOAuth2Private();
 
     void setExpiresAt(const QDateTime &expiration);
-    void setGrantedScopeTokens(const QStringList &newScope);
+    void setGrantedScopeTokens(const QStringList &tokens);
     static QString generateRandomState();
     static QString generateNonce();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);

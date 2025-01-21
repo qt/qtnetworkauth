@@ -125,7 +125,7 @@ public:
     QStringList grantedScopeTokens() const;
 
     QStringList requestedScopeTokens() const;
-    void setRequestedScopeTokens(const QStringList &scope);
+    void setRequestedScopeTokens(const QStringList &tokens);
 
     QString userAgent() const;
     void setUserAgent(const QString &userAgent);
@@ -190,8 +190,8 @@ Q_SIGNALS:
     QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     void scopeChanged(const QString &scope);
 #endif
-    void grantedScopeTokensChanged(const QStringList &scope);
-    void requestedScopeTokensChanged(const QStringList &scope);
+    void grantedScopeTokensChanged(const QStringList &tokens);
+    void requestedScopeTokensChanged(const QStringList &tokens);
     void userAgentChanged(const QString &userAgent);
     void responseTypeChanged(const QString &responseType);
     void clientIdentifierSharedKeyChanged(const QString &clientIdentifierSharedKey);
