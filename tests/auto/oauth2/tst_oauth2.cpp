@@ -32,7 +32,7 @@ private Q_SLOTS:
     void pkce();
     void nonce();
     void idToken();
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     void scope_data();
     void scope();
     void scopeAndRequestedScope_data();
@@ -945,7 +945,7 @@ void tst_OAuth2::idToken()
     QVERIFY(oauth2.idToken().isEmpty());
 }
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 void tst_OAuth2::scope_data()
 {
@@ -1105,7 +1105,7 @@ void tst_OAuth2::scopeAndRequestedScope()
         QVERIFY2(requested_scope.contains(token), token.data());
 }
 QT_WARNING_POP
-#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#endif // QOAUTH2_NO_LEGACY_SCOPE
 
 void tst_OAuth2::requestedScopeTokens_data()
 {
@@ -1232,7 +1232,7 @@ void tst_OAuth2::scopeCharacterWarnings()
     QTest::ignoreMessage(QtWarningMsg, QRegularExpression("An empty scope token detected"));
     oauth2.setRequestedScopeTokens({"", "some"});
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 
     // All good
@@ -1245,7 +1245,7 @@ void tst_OAuth2::scopeCharacterWarnings()
     oauth2.setScope(u"foo€bar"_s);
 
     QT_WARNING_POP
-#endif // QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#endif // QOAUTH2_NO_LEGACY_SCOPE
 }
 
 void tst_OAuth2::setAutoRefresh()

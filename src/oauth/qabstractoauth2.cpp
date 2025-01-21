@@ -107,7 +107,7 @@ static constexpr auto FallbackRefreshInterval = 2s;
     with either \l QRestAccessManager or \l QNetworkAccessManager.
 */
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
 /*!
     \deprecated [6.13] Use requestedScopeTokens and grantedScopeTokens
     properties instead. This property will be removed in Qt 7.
@@ -669,7 +669,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
         setGrantedScopeTokens(requestedScopeTokens);
     } else {
         setGrantedScopeTokens(splitGrantedScope);
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
         if (receivedGrantedScope != scope) {
             scope = receivedGrantedScope;
             QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(scope);)
@@ -1142,7 +1142,7 @@ QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMa
     return reply;
 }
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
 QString QAbstractOAuth2::scope() const
 {
     Q_D(const QAbstractOAuth2);
@@ -1156,7 +1156,7 @@ QSet<QByteArray> QAbstractOAuth2::grantedScopeTokens() const
     return d->grantedScopeTokens;
 }
 
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
 void QAbstractOAuth2::setScope(const QString &scope)
 {
     Q_D(QAbstractOAuth2);
@@ -1187,7 +1187,7 @@ void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
         d->requestedScopeTokens = tokens;
         Q_EMIT requestedScopeTokensChanged(tokens);
     }
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     QString joinedScope = QString::fromLatin1(d->joinedScope(tokens));
     if (joinedScope != d->scope) {
         d->scope = joinedScope;

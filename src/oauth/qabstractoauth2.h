@@ -15,13 +15,17 @@
 
 QT_BEGIN_NAMESPACE
 
+#if !QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+# define QOAUTH2_NO_LEGACY_SCOPE
+#endif
+
 class QSslConfiguration;
 class QHttpMultiPart;
 class QAbstractOAuth2Private;
 class Q_OAUTH_EXPORT QAbstractOAuth2 : public QAbstractOAuth
 {
     Q_OBJECT
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     Q_PROPERTY(QString scope READ scope WRITE setScope NOTIFY scopeChanged)
 #endif
     Q_PROPERTY(QSet<QByteArray> grantedScopeTokens
@@ -116,7 +120,7 @@ public:
                                  "See https://doc.qt.io/qt-6/oauth-http-method-alternatives.html")
     Q_INVOKABLE QNetworkReply *deleteResource(const QUrl &url,
                                               const QVariantMap &parameters = QVariantMap()) override;
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     QString scope() const;
     QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
@@ -186,7 +190,7 @@ public Q_SLOTS:
    void refreshTokens();
 
 Q_SIGNALS:
-#if QT_REMOVAL_QT7_DEPRECATED_SINCE(6, 13)
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
     QT_MOC_COMPAT
     QT_DEPRECATED_VERSION_X_6_13("Use requestedScopeTokens and grantedScopeTokens properties instead.")
     void scopeChanged(const QString &scope);
