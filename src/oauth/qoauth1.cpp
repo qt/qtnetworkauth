@@ -276,7 +276,8 @@ void QOAuth1::prepareRequest(QNetworkRequest *request, const QByteArray &verb,
         request->header(QNetworkRequest::ContentTypeHeader).toByteArray()
             == "application/x-www-form-urlencoded") {
         QUrlQuery query(QString::fromUtf8(body));
-        for (const auto &item : query.queryItems(QUrl::FullyDecoded))
+        const auto items = query.queryItems(QUrl::FullyDecoded);
+        for (const auto &item : items)
             signingParams.insert(item.first, item.second);
     }
     setup(request, signingParams, verb);
