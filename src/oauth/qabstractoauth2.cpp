@@ -1160,6 +1160,7 @@ QSet<QByteArray> QAbstractOAuth2::grantedScopeTokens() const
 void QAbstractOAuth2::setScope(const QString &scope)
 {
     Q_D(QAbstractOAuth2);
+    d->legacyScopeWasSetByUser = true;
     if (d->legacyScope != scope) {
         d->legacyScope = scope;
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(d->legacyScope);)
@@ -1182,6 +1183,9 @@ QSet<QByteArray> QAbstractOAuth2::requestedScopeTokens() const
 void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
 {
     Q_D(QAbstractOAuth2);
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
+    d->legacyScopeWasSetByUser = false;
+#endif
     d->warnOnInvalidScopeTokens(tokens);
     if (tokens != d->requestedScopeTokens) {
         d->requestedScopeTokens = tokens;

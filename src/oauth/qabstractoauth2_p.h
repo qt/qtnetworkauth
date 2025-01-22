@@ -84,9 +84,6 @@ public:
     void updateRefreshTimer(bool clientSideUpdate);
 
     QString clientIdentifierSharedKey;
-#ifndef QOAUTH2_NO_LEGACY_SCOPE
-    QString legacyScope;
-#endif
     QSet<QByteArray> requestedScopeTokens;
     QSet<QByteArray> grantedScopeTokens;
     QString state = generateRandomState();
@@ -97,6 +94,10 @@ public:
     QString refreshToken;
     std::chrono::seconds refreshLeadTime = std::chrono::seconds::zero();
     QChronoTimer refreshTimer;
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
+    QString legacyScope;
+    bool legacyScopeWasSetByUser = false;
+#endif
     bool autoRefresh = false;
     QAbstractOAuth2::NonceMode nonceMode = QAbstractOAuth2::NonceMode::Automatic;
     QString nonce;
