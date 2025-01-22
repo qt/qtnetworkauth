@@ -85,7 +85,7 @@ public:
 
     QString clientIdentifierSharedKey;
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
-    QString scope;
+    QString legacyScope;
 #endif
     QSet<QByteArray> requestedScopeTokens;
     QSet<QByteArray> grantedScopeTokens;

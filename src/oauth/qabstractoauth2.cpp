@@ -670,9 +670,9 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     } else {
         setGrantedScopeTokens(splitGrantedScope);
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
-        if (receivedGrantedScope != scope) {
-            scope = receivedGrantedScope;
-            QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(scope);)
+        if (receivedGrantedScope != legacyScope) {
+            legacyScope = receivedGrantedScope;
+            QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(legacyScope);)
         }
 #endif
     }
@@ -1146,7 +1146,7 @@ QNetworkReply *QAbstractOAuth2::deleteResource(const QUrl &url, const QVariantMa
 QString QAbstractOAuth2::scope() const
 {
     Q_D(const QAbstractOAuth2);
-    return d->scope;
+    return d->legacyScope;
 }
 #endif
 
@@ -1160,11 +1160,11 @@ QSet<QByteArray> QAbstractOAuth2::grantedScopeTokens() const
 void QAbstractOAuth2::setScope(const QString &scope)
 {
     Q_D(QAbstractOAuth2);
-    if (d->scope != scope) {
-        d->scope = scope;
-        QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(scope);)
+    if (d->legacyScope != scope) {
+        d->legacyScope = scope;
+        QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(d->legacyScope);)
     }
-    const QSet<QByteArray> splitScope = d->splitScope(scope);
+    const QSet<QByteArray> splitScope = d->splitScope(d->legacyScope);
     d->warnOnInvalidScopeTokens(splitScope);
     if (d->requestedScopeTokens != splitScope) {
         d->requestedScopeTokens = splitScope;
@@ -1189,9 +1189,9 @@ void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
     }
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
     QString joinedScope = QString::fromLatin1(d->joinedScope(tokens));
-    if (joinedScope != d->scope) {
-        d->scope = joinedScope;
-        QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(joinedScope);)
+    if (joinedScope != d->legacyScope) {
+        d->legacyScope = std::move(joinedScope);
+        QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(d->legacyScope);)
     }
 #endif
 }
