@@ -4,6 +4,9 @@
 #ifndef OAUTHTESTUTILS_H
 #define OAUTHTESTUTILS_H
 
+#include "tlswebserver.h"
+#include "webserver.h"
+
 #include <QtNetworkAuth/qoauthglobal.h>
 
 #ifndef QT_NO_SSL
@@ -14,6 +17,8 @@
 #include <QtCore/qscopeguard.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qtenvironmentvariables.h>
+
+#include <memory>
 
 [[nodiscard]] inline auto useTemporaryKeychain()
 {
@@ -42,5 +47,74 @@ QString createSignedJWT(const QVariantMap &header = {}, const QVariantMap &paylo
 QSslConfiguration createSslConfiguration(const QString &keyFileName,
                                          const QString &certificateFileName);
 #endif // QT_NO_SSL
+
+struct ServerResponses
+{
+    QByteArray authBody;
+    QByteArray authHttpStatus;
+    QByteArray tokenBody;
+    QByteArray tokenHttpStatus;
+};
+
+template<typename ServerType>
+struct TestAuthorizationServer
+{
+    std::unique_ptr<ServerType> server;
+    QList<WebServer::HttpRequest> receivedAuthorizationRequests;
+    QList<WebServer::HttpRequest> receivedTokenRequests;
+    ServerResponses responses;
+
+    QUrl authorizationEndpoint()
+    {
+        Q_ASSERT(server);
+        return server->url(QStringLiteral("authorizationEndpoint"));
+    }
+
+    QUrl tokenEndpoint()
+    {
+        Q_ASSERT(server);
+        return server->url(QStringLiteral("tokenEndpoint"));
+    }
+};
+
+// Creates a local http authorization server.
+// The provided ServerResponses are used as the initial values. The testcase
+// can modify individual response members during the testcase by modifying the returned
+// instance's TestAuthorizationServer::responses contents.
+// The template is used so that the function can return either WebServer* or TlsWebServer*
+template<typename ServerType, typename... Args>
+std::unique_ptr<TestAuthorizationServer<ServerType>> createAuthorizationServer(
+    ServerResponses responses, Args&&... args)
+{
+    auto result = std::make_unique<TestAuthorizationServer<ServerType>>();
+    result->responses = std::move(responses);
+
+    auto handler = [raw = result.get()]
+        (const WebServer::HttpRequest &request, QTcpSocket *socket) {
+        QByteArray replyMessage;
+        if (request.url.path() == QLatin1StringView("/authorizationEndpoint")) {
+            // Set received request for test cases to check
+            raw->receivedAuthorizationRequests.append(request);
+            replyMessage =
+                "HTTP/1.0 " + raw->responses.authHttpStatus + "\r\n"
+                "Content-Type: application/json; charset=\"utf-8\"\r\n"
+                "Content-Length: " + QByteArray::number(raw->responses.authBody.size())
+                + "\r\n\r\n" + raw->responses.authBody;
+        } else if (request.url.path() == QLatin1StringView("/tokenEndpoint")) {
+            // Set received request for test cases to check
+            raw->receivedTokenRequests.append(request);
+            replyMessage =
+                "HTTP/1.0 " + raw->responses.tokenHttpStatus + "\r\n"
+                "Content-Type: application/json; charset=\"utf-8\"\r\n"
+                "Content-Length: " + QByteArray::number(raw->responses.tokenBody.size())
+                + "\r\n\r\n" + raw->responses.tokenBody;
+        } else {
+            qFatal() << "Unsupported URL:" << request.url;
+        }
+        socket->write(replyMessage);
+    };
+    result->server.reset(new ServerType(handler, std::forward<Args>(args)...));
+    return result;
+}
 
 #endif // OAUTHTESTUTILS_H
