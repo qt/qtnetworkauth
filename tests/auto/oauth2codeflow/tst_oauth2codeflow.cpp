@@ -7,8 +7,6 @@
 #include <QtNetworkAuth/qoauth2authorizationcodeflow.h>
 
 #include "oauthtestutils.h"
-#include "webserver.h"
-#include "tlswebserver.h"
 
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
@@ -59,6 +57,29 @@ private:
     QString testDataDir;
 };
 
+namespace Responses {
+
+    static const auto tokenSuccess = R"(
+            {
+                "access_token": "an-access-token",
+                "refresh_token": "a-refresh-token",
+                "token_type": "bearer",
+                "expires_in": 3600
+            })"_ba;
+
+    static const auto OK_200 = "200 OK"_ba;
+
+    ServerResponses defaults()
+    {
+        ServerResponses responses;
+        // responses.authBody not used by code flow tests
+        responses.authHttpStatus = OK_200;
+        responses.tokenBody = tokenSuccess;
+        responses.tokenHttpStatus = OK_200;
+        return responses;
+    }
+}
+
 struct ReplyHandler : QAbstractOAuthReplyHandler
 {
     QString callback() const override
@@ -70,15 +91,13 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
 
     void networkReplyFinished(QNetworkReply *reply) override
     {
-        QVariantMap data;
-        const auto items = QUrlQuery(reply->readAll()).queryItems();
-        for (const auto &pair : items)
-            data.insert(pair.first, pair.second);
-
-        if (aTokenRequestError == QAbstractOAuth::Error::NoError)
-            emit tokensReceived(data);
-        else
+        if (aTokenRequestError != QAbstractOAuth::Error::NoError) {
             emit tokenRequestErrorOccurred(aTokenRequestError, "a token request error");
+            return;
+        }
+        auto data = reply->readAll();
+        const QJsonDocument document = QJsonDocument::fromJson(data);
+        emit tokensReceived(document.object().toVariantMap());
     }
 
     void emitCallbackReceived(const QVariantMap &data)
@@ -335,40 +354,45 @@ public:
 
 #define TEST_MODIFY_REQUEST_WITH_MODIFIER(STAGE_RECEIVED, VALUE_SET, VALUE_PREFIX) \
     { \
-        valueReceivedByTokenServer.clear(); \
+        server->receivedTokenRequests.clear(); \
         STAGE_RECEIVED = QAbstractOAuth::Stage::RequestingTemporaryCredentials; \
         VALUE_SET = QByteArray(VALUE_PREFIX) + "_access_token"; \
         oauth2.grant(); \
         /* Conclude authorization stage so that we proceed into access token request */ \
         replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}}); \
         QTRY_COMPARE(STAGE_RECEIVED, QAbstractOAuth::Stage::RequestingAccessToken); \
-        QTRY_COMPARE(valueReceivedByTokenServer, VALUE_SET); \
+        QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+        QTRY_COMPARE(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
         QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
         /* Refresh token request */ \
         VALUE_SET = QByteArray(VALUE_PREFIX) + "_refresh_token"; \
-        valueReceivedByTokenServer.clear(); \
+        server->receivedTokenRequests.clear(); \
         STAGE_RECEIVED = QAbstractOAuth::Stage::RequestingTemporaryCredentials; \
         oauth2.refreshTokens(); \
         QCOMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken); \
         QTRY_COMPARE(STAGE_RECEIVED, QAbstractOAuth::Stage::RefreshingAccessToken); \
-        QTRY_COMPARE(valueReceivedByTokenServer, VALUE_SET); \
+        QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+        QTRY_COMPARE(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
         QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
         oauth2.clearNetworkRequestModifier(); \
     } \
 
 #define TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(VALUE_SET) \
     { \
-        valueReceivedByTokenServer.clear(); \
+        server->receivedTokenRequests.clear(); \
         VALUE_SET = "must_not_be_set"_ba; \
         oauth2.grant(); \
         /* Conclude authorization stage so that we proceed into access token request */ \
         replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}}); \
         QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
-        QVERIFY(valueReceivedByTokenServer.isEmpty()); \
+        QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+        QVERIFY(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
+        server->receivedTokenRequests.clear(); \
         oauth2.refreshTokens(); \
         QCOMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken); \
         QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::Granted); \
-        QVERIFY(valueReceivedByTokenServer.isEmpty()); \
+        QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+        QVERIFY(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
         oauth2.clearNetworkRequestModifier(); \
     } \
 
@@ -380,23 +404,13 @@ void tst_OAuth2CodeFlow::modifyTokenRequests()
     QRegularExpression wrongThreadWarning(u".*Context object must reside in the same thread"_s);
     auto valueToSet = ""_ba;
 
-    QByteArray valueReceivedByTokenServer;
-    WebServer tokenServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        valueReceivedByTokenServer = request.headers.value("test-header-name"_ba);
-        const QString text = "access_token=token&token_type=bearer";
-        const QByteArray replyMessage {
-            "HTTP/1.0 200 OK\r\n"
-            "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-            "Content-Length: " + QByteArray::number(text.size()) + "\r\n\r\n"
-            + text.toUtf8()
-        };
-        socket->write(replyMessage);
-    });
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     oauth2.setRefreshToken(u"refresh_token"_s);
-    oauth2.setAuthorizationUrl(tokenServer.url(QLatin1String("authorization")));
-    oauth2.setTokenUrl(tokenServer.url(QLatin1String("accessToken")));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.setState("a_state"_L1);
 
     QAbstractOAuth::Stage stageReceivedByModifier =
@@ -467,21 +481,11 @@ void tst_OAuth2CodeFlow::modifyTokenRequests()
 
 void tst_OAuth2CodeFlow::getToken()
 {
-    WebServer webServer([](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == QLatin1String("/accessToken")) {
-            const QString text = "access_token=token&token_type=bearer";
-            const QByteArray replyMessage {
-                "HTTP/1.0 200 OK\r\n"
-                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(text.size()) + "\r\n\r\n"
-                + text.toUtf8()
-            };
-            socket->write(replyMessage);
-        }
-    });
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl(webServer.url(QLatin1String("authorization")));
-    oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
@@ -496,28 +500,18 @@ void tst_OAuth2CodeFlow::getToken()
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.grant();
     QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(oauth2.token(), QLatin1String("token"));
+    QCOMPARE(oauth2.token(), "an-access-token"_L1);
 }
 
 void tst_OAuth2CodeFlow::refreshToken()
 {
-    WebServer webServer([](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == QLatin1String("/accessToken")) {
-            const QString text = "access_token=token&token_type=bearer";
-            const QByteArray replyMessage {
-                "HTTP/1.0 200 OK\r\n"
-                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(text.size()) + "\r\n\r\n"
-                + text.toUtf8()
-            };
-            socket->write(replyMessage);
-        }
-    });
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+
     QOAuth2AuthorizationCodeFlow oauth2;
 #if QT_DEPRECATED_SINCE(6, 13)
-    QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(webServer.url(QLatin1String("accessToken")));)
+    QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(server->tokenEndpoint());)
 #else
-    oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
+    oauth2.setTokenUrl(server->tokenEndpoint());
 #endif
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -525,7 +519,7 @@ void tst_OAuth2CodeFlow::refreshToken()
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.refreshTokens();
     QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(oauth2.token(), QLatin1String("token"));
+    QCOMPARE(oauth2.token(), QLatin1String("an-access-token"));
 
 #if QT_DEPRECATED_SINCE(6, 13)
     // Verify that refreshAccessToken also works
@@ -536,26 +530,11 @@ void tst_OAuth2CodeFlow::refreshToken()
 
 void tst_OAuth2CodeFlow::getAndRefreshToken()
 {
-    // In this test we use the grant_type as a token to be able to
-    // identify the token request from the token refresh.
-    WebServer webServer([](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == QLatin1String("/accessToken")) {
-            const QUrlQuery query(request.body);
-            const QString format = QStringLiteral("access_token=%1&token_type=bearer&expires_in=20&"
-                                                  "refresh_token=refresh_token");
-            const auto text = format.arg(query.queryItemValue(QLatin1String("grant_type")));
-            const QByteArray replyMessage {
-                "HTTP/1.0 200 OK\r\n"
-                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(text.size()) + "\r\n\r\n"
-                + text.toUtf8()
-            };
-            socket->write(replyMessage);
-        }
-    });
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl(webServer.url(QLatin1String("authorization")));
-    oauth2.setTokenUrl(webServer.url(QLatin1String("accessToken")));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
@@ -570,11 +549,16 @@ void tst_OAuth2CodeFlow::getAndRefreshToken()
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.grant();
     QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(oauth2.token(), QLatin1String("authorization_code"));
+    QCOMPARE(oauth2.token(), "an-access-token"_L1);
     grantedSpy.clear();
+    server->responses.tokenBody = R"(
+            {
+                "access_token": "refreshed-access-token"
+            })";
+
     oauth2.refreshTokens();
     QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(oauth2.token(), QLatin1String("refresh_token"));
+    QCOMPARE(oauth2.token(), QLatin1String("refreshed-access-token"));
 }
 
 void tst_OAuth2CodeFlow::tokenRequestErrors()
@@ -586,15 +570,11 @@ void tst_OAuth2CodeFlow::tokenRequestErrors()
         QTest::ignoreMessage(QtWarningMsg, tokenWarning);
     };
 
-    QByteArray accessTokenResponse; // Varying reply for the auth server
-    WebServer authServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == QLatin1String("/accessToken"))
-            socket->write(accessTokenResponse);
-    });
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl(authServer.url(QLatin1String("authorization")));
-    oauth2.setTokenUrl(authServer.url(QLatin1String("accessToken")));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -628,7 +608,7 @@ void tst_OAuth2CodeFlow::tokenRequestErrors()
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::NotAuthenticated);
 
     // Try to get an access token with an invalid response
-    accessTokenResponse = "an invalid response"_ba;
+    server->responses.tokenBody = "an invalid response";
     expectWarning();
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
@@ -648,11 +628,7 @@ void tst_OAuth2CodeFlow::tokenRequestErrors()
     // Make a successful access & refresh token acquisition
     replyHandler.aTokenRequestError = QAbstractOAuth::Error::NoError;
     clearSpies();
-    accessTokenResponse =
-        "HTTP/1.0 200 OK\r\n"
-        "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-        "\r\n"
-        "access_token=the_access_token&token_type=bearer&refresh_token=the_refresh_token"_ba;
+    server->responses.tokenBody = Responses::tokenSuccess;
     oauth2.grant();
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(statusSpy.size(), 3);
@@ -665,8 +641,8 @@ void tst_OAuth2CodeFlow::tokenRequestErrors()
              QAbstractOAuth::Status::Granted);
     QVERIFY(requestFailedSpy.isEmpty());
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
-    QCOMPARE(oauth2.token(), u"the_access_token"_s);
-    QCOMPARE(oauth2.refreshToken(), u"the_refresh_token"_s);
+    QCOMPARE(oauth2.token(), u"an-access-token"_s);
+    QCOMPARE(oauth2.refreshToken(), u"a-refresh-token"_s);
 
     // Successfully refresh access token
     clearSpies();
@@ -913,27 +889,22 @@ void tst_OAuth2CodeFlow::scope()
 
     // Verify that empty authorization server 'scope' response doesn't overwrite the
     // requested scope, whereas a returned scope value does
-    WebServer webServer([granted_scope](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == "/accessTokenUrl"_L1) {
-            QString accessTokenResponseParams;
-            accessTokenResponseParams += u"access_token=token&token_type=bearer"_s;
-            if (!granted_scope.isEmpty())
-                accessTokenResponseParams += u"&scope="_s + granted_scope;
-            const QByteArray replyMessage {
-                "HTTP/1.0 200 OK\r\n"
-                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-                "Content-Length: "
-                + QByteArray::number(accessTokenResponseParams.size()) + "\r\n\r\n"
-                + accessTokenResponseParams.toUtf8()
-            };
-            socket->write(replyMessage);
-        }
-    });
-    oauth2.setAuthorizationUrl(webServer.url("authorizationUrl"_L1));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+    if (!granted_scope.isEmpty()) {
+        server->responses.tokenBody =  R"(
+            {
+                "access_token": "an-access-token",
+                "refresh_token": "a-refresh-token",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "scope": ")" + granted_scope.toLatin1() +
+            "\"}";
+    }
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
 #if QT_DEPRECATED_SINCE(6, 13)
-    QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(webServer.url("accessTokenUrl"_L1));)
+    QT_IGNORE_DEPRECATIONS(oauth2.setAccessTokenUrl(server->tokenEndpoint());)
 #else
-    oauth2.setTokenUrl(webServer.url("accessTokenUrl"_L1));
+    oauth2.setTokenUrl(server->tokenEndpoint());
 #endif
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
@@ -1298,24 +1269,11 @@ void tst_OAuth2CodeFlow::refreshLeadTime()
     QFETCH(QString, refreshToken);
     QFETCH(bool, expectRefreshRequest);
 
-    QString accessToken = u"initial-access-token"_s;
-    WebServer webServer([&](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == QLatin1String("/accessToken")) {
-            const QString parameters = u"access_token="_s + accessToken
-                                       + u"&token_type=bearer&expires_in=%1&refresh_token=%2"_s;
-            const auto httpBody = parameters.arg(QString::number(expiresIn), refreshToken);
-            const QByteArray replyMessage {
-                "HTTP/1.0 200 OK\r\n"
-                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(httpBody.size()) + "\r\n\r\n"
-                + httpBody.toUtf8()
-            };
-            socket->write(replyMessage);
-        }
-    });
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl(webServer.url("authorizationUrl"));
-    oauth2.setTokenUrl(webServer.url("accessToken"));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.setState("s"_L1);
     oauth2.setRefreshLeadTime(refreshLeadTime);
     oauth2.setAutoRefresh(autoRefresh);
@@ -1325,13 +1283,29 @@ void tst_OAuth2CodeFlow::refreshLeadTime()
 
     QSignalSpy expiredSpy(&oauth2, &QAbstractOAuth2::accessTokenAboutToExpire);
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
+    server->responses.tokenBody = R"(
+        {
+            "access_token": "initial-access-token",
+            "token_type": "bearer",
+            "expires_in": ")" + QByteArray::number(expiresIn) + R"(",
+            "scope": "s",
+            "refresh_token": ")" + refreshToken.toLatin1() +
+        "\"}";
+
     oauth2.grant();
     replyHandler.emitCallbackReceived(QVariantMap {{ "code"_L1, "c"_L1 }, { "state"_L1, "s"_L1 }});
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), u"initial-access-token"_s);
 
     if (expectExpirationSignal) {
-        accessToken = u"refreshed-access-token"_s;
+        server->responses.tokenBody = R"(
+            {
+                "access_token": "refreshed-access-token",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "scope": "s",
+                "refresh_token": "a-refresh-token"
+            })";
         QTRY_COMPARE_WITH_TIMEOUT(expiredSpy.size(), 1, waitTimeForExpiration);
         if (expectRefreshRequest) {
             QTRY_COMPARE(oauth2.token(), "refreshed-access-token"_L1);
@@ -1381,19 +1355,8 @@ void tst_OAuth2CodeFlow::tlsAuthentication()
                                                     QSslError::HostNameMismatch };
     auto serverConfig = createSslConfiguration(testDataDir + "certs/selfsigned-server.key",
                                                testDataDir + "certs/selfsigned-server.crt");
-    TlsWebServer tlsServer([](const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        if (request.url.path() == QLatin1String("/accessToken")) {
-            const QString text = "access_token=token&token_type=bearer";
-            const QByteArray replyMessage {
-                "HTTP/1.0 200 OK\r\n"
-                "Content-Type: application/x-www-form-urlencoded; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(text.size()) + "\r\n\r\n"
-                + text.toUtf8()
-            };
-            socket->write(replyMessage);
-        }
-    }, serverConfig);
-    tlsServer.setExpectedSslErrors(expectedErrors);
+    auto server = createAuthorizationServer<TlsWebServer>(Responses::defaults(), serverConfig);
+    server->server->setExpectedSslErrors(expectedErrors);
 
     auto clientConfig = createSslConfiguration(testDataDir + "certs/selfsigned-client.key",
                                                testDataDir + "certs/selfsigned-client.crt");
@@ -1401,8 +1364,8 @@ void tst_OAuth2CodeFlow::tlsAuthentication()
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setNetworkAccessManager(&nam);
     oauth2.setSslConfiguration(clientConfig);
-    oauth2.setAuthorizationUrl(tlsServer.url(QLatin1String("authorization")));
-    oauth2.setTokenUrl(tlsServer.url(QLatin1String("accessToken")));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
     connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
@@ -1428,7 +1391,7 @@ void tst_OAuth2CodeFlow::tlsAuthentication()
     QSignalSpy grantedSpy(&oauth2, &QOAuth2AuthorizationCodeFlow::granted);
     oauth2.grant();
     QTRY_COMPARE(grantedSpy.size(), 1);
-    QCOMPARE(oauth2.token(), QLatin1String("token"));
+    QCOMPARE(oauth2.token(), "an-access-token"_L1);
 }
 #endif // !QT_NO_SSL
 
