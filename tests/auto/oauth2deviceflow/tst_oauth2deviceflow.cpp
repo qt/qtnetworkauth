@@ -5,8 +5,6 @@
 #include <QtTest>
 
 #include "oauthtestutils.h"
-#include "tlswebserver.h"
-#include "webserver.h"
 
 #include "private/qoauth2deviceauthorizationflow_p.h"
 
@@ -33,7 +31,6 @@ class tst_OAuth2DeviceFlow : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void init();
     void initTestCase();
     void getAndRefreshToken();
     void clientError();
@@ -57,19 +54,13 @@ private Q_SLOTS:
 
 private:
     QString testDataDir;
-    QList<WebServer::HttpRequest> receivedAuthorizationRequests;
-    QList<WebServer::HttpRequest> receivedTokenRequests;
-    template<typename ServerType, typename... Args>
-    ServerType *createAuthorizationServer(const QString &authBody, const QString &authHttpStatus,
-                                          const QString &tokenBody, const QString &tokenHttpStatus,
-                                          Args&&... args);
 };
 
 namespace Responses {
     // Basic successful authorization response. Note that interval is 50,
     // which maps to 50ms if DeviceFlow useAutoTestDurations is true, and 50s
     // otherwise.
-    static constexpr auto authorizationSuccess = R"(
+    static const auto authorizationSuccess = R"(
         {
             "device_code": "a-device-code",
             "user_code": "a-user-code",
@@ -77,81 +68,55 @@ namespace Responses {
             "verification_uri_complete": "a-verification-uri-complete",
             "expires_in": 1800,
             "interval": 50
-        })"_L1;
+        })"_ba;
 
-    static constexpr auto tokenSuccess = R"(
+    static const auto tokenSuccess = R"(
         {
             "access_token": "an-access-token",
             "refresh_token": "a-refresh-token",
             "token_type": "bearer",
             "expires_in": 3600
-        })"_L1;
+        })"_ba;
 
-    static constexpr auto tokenAuthorizationPending = R"(
+    static const auto tokenAuthorizationPending = R"(
         {
             "error": "authorization_pending",
             "error_description": "User hasnt authorized yet",
             "error_uri": "an-error-uri"
-        })"_L1;
+        })"_ba;
 
-    static constexpr auto tokenExpired =  R"(
+    static const auto tokenExpired =  R"(
         {
             "error": "expired_token",
             "error_description": "code expired",
             "error_uri": "an-error-uri"
-        })"_L1;
+        })"_ba;
 
-    static constexpr auto OK_200 = "200 OK"_L1;
-    static constexpr auto BR_400 = "400 Bad Request"_L1;
+    static const auto OK_200 = "200 OK"_ba;
+    static const auto BR_400 = "400 Bad Request"_ba;
 
-    static QString authorizationResponseWithTimes(int interval, int expiration) {
+    static QByteArray authorizationResponseWithTimes(int interval, int expiration) {
         return R"(
         {
             "device_code": "a-device-code",
             "user_code": "a-user-code",
             "verification_uri": "a-verification-uri",
             "verification_uri_complete": "a-verification-uri-complete",
-            "interval": )" + QString::number(interval) + "," +
-            R"("expires_in": )" + QString::number(expiration) +
-        "}"_L1;
+            "interval": )" + QByteArray::number(interval) + "," +
+            R"("expires_in": )" + QByteArray::number(expiration) +
+        "}";
     };
-};
 
-// Creates a local http server. The provided arguments are captured
-// by reference, meaning that they can be modified at runtime by
-// test cases to vary the responses as needed. The template
-// is used so that the function can return either WebServer* or TlsWebServer*
-template<typename ServerType, typename... Args>
-ServerType *tst_OAuth2DeviceFlow::createAuthorizationServer(
-        const QString &authBody, const QString &authHttpStatus,
-        const QString &tokenBody, const QString &tokenHttpStatus,
-        Args&&... args)
-{
-    auto handler = [&] (const WebServer::HttpRequest &request, QTcpSocket *socket) {
-        QByteArray replyMessage;
-        if (request.url.path() == "/authorizationEndpoint"_L1) {
-            // Set received request for test cases to check
-            receivedAuthorizationRequests.append(request);
-            replyMessage =
-                "HTTP/1.0 " + authHttpStatus.toLatin1() + "\r\n"
-                "Content-Type: application/json; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(authBody.toUtf8().size()) + "\r\n\r\n"
-                + authBody.toUtf8();
-        } else if (request.url.path() == "/tokenEndpoint"_L1) {
-            // Set received request for test cases to check
-            receivedTokenRequests.append(request);
-            replyMessage =
-                "HTTP/1.0 " + tokenHttpStatus.toLatin1() + "\r\n"
-                "Content-Type: application/json; charset=\"utf-8\"\r\n"
-                "Content-Length: " + QByteArray::number(tokenBody.toUtf8().size()) + "\r\n\r\n"
-                + tokenBody.toUtf8();
-        } else {
-            qFatal() << "Unsupported URL:" << request.url;
-        }
-        socket->write(replyMessage);
-    };
-    return new ServerType(handler, std::forward<Args>(args)...);
-}
+    ServerResponses defaults()
+    {
+        ServerResponses responses;
+        responses.authBody = authorizationSuccess;
+        responses.authHttpStatus = OK_200;
+        responses.tokenBody = tokenSuccess;
+        responses.tokenHttpStatus = OK_200;
+        return responses;
+    }
+};
 
 // This class is used to access flow class's private class, in order to make
 // the class use milliseconds instead of seconds for expirations and intervals,
@@ -170,12 +135,6 @@ static void expectWarning(const QString &warningText)
     const QRegularExpression warning(warningText);
     QTest::ignoreMessage(QtWarningMsg, warning);
 };
-
-void tst_OAuth2DeviceFlow::init()
-{
-    receivedAuthorizationRequests.clear();
-    receivedTokenRequests.clear();
-}
 
 void tst_OAuth2DeviceFlow::initTestCase()
 {
@@ -206,22 +165,22 @@ public:
 
 #define TEST_MODIFY_REQUEST_WITH_MODIFIER(STAGES_RECEIVED, VALUE_SET, VALUE_PREFIX) \
 do { \
-    receivedAuthorizationRequests.clear(); \
-    receivedTokenRequests.clear(); \
+    server->receivedAuthorizationRequests.clear(); \
+    server->receivedTokenRequests.clear(); \
     STAGES_RECEIVED.clear(); \
     VALUE_SET = QByteArray(VALUE_PREFIX) + "_authorization_and_access_token"; \
     oauth2.grant(); \
     QTRY_COMPARE(STAGES_RECEIVED.size(), 2); \
     QCOMPARE(STAGES_RECEIVED.at(0), Stage::RequestingAuthorization); \
     QCOMPARE(STAGES_RECEIVED.at(1), Stage::RequestingAccessToken); \
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1); \
-    QCOMPARE(receivedAuthorizationRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
-    QTRY_COMPARE(receivedTokenRequests.size(), 1); \
-    QCOMPARE(receivedTokenRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1); \
+    QCOMPARE(server->receivedAuthorizationRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+    QCOMPARE(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
     QTRY_COMPARE(oauth2.status(), Status::Granted); \
     /* Refresh token request */ \
     VALUE_SET = QByteArray(VALUE_PREFIX) + "_refresh_token"; \
-    receivedTokenRequests.clear(); \
+    server->receivedTokenRequests.clear(); \
     STAGES_RECEIVED.clear(); \
     requestFailedSpy.clear(); \
     oauth2.refreshTokens(); \
@@ -229,31 +188,31 @@ do { \
     QCOMPARE(oauth2.status(), Status::RefreshingToken); \
     QTRY_COMPARE(STAGES_RECEIVED.size(), 1); \
     QCOMPARE(STAGES_RECEIVED.at(0), Stage::RefreshingAccessToken); \
-    QTRY_COMPARE(receivedTokenRequests.size(), 1); \
-    QCOMPARE(receivedTokenRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+    QCOMPARE(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba), VALUE_SET); \
     QTRY_COMPARE(oauth2.status(), Status::Granted); \
     oauth2.clearNetworkRequestModifier(); \
 } while (false) \
 
 #define TEST_MODIFY_REQUEST_WITHOUT_MODIFIER(VALUE_SET) \
 do { \
-    receivedAuthorizationRequests.clear(); \
-    receivedTokenRequests.clear(); \
+    server->receivedAuthorizationRequests.clear(); \
+    server->receivedTokenRequests.clear(); \
     VALUE_SET = "must_not_be_set"_ba; \
     oauth2.grant(); \
     QTRY_COMPARE(oauth2.status(), Status::Granted); \
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1); \
-    QVERIFY(receivedAuthorizationRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
-    QTRY_COMPARE(receivedTokenRequests.size(), 1); \
-    QVERIFY(receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
-    receivedTokenRequests.clear(); \
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1); \
+    QVERIFY(server->receivedAuthorizationRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+    QVERIFY(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
+    server->receivedTokenRequests.clear(); \
     requestFailedSpy.clear(); \
     oauth2.refreshTokens(); \
     QVERIFY(requestFailedSpy.isEmpty()); \
     QCOMPARE(oauth2.status(), Status::RefreshingToken); \
     QTRY_COMPARE(oauth2.status(), Status::Granted); \
-    QTRY_COMPARE(receivedTokenRequests.size(), 1); \
-    QVERIFY(receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 1); \
+    QVERIFY(server->receivedTokenRequests.at(0).headers.value("test-header-name"_ba).isEmpty()); \
     oauth2.clearNetworkRequestModifier(); \
 } while (false) \
 
@@ -264,17 +223,12 @@ void tst_OAuth2DeviceFlow::modifyTokenRequests()
     QRegularExpression wrongThreadWarning(u".*Context object must reside in the same thread"_s);
     auto valueToSet = ""_ba;
 
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.setRefreshToken(u"refresh_token"_s);
 
     QSignalSpy requestFailedSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::requestFailed);
@@ -340,16 +294,14 @@ void tst_OAuth2DeviceFlow::modifyTokenRequests()
 
 void tst_OAuth2DeviceFlow::userCodeExpiration()
 {
-    QString authBody;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenAuthorizationPending;
-    QString tokenHttpStatus = Responses::BR_400;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto responses = Responses::defaults();
+    responses.tokenBody = Responses::tokenAuthorizationPending;
+    responses.tokenHttpStatus = Responses::BR_400;
+    auto server = createAuthorizationServer<WebServer>(responses);
 
     QOAuth2DeviceAuthorizationFlow oauth2;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
     QSignalSpy statusSpy(&oauth2, &QAbstractOAuth::statusChanged);
@@ -358,8 +310,8 @@ void tst_OAuth2DeviceFlow::userCodeExpiration()
                                  &QOAuth2DeviceAuthorizationFlow::userCodeExpirationAtChanged);
 
     const auto clearTestData = [&](){
-        receivedAuthorizationRequests.clear();
-        receivedTokenRequests.clear();
+        server->receivedAuthorizationRequests.clear();
+        server->receivedTokenRequests.clear();
         requestFailedSpy.clear();
         codeExpirationSpy.clear();
         statusSpy.clear();
@@ -370,7 +322,7 @@ void tst_OAuth2DeviceFlow::userCodeExpiration()
     QCOMPARE(oauth2.userCodeExpirationAt(), QDateTime());
 
     // Code would expire before first poll request
-    authBody = Responses::authorizationResponseWithTimes(100, 50);
+    server->responses.authBody = Responses::authorizationResponseWithTimes(100, 50);
     expectWarning("code expired");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
@@ -382,13 +334,13 @@ void tst_OAuth2DeviceFlow::userCodeExpiration()
     QVERIFY(
         qAbs(oauth2.userCodeExpirationAt().secsTo(QDateTime::currentDateTime().addSecs(50))) <= 2);
     QCOMPARE(codeExpirationSpy.at(0).at(0).toDateTime(), oauth2.userCodeExpirationAt());
-    QCOMPARE(receivedAuthorizationRequests.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 0);
+    QCOMPARE(server->receivedAuthorizationRequests.size(), 1);
+    QCOMPARE(server->receivedTokenRequests.size(), 0);
     QCOMPARE(oauth2.status(), Status::NotAuthenticated);
 
     // Code expires while polling
     clearTestData();
-    authBody = Responses::authorizationResponseWithTimes(1, 4);
+    server->responses.authBody = Responses::authorizationResponseWithTimes(1, 4);
     expectWarning("code expired");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
@@ -396,13 +348,13 @@ void tst_OAuth2DeviceFlow::userCodeExpiration()
     QCOMPARE(codeExpirationSpy.size(), 2);
     QCOMPARE(codeExpirationSpy.at(0).at(0).toDateTime(), QDateTime()); // grant() resets properties
     QCOMPARE(codeExpirationSpy.at(1).at(0).toDateTime(), oauth2.userCodeExpirationAt());
-    QCOMPARE(receivedAuthorizationRequests.size(), 1);
-    QVERIFY(receivedTokenRequests.size() > 1); // first at 1s, then at 2s, ...
+    QCOMPARE(server->receivedAuthorizationRequests.size(), 1);
+    QVERIFY(server->receivedTokenRequests.size() > 1); // first at 1s, then at 2s, ...
     QCOMPARE(oauth2.status(), Status::TemporaryCredentialsReceived);
 
     // Code expiration is indicated by authorization server's token response
     clearTestData();
-    tokenBody = Responses::tokenExpired;
+    server->responses.tokenBody = Responses::tokenExpired;
     expectWarning("code expired");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
@@ -411,16 +363,14 @@ void tst_OAuth2DeviceFlow::userCodeExpiration()
 
 void tst_OAuth2DeviceFlow::startStopTokenPolling()
 {
-    QString authBody = Responses::authorizationSuccess;
-    QString tokenBody = Responses::tokenAuthorizationPending;
-    QString authHttpStatus = Responses::OK_200;
-    QString tokenHttpStatus = Responses::BR_400;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto responses = Responses::defaults();
+    responses.tokenHttpStatus = Responses::BR_400;
+    responses.tokenBody = Responses::tokenAuthorizationPending;
+    auto server = createAuthorizationServer<WebServer>(responses);
 
     DeviceFlow oauth2;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.flowPrivate()->useAutoTestDurations = true;
     QSignalSpy pollingSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::pollingChanged);
     QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
@@ -428,8 +378,8 @@ void tst_OAuth2DeviceFlow::startStopTokenPolling()
     auto clearTestVariables = [&](){
         pollingSpy.clear();
         requestFailedSpy.clear();
-        receivedAuthorizationRequests.clear();
-        receivedTokenRequests.clear();
+        server->receivedAuthorizationRequests.clear();
+        server->receivedTokenRequests.clear();
     };
 
     // Initial state
@@ -448,7 +398,7 @@ void tst_OAuth2DeviceFlow::startStopTokenPolling()
     oauth2.grant();
     QTRY_COMPARE(pollingSpy.size(), 1);
     QVERIFY(pollingSpy.at(0).at(0).toBool());
-    QCOMPARE(receivedAuthorizationRequests.size(), 1);
+    QCOMPARE(server->receivedAuthorizationRequests.size(), 1);
     QVERIFY(oauth2.isPolling());
     QCOMPARE(oauth2.status(), Status::TemporaryCredentialsReceived);
     QVERIFY(requestFailedSpy.isEmpty());
@@ -467,8 +417,8 @@ void tst_OAuth2DeviceFlow::startStopTokenPolling()
     QVERIFY(oauth2.startTokenPolling());
     QTRY_COMPARE(pollingSpy.size(), 1);
     QVERIFY(pollingSpy.at(0).at(0).toBool());
-    QTRY_COMPARE(receivedTokenRequests.size(), 1);
-    QCOMPARE(receivedAuthorizationRequests.size(), 0);
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 1);
+    QCOMPARE(server->receivedAuthorizationRequests.size(), 0);
     QVERIFY(oauth2.isPolling());
     QCOMPARE(oauth2.status(), Status::TemporaryCredentialsReceived);
     QVERIFY(requestFailedSpy.isEmpty());
@@ -476,7 +426,7 @@ void tst_OAuth2DeviceFlow::startStopTokenPolling()
     // Polling already active, no impact
     QVERIFY(oauth2.startTokenPolling());
     QVERIFY(oauth2.isPolling());
-    QTRY_COMPARE(receivedTokenRequests.size(), 2);
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 2);
     QVERIFY(requestFailedSpy.isEmpty());
 
     // Empty token endpoint URL during polling
@@ -512,13 +462,7 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
     static constexpr auto verificationUrl = "a-verification-uri"_L1;
     static constexpr auto completeVerificationUrl = "a-verification-uri-complete"_L1;
 
-    // Test-case authorization server appends this list with received requests:
-    QString authBody = Responses::authorizationSuccess;
-    QString tokenBody = Responses::tokenSuccess;
-    QString httpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, httpStatus,
-        tokenBody, httpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
@@ -545,32 +489,32 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
     QVERIFY(oauth2.completeVerificationUrl().isEmpty());
 
     // Set authorization url
-    const auto authorizationUrl = authorizationServer->url("authorizationEndpoint"_L1);
+    const auto authorizationUrl = server->authorizationEndpoint();
     oauth2.setAuthorizationUrl(authorizationUrl);
     QCOMPARE(oauth2.authorizationUrl(), authorizationUrl);
     QCOMPARE(authorizationUrlSpy.size(), 1);
     QCOMPARE(authorizationUrlSpy.at(0).at(0).toUrl(), authorizationUrl);
 
     // Get access token (and refresh token)
-    const auto tokenUrl = authorizationServer->url("tokenEndpoint"_L1);
+    const auto tokenUrl = server->tokenEndpoint();
     oauth2.setTokenUrl(tokenUrl);
     oauth2.grant();
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.status(), Status::Granted);
 
     // Verify requests that the authorization server received
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
     {
         // Authorization request
-        QUrlQuery query(QUrl::fromPercentEncoding(receivedAuthorizationRequests.at(0).body));
+        QUrlQuery query(QUrl::fromPercentEncoding(server->receivedAuthorizationRequests.at(0).body));
         QCOMPARE(query.queryItems().size(), 2);
         QCOMPARE(query.queryItemValue("client_id"_L1), clientId);
         QCOMPARE(query.queryItemValue("scope"_L1), scope);
     }
-    QTRY_COMPARE(receivedTokenRequests.size(), 1);
+    QTRY_COMPARE(server->receivedTokenRequests.size(), 1);
     {
         // Access token poll request
-        QUrlQuery query(QUrl::fromPercentEncoding(receivedTokenRequests.at(0).body));
+        QUrlQuery query(QUrl::fromPercentEncoding(server->receivedTokenRequests.at(0).body));
         QCOMPARE(query.queryItems().size(), 4);
         QCOMPARE(query.queryItemValue("grant_type"_L1),
                  "urn:ietf:params:oauth:grant-type:device_code"_L1);
@@ -610,15 +554,15 @@ void tst_OAuth2DeviceFlow::getAndRefreshToken()
     QCOMPARE(refreshTokenSpy.at(1).at(0).toString(), refreshToken2);
 
     statusSpy.clear();
-    receivedTokenRequests.clear();
+    server->receivedTokenRequests.clear();
     requestFailedSpy.clear();
     oauth2.refreshTokens();
     QVERIFY(requestFailedSpy.isEmpty());
     QTRY_COMPARE(statusSpy.size(), 2);
-    QCOMPARE(receivedTokenRequests.size(), 1);
+    QCOMPARE(server->receivedTokenRequests.size(), 1);
     {
         // Refresh request
-        QUrlQuery query(QUrl::fromPercentEncoding(receivedTokenRequests.at(0).body));
+        QUrlQuery query(QUrl::fromPercentEncoding(server->receivedTokenRequests.at(0).body));
         QCOMPARE(query.queryItems().size(), 4);
         QCOMPARE(query.queryItemValue("grant_type"_L1), "refresh_token"_L1);
         QCOMPARE(query.queryItemValue("refresh_token"_L1), refreshToken2);
@@ -669,16 +613,12 @@ void tst_OAuth2DeviceFlow::clientError()
     QTRY_COMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::ClientError);
 
-    QString authBody = Responses::authorizationSuccess;
-    QString tokenBody = Responses::tokenAuthorizationPending;
-    QString httpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, httpStatus, tokenBody, httpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     // Refresh while polling
     requestFailedSpy.clear();
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.grant();
     QTRY_VERIFY(oauth2.isPolling());
     expectWarning("polling in progress");
@@ -697,7 +637,7 @@ void tst_OAuth2DeviceFlow::clientError()
     // Refresh while refreshing, no client error
     requestFailedSpy.clear();
     oauth2.stopTokenPolling();
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.refreshTokens();
     oauth2.refreshTokens();
     oauth2.refreshTokens();
@@ -707,13 +647,10 @@ void tst_OAuth2DeviceFlow::clientError()
 QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 void tst_OAuth2DeviceFlow::authorizationErrors()
 {
-    QString authBody;
-    QString httpStatus;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, httpStatus, {}, {}));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     QOAuth2DeviceAuthorizationFlow oauth2;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
     oauth2.setTokenUrl(QUrl("not-needed"_L1));
 
     QSignalSpy statusSpy(&oauth2, &QAbstractOAuth::statusChanged);
@@ -733,14 +670,14 @@ void tst_OAuth2DeviceFlow::authorizationErrors()
     };
 
     // Error response from the authorization server (RFC 6749 section 5.2)
-    authBody = R"(
+    server->responses.authBody = R"(
             {
                 "error": "an-error",
                 "error_description": "an-error-description",
                 "error_uri": "an-error-uri"
             }
-    )"_L1;
-    httpStatus = Responses::BR_400;
+    )";
+    server->responses.authHttpStatus = Responses::BR_400;
 
     oauth2.grant();
 
@@ -780,97 +717,91 @@ void tst_OAuth2DeviceFlow::authorizationErrors()
     };
 
     // Missing user code value
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "",
             "device_code": "a-device-code",
             "verification_uri": "a-verification-uri",
             "expires_in": 1800
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing user code field
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "device_code": "a-device-code",
             "verification_uri": "a-verification-uri",
             "expires_in": 1800
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing device code value
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "a-user-code",
             "device_code": "",
             "verification_uri": "a-verification-uri",
             "expires_in": 1800
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing device code field
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "a-user-code",
             "verification_uri": "a-verification-uri",
             "expires_in": 1800
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing expiration value
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "a-user-code",
             "device_code": "a-device-code",
             "verification_uri": "a-verification-uri",
             "expires_in": 0
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing expiration field
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "a-user-code",
             "device_code": "a-device-code",
             "verification_uri": "a-verification-uri"
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing verification uri value
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "a-user-code",
             "device_code": "a-device-code",
             "verification_uri": "",
             "expires_in": 1800
-        })"_L1;
+        })";
     checkAuthorizationError();
 
     // Missing verification uri field
-    authBody = R"(
+    server->responses.authBody = R"(
         {
             "user_code": "a-user-code",
             "device_code": "a-device-code",
             "expires_in": 1800
-        })"_L1;
+        })";
     checkAuthorizationError();
 }
 QT_WARNING_POP
 
 void tst_OAuth2DeviceFlow::tokenRequestErrors()
 {
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody;
-    QString tokenHttpStatus;
-
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
     QSignalSpy grantedSpy(&oauth2, &QOAuth2DeviceAuthorizationFlow::granted);
@@ -879,18 +810,18 @@ void tst_OAuth2DeviceFlow::tokenRequestErrors()
         requestFailedSpy.clear();
         grantedSpy.clear();
         statusSpy.clear();
-        receivedAuthorizationRequests.clear();
-        receivedTokenRequests.clear();
+        server->receivedAuthorizationRequests.clear();
+        server->receivedTokenRequests.clear();
     };
 
     // Invalid access token response
-    tokenHttpStatus = Responses::OK_200;
-    tokenBody = u"not the expected json response"_s;
+    server->responses.tokenHttpStatus = Responses::OK_200;
+    server->responses.tokenBody = "not the expected json response";
     expectWarning("Token request failed");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
-    QCOMPARE(receivedAuthorizationRequests.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
+    QCOMPARE(server->receivedAuthorizationRequests.size(), 1);
+    QCOMPARE(server->receivedTokenRequests.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::ServerError);
     QVERIFY(grantedSpy.isEmpty());
     QCOMPARE(statusSpy.size(), 1);
@@ -898,21 +829,21 @@ void tst_OAuth2DeviceFlow::tokenRequestErrors()
     QCOMPARE(oauth2.status(), Status::TemporaryCredentialsReceived);
 
     // Access token error response (RFC 6749 section 5.2)
-    tokenBody = R"(
+    server->responses.tokenBody = R"(
             {
                 "error": "an-error",
                 "error_description": "an-error-description",
                 "error_uri": "an-error-uri"
             }
-    )"_L1;
-    tokenHttpStatus = Responses::BR_400;
+    )";
+    server->responses.tokenHttpStatus = Responses::BR_400;
     clearTestVariables();
     expectWarning("Token request failed");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::ServerError);
-    QCOMPARE(receivedAuthorizationRequests.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
+    QCOMPARE(server->receivedAuthorizationRequests.size(), 1);
+    QCOMPARE(server->receivedTokenRequests.size(), 1);
     QVERIFY(grantedSpy.isEmpty());
     QCOMPARE(statusSpy.size(), 2);
     QCOMPARE(statusSpy.at(0).at(0).value<Status>(), Status::NotAuthenticated);
@@ -920,74 +851,74 @@ void tst_OAuth2DeviceFlow::tokenRequestErrors()
     QCOMPARE(oauth2.status(), Status::TemporaryCredentialsReceived);
 
     // Missing access token
-    tokenBody = R"(
+    server->responses.tokenBody = R"(
         {
             "refresh_token": "a-refresh-token",
             "token_type": "bearer",
             "expires_in": 3600
-        })"_L1;
-    tokenHttpStatus = Responses::OK_200;
+        })";
+    server->responses.tokenHttpStatus = Responses::OK_200;
     clearTestVariables();
     expectWarning("token not received");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
+    QCOMPARE(server->receivedTokenRequests.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::OAuthTokenNotFoundError);
     QCOMPARE(grantedSpy.size(), 0);
     QCOMPARE(oauth2.status(), Status::TemporaryCredentialsReceived);
 
     // authorization_pending
     // https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
-    tokenBody = Responses::tokenAuthorizationPending;
-    tokenHttpStatus = Responses::BR_400;
+    server->responses.tokenBody = Responses::tokenAuthorizationPending;
+    server->responses.tokenHttpStatus = Responses::BR_400;
     clearTestVariables();
     oauth2.grant();
     // Verify that retries (polls) are received (more than one token poll)
-    QTRY_VERIFY(receivedTokenRequests.size() > 1);
+    QTRY_VERIFY(server->receivedTokenRequests.size() > 1);
     QCOMPARE(requestFailedSpy.size(), 0);
     // Change to OK response and verify token is handled successfully
-    tokenHttpStatus = Responses::OK_200;
-    tokenBody = Responses::tokenSuccess;
+    server->responses.tokenHttpStatus = Responses::OK_200;
+    server->responses.tokenBody = Responses::tokenSuccess;
     QTRY_COMPARE(oauth2.status(), Status::Granted);
 
     // slow_down
     // https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
-    tokenBody = R"(
+    server->responses.tokenBody = R"(
             {
                 "error": "slow_down",
                 "error_description": "You're polling too fast"
             }
-    )"_L1;
-    tokenHttpStatus = Responses::BR_400;
+    )";
+    server->responses.tokenHttpStatus = Responses::BR_400;
     clearTestVariables();
     oauth2.grant();
     // Verify that retries (polls) are received (more than one token poll)
-    QTRY_VERIFY(receivedTokenRequests.size() > 1);
+    QTRY_VERIFY(server->receivedTokenRequests.size() > 1);
     QCOMPARE(requestFailedSpy.size(), 0);
     // Change to OK response and verify token is handled successfully
-    tokenHttpStatus = Responses::OK_200;
-    tokenBody = Responses::tokenSuccess;
+    server->responses.tokenHttpStatus = Responses::OK_200;
+    server->responses.tokenBody = Responses::tokenSuccess;
     QTRY_COMPARE(oauth2.status(), Status::Granted);
 
     // Failed access token refresh (missing access token)
-    tokenBody = R"(
+    server->responses.tokenBody = R"(
         {
             "token_type": "bearer",
             "expires_in": 3600
-        })"_L1;
-    tokenHttpStatus = Responses::OK_200;
+        })";
+    server->responses.tokenHttpStatus = Responses::OK_200;
     clearTestVariables();
     expectWarning("token not received");
     oauth2.refreshTokens();
     QCOMPARE(oauth2.status(), QAbstractOAuth2::Status::RefreshingToken);
     QTRY_COMPARE(requestFailedSpy.size(), 1);
-    QCOMPARE(receivedTokenRequests.size(), 1);
+    QCOMPARE(server->receivedTokenRequests.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::OAuthTokenNotFoundError);
     QCOMPARE(oauth2.status(), Status::Granted); // Because we still have valid access token
 
     // Network error
     clearTestVariables();
-    authorizationServer->close();
+    server->server->close();
     expectWarning("network error");
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
@@ -999,17 +930,12 @@ void tst_OAuth2DeviceFlow::tokenRequestErrors()
 void tst_OAuth2DeviceFlow::nonce()
 {
     const auto nonce = "a_nonce"_ba;
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     QOAuth2DeviceAuthorizationFlow oauth2;
     oauth2.setRequestedScopeTokens({"openid"});
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     // Verify that nonce is set to authorization request when appropriate
     oauth2.setNonce(nonce);
@@ -1018,59 +944,54 @@ void tst_OAuth2DeviceFlow::nonce()
     // -- Nonce is always included
     oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Enabled);
     oauth2.grant();
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
     QUrlQuery parameters;
-    parameters.setQuery(receivedAuthorizationRequests.at(0).body);
+    parameters.setQuery(server->receivedAuthorizationRequests.at(0).body);
     QCOMPARE(parameters.queryItemValue(u"nonce"_s).toUtf8(), nonce);
 
     // -- Nonce is never included
     oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Disabled);
-    receivedAuthorizationRequests.clear();
+    server->receivedAuthorizationRequests.clear();
     oauth2.grant();
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
-    parameters.setQuery(receivedAuthorizationRequests.at(0).body);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
+    parameters.setQuery(server->receivedAuthorizationRequests.at(0).body);
     QVERIFY(parameters.queryItemValue(u"nonce"_s).toUtf8().isEmpty());
 
     // -- Nonce is included if scope contains 'openid'
     oauth2.setNonceMode(QAbstractOAuth2::NonceMode::Automatic);
-    receivedAuthorizationRequests.clear();
+    server->receivedAuthorizationRequests.clear();
     oauth2.grant();
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
-    parameters.setQuery(receivedAuthorizationRequests.at(0).body);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
+    parameters.setQuery(server->receivedAuthorizationRequests.at(0).body);
     QVERIFY(parameters.queryItemValue(u"nonce"_s).toUtf8().isEmpty());
 
     oauth2.setRequestedScopeTokens({"scope_item1", "openid"});
-    receivedAuthorizationRequests.clear();
+    server->receivedAuthorizationRequests.clear();
     oauth2.grant();
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
-    parameters.setQuery(receivedAuthorizationRequests.at(0).body);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
+    parameters.setQuery(server->receivedAuthorizationRequests.at(0).body);
     QCOMPARE(parameters.queryItemValue(u"nonce"_s).toUtf8(), nonce);
 
     // -- Clear nonce, one should be generated
     oauth2.setNonce("");
     QVERIFY(oauth2.nonce().isEmpty());
-    receivedAuthorizationRequests.clear();
+    server->receivedAuthorizationRequests.clear();
     oauth2.grant();
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
     QVERIFY(!oauth2.nonce().isEmpty());
-    parameters.setQuery(receivedAuthorizationRequests.at(0).body);
+    parameters.setQuery(server->receivedAuthorizationRequests.at(0).body);
     QCOMPARE(parameters.queryItemValue(u"nonce"_s).toUtf8(), oauth2.nonce());
 }
 
 void tst_OAuth2DeviceFlow::idToken()
 {
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
     oauth2.setRequestedScopeTokens({"openid"});
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     QSignalSpy idTokenSpy(&oauth2, &QAbstractOAuth2::idTokenChanged);
     QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
@@ -1090,13 +1011,13 @@ void tst_OAuth2DeviceFlow::idToken()
     // purpose as we don't currently validate the received token, but no harm in being thorough
     auto idToken = createSignedJWT({}, {{"nonce"_L1, oauth2.nonce()}});
     oauth2.setRequestedScopeTokens({"openid"});
-    tokenBody = R"(
+    server->responses.tokenBody = R"(
         {
             "access_token": "an-access-token",
             "refresh_token": "a-refresh-token",
             "token_type": "bearer",
             "expires_in": 3600,
-            "id_token": ")"_L1 + idToken +
+            "id_token": ")" + idToken.toLatin1() +
         "\"}";
     oauth2.grant();
 
@@ -1108,7 +1029,7 @@ void tst_OAuth2DeviceFlow::idToken()
     // Test missing id_token error
     QVERIFY(requestFailedSpy.isEmpty());
     expectWarning("ID token not received");
-    tokenBody = Responses::tokenSuccess;
+    server->responses.tokenBody = Responses::tokenSuccess;
     oauth2.grant();
     QTRY_COMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(requestFailedSpy.at(0).at(0).value<Error>(), Error::OAuthTokenNotFoundError);
@@ -1135,16 +1056,11 @@ void tst_OAuth2DeviceFlow::requestedScopeTokens()
     QFETCH(QSet<QByteArray>, requested_scope);
     QFETCH(QSet<QByteArray>, expected_requested_scope);
 
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     QOAuth2DeviceAuthorizationFlow oauth2;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     QVERIFY(oauth2.requestedScopeTokens().isEmpty());
 
     QSignalSpy requestedScopeTokensSpy(&oauth2, &QAbstractOAuth2::requestedScopeTokensChanged);
@@ -1156,8 +1072,8 @@ void tst_OAuth2DeviceFlow::requestedScopeTokens()
              expected_requested_scope);
 
     oauth2.grant();
-    QTRY_COMPARE(receivedAuthorizationRequests.size(), 1);
-    QUrlQuery parameters(receivedAuthorizationRequests.at(0).body);
+    QTRY_COMPARE(server->receivedAuthorizationRequests.size(), 1);
+    QUrlQuery parameters(server->receivedAuthorizationRequests.at(0).body);
     const auto scopeTokens = parameters.queryItemValue(u"scope"_s).toLatin1().split(' ');
     QCOMPARE_EQ(scopeTokens.size(), requested_scope.size());
     for (const auto &token : scopeTokens)
@@ -1196,30 +1112,25 @@ void tst_OAuth2DeviceFlow::grantedScopeTokens()
     QFETCH(QByteArray, granted_scope);
     QFETCH(QSet<QByteArray>, expected_granted_scope);
 
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::grantedScopeTokensChanged);
     oauth2.setRequestedScopeTokens(requested_scope);
 
     if (!granted_scope.isEmpty()) {
-        tokenBody =  R"(
+        server->responses.tokenBody =  R"(
         {
             "access_token": "an-access-token",
             "refresh_token": "a-refresh-token",
             "token_type": "bearer",
             "expires_in": 3600,
             "scope": ")" + granted_scope +
-        "\"}"_L1;
+        "\"}";
     }
     oauth2.grant();
 
@@ -1281,58 +1192,53 @@ void tst_OAuth2DeviceFlow::refreshLeadTime()
     QFETCH(QString, refreshToken);
     QFETCH(bool, expectRefreshRequest);
 
-    const QString authBody = Responses::authorizationSuccess;
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-            authBody, authHttpStatus, tokenBody, tokenHttpStatus));
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
     oauth2.setRefreshLeadTime(refreshLeadTime);
     oauth2.setAutoRefresh(autoRefresh);
 
     QSignalSpy expiredSpy(&oauth2, &QAbstractOAuth2::accessTokenAboutToExpire);
     QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::grantedScopeTokensChanged);
 
-    tokenBody = R"(
+    server->responses.tokenBody = R"(
     {
         "access_token": "initial-access-token",
         "token_type": "bearer",
-        "expires_in": ")" + QString::number(expiresIn) + R"(",
+        "expires_in": ")" + QByteArray::number(expiresIn) + R"(",
         "scope": "s",
-        "refresh_token": ")" + refreshToken +
-    "\"}"_L1;
+        "refresh_token": ")" + refreshToken.toLatin1() +
+    "\"}";
     oauth2.grant();
 
     QTRY_COMPARE(grantedSpy.size(), 1);
     QCOMPARE(oauth2.token(), u"initial-access-token"_s);
 
     // Clear initial token request
-    receivedTokenRequests.clear();
+    server->receivedTokenRequests.clear();
 
     if (expectExpirationSignal) {
-        tokenBody = R"(
+        server->responses.tokenBody = R"(
             {
                 "access_token": "refreshed-access-token",
                 "token_type": "bearer",
                 "expires_in": 3600,
                 "scope": "s",
                 "refresh_token": "a-refresh-token"
-            })"_L1;
+            })";
         QTRY_COMPARE_WITH_TIMEOUT(expiredSpy.size(), 1, waitTimeForExpiration);
         if (expectRefreshRequest) {
             QTRY_COMPARE(oauth2.token(), "refreshed-access-token"_L1);
-            QCOMPARE(receivedTokenRequests.size(), 1);
+            QCOMPARE(server->receivedTokenRequests.size(), 1);
             QCOMPARE(expiredSpy.size(), 1);
         } else {
             // Refresh request isn't expected. To be sure that it isn't sent, allow a bit time
             // for the network stack to process before testing that it indeed wasn't sent
             QTest::qWait(100);
-            QCOMPARE(receivedTokenRequests.size(), 0);
+            QCOMPARE(server->receivedTokenRequests.size(), 0);
         }
     }
 }
@@ -1354,17 +1260,17 @@ void tst_OAuth2DeviceFlow::destruction()
     // and verify that things destruct cleanly
     QFETCH(QNetworkAccessManager *, qnam);
     std::unique_ptr<QNetworkAccessManager> accessManager(qnam);
-    QString authBody = Responses::authorizationResponseWithTimes(1, 5);
-    QString tokenBody = Responses::tokenAuthorizationPending;
-    QString httpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, httpStatus, tokenBody, httpStatus));
+
+    auto responses = Responses::defaults();
+    responses.authBody = Responses::authorizationResponseWithTimes(1, 5);
+    responses.tokenBody = Responses::tokenAuthorizationPending;
+    auto server = createAuthorizationServer<WebServer>(responses);
 
     const auto newFlow = [&]() -> QOAuth2DeviceAuthorizationFlow * {
         QOAuth2DeviceAuthorizationFlow *flow =
             new QOAuth2DeviceAuthorizationFlow(accessManager.get());
-        flow->setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-        flow->setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+        flow->setAuthorizationUrl(server->authorizationEndpoint());
+        flow->setTokenUrl(server->tokenEndpoint());
         return flow;
     };
 
@@ -1382,17 +1288,15 @@ void tst_OAuth2DeviceFlow::destruction()
     // Delete while polling
     oauth2.reset(newFlow());
     oauth2->grant();
-    QTRY_VERIFY(receivedTokenRequests.size() >= 1);
+    QTRY_VERIFY(server->receivedTokenRequests.size() >= 1);
     oauth2.reset(nullptr);
 }
 
 void tst_OAuth2DeviceFlow::changeNetworkAccessManager()
 {
-    const QString authBody = Responses::authorizationResponseWithTimes(100, 1000);
-    QString tokenBody = Responses::tokenSuccess;
-    const QString httpStatus = Responses::OK_200;
-    std::unique_ptr<WebServer> authorizationServer(createAuthorizationServer<WebServer>(
-        authBody, httpStatus, tokenBody, httpStatus));
+    auto responses = Responses::defaults();
+    responses.authBody = Responses::authorizationResponseWithTimes(100, 1000);
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
 
     QNetworkAccessManager *qnam0 = nullptr;
     QNetworkAccessManager qnam1;
@@ -1400,8 +1304,8 @@ void tst_OAuth2DeviceFlow::changeNetworkAccessManager()
 
     DeviceFlow oauth2;
     oauth2.flowPrivate()->useAutoTestDurations = true;
-    oauth2.setAuthorizationUrl(authorizationServer->url("authorizationEndpoint"_L1));
-    oauth2.setTokenUrl(authorizationServer->url("tokenEndpoint"_L1));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     bool stopPollingAfterAuthorization = true;
     connect(&oauth2, &QAbstractOAuth::statusChanged, this, [&](Status status) {
@@ -1469,15 +1373,12 @@ void tst_OAuth2DeviceFlow::tlsAuthentication()
     auto serverConfig = createSslConfiguration(testDataDir + "certs/selfsigned-server.key",
                                                testDataDir + "certs/selfsigned-server.crt");
 
+    auto responses = Responses::defaults();
     // SSL establishment can take awhile, use one full second for poll interval
-    const QString authBody = Responses::authorizationResponseWithTimes(1, 10);
-    const QString authHttpStatus = Responses::OK_200;
-    QString tokenBody = Responses::tokenSuccess;
-    QString tokenHttpStatus = Responses::OK_200;
+    responses.authBody = Responses::authorizationResponseWithTimes(1, 10);
+    auto server = createAuthorizationServer<TlsWebServer>(responses, serverConfig);
 
-    std::unique_ptr<TlsWebServer> authorizationServer(createAuthorizationServer<TlsWebServer>(
-        authBody, authHttpStatus, tokenBody, tokenHttpStatus, serverConfig));
-    authorizationServer->setExpectedSslErrors(expectedErrors);
+    server->server->setExpectedSslErrors(expectedErrors);
     auto clientConfig = createSslConfiguration(testDataDir + "certs/selfsigned-client.key",
                                                testDataDir + "certs/selfsigned-client.crt");
 
@@ -1485,8 +1386,8 @@ void tst_OAuth2DeviceFlow::tlsAuthentication()
     QOAuth2DeviceAuthorizationFlow oauth2;
     oauth2.setNetworkAccessManager(&qnam);
     oauth2.setSslConfiguration(clientConfig);
-    oauth2.setAuthorizationUrl(authorizationServer->url(QLatin1String("authorizationEndpoint")));
-    oauth2.setTokenUrl(authorizationServer->url(QLatin1String("tokenEndpoint")));
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
 
     connect(&qnam, &QNetworkAccessManager::sslErrors, this,
         [&expectedErrors](QNetworkReply *r, const QList<QSslError> &errors) {
