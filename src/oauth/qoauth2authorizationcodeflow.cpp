@@ -456,6 +456,12 @@ QUrl QOAuth2AuthorizationCodeFlow::buildAuthenticateUrl(const QMultiMap<QString,
     p.insert(QtOAuth2RfcKeywords::responseType, responseType());
     p.insert(QtOAuth2RfcKeywords::clientIdentifier, d->clientIdentifier);
     p.insert(QtOAuth2RfcKeywords::redirectUri, callback());
+#ifndef QOAUTH2_NO_LEGACY_SCOPE
+    if (d->legacyScopeWasSetByUser) {
+        if (!d->legacyScope.isEmpty())
+            p.insert(QtOAuth2RfcKeywords::scope, d->legacyScope);
+    } else
+#endif
     if (!d->requestedScopeTokens.isEmpty())
         p.insert(QtOAuth2RfcKeywords::scope, d->joinedScope(d->requestedScopeTokens));
     p.insert(QtOAuth2RfcKeywords::state, toUrlFormEncoding(state));
