@@ -5,8 +5,8 @@ list(APPEND test_data "../shared/certs")
 
 qt_internal_add_test(tst_oauth2deviceflow
     SOURCES
-        ../shared/webserver.h
-        ../shared/tlswebserver.h
+        ../shared/webserver.h ../shared/webserver.cpp
+        ../shared/tlswebserver.h ../shared/tlswebserver.cpp
         ../shared/oauthtestutils.h ../shared/oauthtestutils.cpp
         tst_oauth2deviceflow.cpp
     INCLUDE_DIRECTORIES
