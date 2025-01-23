@@ -35,6 +35,7 @@ private Q_SLOTS:
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
     void scope_data();
     void scope();
+    void setInvalidScope();
     void scopeAndRequestedScope_data();
     void scopeAndRequestedScope();
 #endif
@@ -1020,6 +1021,58 @@ void tst_OAuth2::scope()
         QCOMPARE(scopeSpy.at(1).at(0).toString(), expected_scope);
     } else {
         QCOMPARE(scopeSpy.size(), 1);
+    }
+}
+
+void tst_OAuth2::setInvalidScope()
+{
+    const auto zeroth = u"zeroth"_s;
+    const auto zerothU8 = zeroth.toUtf8();
+    const auto first = u"fïrst"_s; // L1
+    const auto firstU8 = first.toUtf8();
+    const auto firstL1 = first.toLatin1();
+    const auto second = u"s€cond"_s; // non-L1
+    const auto secondU8 = second.toUtf8();
+    const auto secondL1 = second.toLatin1();
+
+    constexpr auto ignoreMsg = [](char16_t ch) {
+        char buf[256];
+        std::snprintf(buf, sizeof buf,
+                      "Scope token contains disallowed character '%s' (0x%04x). "
+                      "This may cause interoperability issues",
+                      QString(QChar(ch)).toUtf8().constData(), uint{ch});
+        QTest::ignoreMessage(QtWarningMsg, buf);
+    };
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+
+    {
+        oauth2.setScope(zeroth);
+        QCOMPARE(oauth2.scope(), zeroth); // scope is not changed
+        QCOMPARE(oauth2.requestedScopeTokens(), QSet{zerothU8}); // U8 == L1 here
+    }
+
+    {
+        ignoreMsg(u'ï');
+        oauth2.setScope(first);
+        QCOMPARE(oauth2.scope(), first); // scope is not changed
+        QCOMPARE(oauth2.requestedScopeTokens(), QSet{firstU8});
+    }
+
+    {
+        ignoreMsg(u'€');
+        oauth2.setScope(second);
+        QCOMPARE(oauth2.scope(), second); // scope is not changed
+        QCOMPARE(oauth2.requestedScopeTokens(), QSet{secondU8});
+    }
+
+    {
+        ignoreMsg(u'ï');
+        ignoreMsg(u'€');
+        const QString scope = first + u' ' + second;
+        oauth2.setScope(scope);
+        QCOMPARE(oauth2.scope(), scope); // scope is not changed
+        QCOMPARE(oauth2.requestedScopeTokens(), QSet({firstU8, secondU8}));
     }
 }
 

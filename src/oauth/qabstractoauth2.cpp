@@ -462,38 +462,89 @@ QString QAbstractOAuth2Private::joinedScope(const QSet<QByteArray> &scopeTokens)
 
 QSet<QByteArray> QAbstractOAuth2Private::splitScope(QStringView scope)
 {
-    QSet<QByteArray> split;
-    for (const auto &token : scope.split(u' ', Qt::SkipEmptyParts))
-        split.insert(token.toUtf8());
-    return split;
+    QSet<QByteArray> result;
+    for (auto token : scope.tokenize(u' ', Qt::SkipEmptyParts)) {
+        warnOnInvalidScopeToken(token);
+        result.insert(token.toUtf8());
+    }
+    return result;
 }
 
-constexpr auto is_invalid_scope_token_char = [](char ch) noexcept
+constexpr auto is_invalid_scope_token_char = [](char16_t ch) noexcept
 {
     // https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
     //   scope-token = 1*( %x21 / %x23-5B / %x5D-7E )
     //   ie. all US-ASCII, except control, SP, DQUOTE, and BACKSLASH
-    return !(ch > ' ' && uchar(ch) <= 0x7E && ch != '\x22' && ch != '\x5C');
+    return ch < 0x21 || ch == 0x22 || ch == 0x5C || ch > 0x7E;
 };
 
-void QAbstractOAuth2Private::warnOnInvalidScopeTokens(const QSet<QByteArray> &scopeTokens)
+void QAbstractOAuth2Private::warnOnInvalidRequestedScopeTokens(const QSet<QByteArray> &scopeTokens)
 {
     if (!lcOAuth2Validation().isWarningEnabled() || scopeTokens.isEmpty())
         return;
 
-    for (const auto &token : scopeTokens) {
-        if (token.isEmpty()) {
-            qCWarning(lcOAuth2Validation, "An empty scope token detected, it will be ignored");
-            return;
-        }
-        auto invalidCharIt =
-            std::find_if(token.constBegin(), token.constEnd(), is_invalid_scope_token_char);
-        if (invalidCharIt != token.constEnd()) {
-            qCWarning(lcOAuth2Validation, "Scope token contains disallowed character '%c' (%d). "
-                                          "This may cause interoperability issues",
-                                          *invalidCharIt, static_cast<quint8>(*invalidCharIt));
-            return;
-        }
+    for (const auto &token : scopeTokens)
+        warnOnInvalidRequestedScopeToken(token);
+}
+
+/*!
+    \internal
+
+    Validates an RFC 6749 scope-token in octet-stream form, ie. before
+    serialization. Warns also if \a token is empty (since it will then vanish
+    on serialization (cause two spaces instead of one), which is probably not
+    what the user wanted.
+*/
+void QAbstractOAuth2Private::warnOnInvalidRequestedScopeToken(QByteArrayView token)
+{
+    if (!lcOAuth2Validation().isWarningEnabled())
+        return;
+
+    if (token.isEmpty()) {
+        qCWarning(lcOAuth2Validation, "An empty scope token detected, it will be ignored");
+        return;
+    }
+
+    // The predicate takes char16_t, but the range is of value_type char. But
+    // the signedness of `char` doesn't matter here: regardless of sign an
+    // invalid char remains an invalid char after conversion to char16_t:
+    const auto it = std::find_if(token.begin(), token.end(), is_invalid_scope_token_char);
+    if (it != token.end()) {
+        qCWarning(lcOAuth2Validation,
+                  "Scope token contains disallowed character '%c' (0x%02x). "
+                  "This is deprecated and may be removed in a future Qt version. "
+                  "Note that Qt assumes scope-tokens are RFC 6749-compliant US-ASCII-only, "
+                  "so this scope-token will most likely be serialized wrongly. "
+                  "Please continue to use the QAbstractOAuth2::scope property for the time "
+                  "being, and consider filing a bug if you need this behavior.",
+                  *it, uchar(*it));
+    }
+}
+
+/*!
+    \internal
+
+    Validates an RFC 6749 scope-token in UTF-16 encoding, ie. while splitting a
+    scope into scope-tokens. This function assumes that \a token is not empty,
+    because the cardinality of spaces separating scope-tokens is not
+    significant, so Qt::SkipEmptyParts should have been used by caller).
+*/
+void QAbstractOAuth2Private::warnOnInvalidScopeToken(QStringView token)
+{
+    if (!lcOAuth2Validation().isWarningEnabled())
+        return;
+
+    Q_ASSERT(!token.isEmpty()); // we only operate in UTF-16 space while splitting,
+                                // which we do along " +", so this cannot happen.
+
+    const auto b = token.utf16(); // want char16_t, not QChar
+    const auto e = b + token.size();
+    const auto it = std::find_if(b, e, is_invalid_scope_token_char);
+    if (it != e) {
+        qCWarning(lcOAuth2Validation,
+                  "Scope token contains disallowed character '%s' (0x%04x). "
+                  "This may cause interoperability issues",
+                  qUtf8Printable(QChar(*it)), *it);
     }
 }
 
@@ -664,7 +715,6 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     // Therefore 'scope' needs to be set if the granted scope differs from 'scope'.
     const QString receivedGrantedScope = values.value(QtOAuth2RfcKeywords::scope).toString();
     const QSet<QByteArray> splitGrantedScope = splitScope(receivedGrantedScope);
-    warnOnInvalidScopeTokens(splitGrantedScope);
     if (splitGrantedScope.isEmpty()) {
         setGrantedScopeTokens(requestedScopeTokens);
     } else {
@@ -1166,7 +1216,6 @@ void QAbstractOAuth2::setScope(const QString &scope)
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(d->legacyScope);)
     }
     const QSet<QByteArray> splitScope = d->splitScope(d->legacyScope);
-    d->warnOnInvalidScopeTokens(splitScope);
     if (d->requestedScopeTokens != splitScope) {
         d->requestedScopeTokens = splitScope;
         Q_EMIT requestedScopeTokensChanged(splitScope);
@@ -1186,7 +1235,7 @@ void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
     d->legacyScopeWasSetByUser = false;
 #endif
-    d->warnOnInvalidScopeTokens(tokens);
+    d->warnOnInvalidRequestedScopeTokens(tokens);
     if (tokens != d->requestedScopeTokens) {
         d->requestedScopeTokens = tokens;
         Q_EMIT requestedScopeTokensChanged(tokens);
