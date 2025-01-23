@@ -329,7 +329,7 @@ QByteArray QAbstractOAuthPrivate::convertParameters(const QVariantMap &parameter
         QUrlQuery query;
         for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it)
             query.addQueryItem(it.key(), it->toString());
-        data = query.toString(QUrl::FullyEncoded).toUtf8();
+        data = query.toString(QUrl::FullyEncoded).toLatin1();
         break;
     }
     }
