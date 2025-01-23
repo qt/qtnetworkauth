@@ -47,7 +47,7 @@ public:
 
     void setExpiresAt(const QDateTime &expiration);
     void setGrantedScopeTokens(const QSet<QByteArray> &tokens);
-    static QByteArray joinedScope(const QSet<QByteArray> &scopeTokens);
+    static QString joinedScope(const QSet<QByteArray> &scopeTokens);
     static QSet<QByteArray> splitScope(QStringView scope);
     static void warnOnInvalidScopeTokens(const QSet<QByteArray> &scopeTokens);
     static QString generateRandomState();
