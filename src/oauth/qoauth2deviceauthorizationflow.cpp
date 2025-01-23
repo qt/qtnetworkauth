@@ -462,8 +462,8 @@ void QOAuth2DeviceAuthorizationFlowPrivate::pollTokens()
 #endif
     callNetworkRequestModifier(request, Stage::RequestingAccessToken);
 
-    const QString data = query.toString(QUrl::FullyEncoded);
-    currentTokenReply = network()->post(request, data.toUtf8(), q, [this](QRestReply &reply) {
+    const QByteArray data = query.toString(QUrl::FullyEncoded).toLatin1();
+    currentTokenReply = network()->post(request, data, q, [this](QRestReply &reply) {
         if (reply.networkReply() != currentTokenReply) {
             logTokenStageWarning("unexpected token reply"_L1);
             return;
@@ -689,7 +689,7 @@ void QOAuth2DeviceAuthorizationFlow::grant()
 #endif
     d->callNetworkRequestModifier(request, Stage::RequestingAuthorization);
 
-    const QByteArray data = query.toString(QUrl::FullyEncoded).toUtf8();
+    const QByteArray data = query.toString(QUrl::FullyEncoded).toLatin1();
     d->currentAuthorizationReply =
         d->network()->post(request, data, this, [d](QRestReply &reply) {
             if (reply.networkReply() != d->currentAuthorizationReply) {
