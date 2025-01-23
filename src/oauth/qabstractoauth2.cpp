@@ -448,16 +448,16 @@ void QAbstractOAuth2Private::setGrantedScopeTokens(const QSet<QByteArray> &token
     Q_EMIT q->grantedScopeTokensChanged(grantedScopeTokens);
 }
 
-QByteArray QAbstractOAuth2Private::joinedScope(const QSet<QByteArray> &scopeTokens)
+QString QAbstractOAuth2Private::joinedScope(const QSet<QByteArray> &scopeTokens)
 {
-    QByteArray joined;
-    const char *separator = "";
+    QString result;
+    auto separator = ""_L1;
     for (const auto &token : scopeTokens) {
-        joined += separator;
-        joined += token;
-        separator = " ";
+        result += separator;
+        result += QLatin1StringView{token};
+        separator = " "_L1;
     }
-    return joined;
+    return result;
 }
 
 QSet<QByteArray> QAbstractOAuth2Private::splitScope(QStringView scope)
@@ -1192,7 +1192,7 @@ void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
         Q_EMIT requestedScopeTokensChanged(tokens);
     }
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
-    QString joinedScope = QString::fromLatin1(d->joinedScope(tokens));
+    QString joinedScope = d->joinedScope(tokens);
     if (joinedScope != d->legacyScope) {
         d->legacyScope = std::move(joinedScope);
         QT_IGNORE_DEPRECATIONS(Q_EMIT scopeChanged(d->legacyScope);)
