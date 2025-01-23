@@ -176,7 +176,7 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
     }
     else if (operation == QNetworkAccessManager::PostOperation) {
         QUrlQuery query = QOAuth1Private::createQuery(remainingParameters);
-        const QByteArray data = query.toString(QUrl::FullyEncoded).toUtf8();
+        const QByteArray data = query.toString(QUrl::FullyEncoded).toLatin1();
         request.setHeader(QNetworkRequest::ContentTypeHeader,
                           QStringLiteral("application/x-www-form-urlencoded"));
         reply = networkAccessManager()->post(request, data);

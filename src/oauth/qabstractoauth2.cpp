@@ -755,7 +755,7 @@ QAbstractOAuth2Private::RequestAndBody QAbstractOAuth2Private::createRefreshRequ
                       QStringLiteral("application/x-www-form-urlencoded"));
 
     callNetworkRequestModifier(result.request, QAbstractOAuth::Stage::RefreshingAccessToken);
-    result.body = query.toString(QUrl::FullyEncoded).toUtf8();
+    result.body = query.toString(QUrl::FullyEncoded).toLatin1();
 
     return result;
 }
