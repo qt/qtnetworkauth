@@ -22,8 +22,8 @@ class tst_QOAuthHttpServerReplyHandler : public QObject
 
 private Q_SLOTS:
     void initTestCase();
-    void networkReplyErrors_data();
-    void networkReplyErrors();
+    void tokenReplyErrors_data();
+    void tokenReplyErrors();
     void callback_data();
     void callback();
     void callbackCaching();
@@ -72,7 +72,7 @@ void tst_QOAuthHttpServerReplyHandler::initTestCase()
         testDataDir += QLatin1String("/");
 }
 
-void tst_QOAuthHttpServerReplyHandler::networkReplyErrors_data()
+void tst_QOAuthHttpServerReplyHandler::tokenReplyErrors_data()
 {
     using Error = QAbstractOAuth::Error;
     QString tokenResponse;
@@ -122,7 +122,7 @@ void tst_QOAuthHttpServerReplyHandler::networkReplyErrors_data()
         << tokenResponse << Error::ServerError << u"Unknown Content-type"_s;
 }
 
-void tst_QOAuthHttpServerReplyHandler::networkReplyErrors()
+void tst_QOAuthHttpServerReplyHandler::tokenReplyErrors()
 {
     using Error = QAbstractOAuth::Error;
     QFETCH(const QString, tokenResponse);
