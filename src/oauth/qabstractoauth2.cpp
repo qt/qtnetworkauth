@@ -483,13 +483,10 @@ constexpr auto is_invalid_scope_token_char = [](char16_t ch) noexcept
     return ch < 0x21 || ch == 0x22 || ch == 0x5C || ch > 0x7E;
 };
 
-void QAbstractOAuth2Private::warnOnInvalidRequestedScopeTokens(const QSet<QByteArray> &scopeTokens)
+bool QAbstractOAuth2Private::checkRequestedScopeTokensValid(const QSet<QByteArray> &scopeTokens)
 {
-    if (!lcOAuth2Validation().isWarningEnabled() || scopeTokens.isEmpty())
-        return;
-
-    for (const auto &token : scopeTokens)
-        warnOnInvalidRequestedScopeToken(token);
+    return std::all_of(scopeTokens.begin(), scopeTokens.end(),
+                       [] (auto token) { return checkRequestedScopeTokenValid(token); });
 }
 
 /*!
@@ -500,14 +497,11 @@ void QAbstractOAuth2Private::warnOnInvalidRequestedScopeTokens(const QSet<QByteA
     on serialization (cause two spaces instead of one), which is probably not
     what the user wanted.
 */
-void QAbstractOAuth2Private::warnOnInvalidRequestedScopeToken(QByteArrayView token)
+bool QAbstractOAuth2Private::checkRequestedScopeTokenValid(QByteArrayView token)
 {
-    if (!lcOAuth2Validation().isWarningEnabled())
-        return;
-
     if (token.isEmpty()) {
-        qCWarning(lcOAuth2Validation, "An empty scope token detected, it will be ignored");
-        return;
+        qCWarning(lcOAuth2Validation, "A scope token cannot be empty.");
+        return false;
     }
 
     // The predicate takes char16_t, but the range is of value_type char. But
@@ -516,14 +510,15 @@ void QAbstractOAuth2Private::warnOnInvalidRequestedScopeToken(QByteArrayView tok
     const auto it = std::find_if(token.begin(), token.end(), is_invalid_scope_token_char);
     if (it != token.end()) {
         qCWarning(lcOAuth2Validation,
-                  "Scope token contains disallowed character '%c' (0x%02x). "
-                  "This is deprecated and may be removed in a future Qt version. "
-                  "Note that Qt assumes scope-tokens are RFC 6749-compliant US-ASCII-only, "
-                  "so this scope-token will most likely be serialized wrongly. "
+                  "A scope token cannot contain disallowed character '%c' (0x%02x). "
+                  "Note that Qt requires scope-tokens are RFC 6749-compliant US-ASCII-only. "
                   "Please continue to use the QAbstractOAuth2::scope property for the time "
                   "being, and consider filing a bug if you need this behavior.",
                   *it, uchar(*it));
+        return false;
     }
+
+    return true;
 }
 
 /*!
@@ -1237,10 +1232,11 @@ QSet<QByteArray> QAbstractOAuth2::requestedScopeTokens() const
 void QAbstractOAuth2::setRequestedScopeTokens(const QSet<QByteArray> &tokens)
 {
     Q_D(QAbstractOAuth2);
+    if (!d->checkRequestedScopeTokensValid(tokens))
+        return;
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
     d->legacyScopeWasSetByUser = false;
 #endif
-    d->warnOnInvalidRequestedScopeTokens(tokens);
     if (tokens != d->requestedScopeTokens) {
         d->requestedScopeTokens = tokens;
         Q_EMIT requestedScopeTokensChanged(tokens);

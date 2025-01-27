@@ -1265,37 +1265,49 @@ void tst_OAuth2::grantedScopeTokens()
 void tst_OAuth2::scopeCharacterWarnings()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
+    QCOMPARE_EQ(oauth2.requestedScopeTokens(), {});
 
-    const QRegularExpression scopeCharWarning{"Scope token contains disallowed character"};
+    auto scopeCharWarning = QRegularExpression{"A scope token cannot contain disallowed character"};
     // All characters in acceptable range
     const QByteArray acceptable = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                   "[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
     // All good
     oauth2.setRequestedScopeTokens({acceptable});
+    QCOMPARE_EQ(oauth2.requestedScopeTokens(), {acceptable}); // changed
 
     // Outside of acceptable range
     QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
     oauth2.setRequestedScopeTokens({"\x03"});
+    QCOMPARE_EQ(oauth2.requestedScopeTokens(), {acceptable}); // unchanged
+
 
     QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
     oauth2.setRequestedScopeTokens({u"foo€bar"_s.toUtf8()});
+    QCOMPARE_EQ(oauth2.requestedScopeTokens(), {acceptable}); // unchanged
 
     // Empty token
-    QTest::ignoreMessage(QtWarningMsg, QRegularExpression("An empty scope token detected"));
+    QTest::ignoreMessage(QtWarningMsg, "A scope token cannot be empty.");
     oauth2.setRequestedScopeTokens({"", "some"});
+    QCOMPARE_EQ(oauth2.requestedScopeTokens(), {acceptable}); // unchanged
 
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
     QT_WARNING_PUSH QT_WARNING_DISABLE_DEPRECATED
 
+    // warning here is different:
+    scopeCharWarning = QRegularExpression{"Scope token contains disallowed character"};
+
     // All good
     oauth2.setScope(acceptable);
+    QCOMPARE_EQ(oauth2.scope(), QLatin1StringView{acceptable});
 
     QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
     oauth2.setScope(u"\x03"_s);
+    QCOMPARE_EQ(oauth2.scope(), "\x03"_L1); // setScope() doesn't reject
 
     QTest::ignoreMessage(QtWarningMsg, scopeCharWarning);
     oauth2.setScope(u"foo€bar"_s);
+    QCOMPARE_EQ(oauth2.scope(), u"foo€bar"); // setScope() doesn't reject or reinterpret
 
     QT_WARNING_POP
 #endif // QOAUTH2_NO_LEGACY_SCOPE
