@@ -49,9 +49,9 @@ public:
     void setGrantedScopeTokens(const QSet<QByteArray> &tokens);
     static QString joinedScope(const QSet<QByteArray> &scopeTokens);
     static QSet<QByteArray> splitScope(QStringView scope);
-    static void warnOnInvalidRequestedScopeTokens(const QSet<QByteArray> &tokens);
+    static bool checkRequestedScopeTokensValid(const QSet<QByteArray> &tokens);
+    static bool checkRequestedScopeTokenValid(QByteArrayView token);
     static void warnOnInvalidScopeToken(QStringView token);
-    static void warnOnInvalidRequestedScopeToken(QByteArrayView token);
     static QString generateRandomState();
     static QString generateNonce();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
