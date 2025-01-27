@@ -20,6 +20,7 @@ class Q_OAUTH_EXPORT QOAuthOobReplyHandler : public QAbstractOAuthReplyHandler
 
 public:
     explicit QOAuthOobReplyHandler(QObject *parent = nullptr);
+    ~QOAuthOobReplyHandler() override;
 
     QString callback() const override;
 
