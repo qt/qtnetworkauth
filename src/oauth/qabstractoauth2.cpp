@@ -157,6 +157,11 @@ static constexpr auto FallbackRefreshInterval = 2s;
     \brief This property holds the desired scope which defines the
     permissions requested by the client.
 
+    \note Scope tokens are limited to a
+    \l {https://datatracker.ietf.org/doc/html/rfc6749#section-3.3}{subset}
+    of printable US-ASCII characters. Using characters outside this range
+    is not supported.
+
     \sa QAbstractOAuth2::grantedScopeTokens
 */
 
