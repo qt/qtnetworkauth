@@ -26,6 +26,9 @@ QOAuthOobReplyHandler::QOAuthOobReplyHandler(QOAuthOobReplyHandlerPrivate &d, QO
     : QAbstractOAuthReplyHandler(d, parent)
 {}
 
+QOAuthOobReplyHandler::~QOAuthOobReplyHandler()
+    = default; // must be empty until Qt 7 (was inline until Qt 6.8)
+
 QString QOAuthOobReplyHandler::callback() const
 {
     return QStringLiteral("oob");
