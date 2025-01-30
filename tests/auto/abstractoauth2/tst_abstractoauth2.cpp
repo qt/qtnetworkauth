@@ -18,6 +18,8 @@ private Q_SLOTS:
     void scopeCharacterWarnings();
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
     void setInvalidScope();
+    void scopeAndRequestedScope_data();
+    void scopeAndRequestedScope();
 #endif
     void prepareRequest();
     void nonce();
@@ -155,6 +157,66 @@ void tst_AbstractOAuth2::setInvalidScope()
         QCOMPARE(oauth2.scope(), scope); // scope is not changed
         QCOMPARE(oauth2.requestedScopeTokens(), QSet({firstU8, secondU8}));
     }
+}
+
+void tst_AbstractOAuth2::scopeAndRequestedScope_data()
+{
+    const QByteArray f = "first";
+    const QByteArray s = "second";
+    const QByteArray fs = "first second";
+
+    QTest::addColumn<QByteArray>("scope");
+    QTest::addColumn<QByteArray>("expected_scope");
+    QTest::addColumn<QSet<QByteArray>>("requested_scope");
+
+    QTest::addRow("singlescope") << f << f << QSet{f};
+    QTest::addRow("multiscope") << fs << fs << QSet{f, s};
+}
+
+void tst_AbstractOAuth2::scopeAndRequestedScope()
+{
+    QFETCH(QByteArray, scope);
+    QFETCH(QByteArray, expected_scope);
+    QFETCH(QSet<QByteArray>, requested_scope);
+
+    TestFlow oauth2;
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    QVERIFY(oauth2.scope().isEmpty());
+    QVERIFY(oauth2.requestedScopeTokens().isEmpty());
+
+    QSignalSpy scopeSpy(&oauth2, &QAbstractOAuth2::scopeChanged);
+    QSignalSpy requestedScopeTokensSpy(&oauth2, &QAbstractOAuth2::requestedScopeTokensChanged);
+
+    // Set 'scope' and verify that both 'scope' and 'requestedScopeTokens' change
+    oauth2.setScope(scope);
+
+    QCOMPARE(scopeSpy.size(), 1);
+    QCOMPARE(oauth2.scope(), expected_scope);
+    QCOMPARE(scopeSpy.at(0).at(0).toString(), expected_scope);
+
+    QCOMPARE(requestedScopeTokensSpy.size(), 1);
+    QCOMPARE(oauth2.requestedScopeTokens(), requested_scope);
+    QCOMPARE(requestedScopeTokensSpy.at(0).at(0).value<QSet<QByteArray>>(), requested_scope);
+
+    // Clear data
+    oauth2.setScope(u""_s);
+    oauth2.setRequestedScopeTokens({});
+    scopeSpy.clear();
+    requestedScopeTokensSpy.clear();
+
+    // Set 'requestedScopeTokens' and verify that both 'scope' and 'requestedScopeTokens' change
+    oauth2.setRequestedScopeTokens(requested_scope);
+
+    QCOMPARE(requestedScopeTokensSpy.size(), 1);
+    QCOMPARE(oauth2.requestedScopeTokens(), requested_scope);
+    QCOMPARE(requestedScopeTokensSpy.at(0).at(0).value<QSet<QByteArray>>(), requested_scope);
+
+    QCOMPARE(scopeSpy.size(), 1);
+    auto scopeTokens = oauth2.scope().toLatin1().split(' ');
+    QCOMPARE_EQ(scopeTokens.size(), requested_scope.size());
+    for (const auto &token : scopeTokens)
+        QVERIFY2(requested_scope.contains(token), token.data());
 }
 QT_WARNING_POP
 #endif // QOAUTH2_NO_LEGACY_SCOPE
