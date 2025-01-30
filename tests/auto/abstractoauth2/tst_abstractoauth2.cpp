@@ -113,10 +113,8 @@ void tst_AbstractOAuth2::setInvalidScope()
     const auto zerothU8 = zeroth.toUtf8();
     const auto first = u"fïrst"_s; // L1
     const auto firstU8 = first.toUtf8();
-    const auto firstL1 = first.toLatin1();
     const auto second = u"s€cond"_s; // non-L1
     const auto secondU8 = second.toUtf8();
-    const auto secondL1 = second.toLatin1();
 
     constexpr auto ignoreMsg = [](char16_t ch) {
         char buf[256];
