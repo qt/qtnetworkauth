@@ -50,7 +50,9 @@ private Q_SLOTS:
     void destruction_data();
     void destruction();
     void changeNetworkAccessManager();
+#ifndef QT_NO_SSL
     void tlsAuthentication();
+#endif
 
 private:
     QString testDataDir;
