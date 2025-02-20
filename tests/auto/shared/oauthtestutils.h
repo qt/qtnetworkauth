@@ -12,6 +12,7 @@
 #ifndef QT_NO_SSL
 #include <QtNetwork/qsslconfiguration.h>
 #endif
+#include <QtNetwork/qtcpsocket.h>
 
 #include <QtCore/qcontainerfwd.h>
 #include <QtCore/qscopeguard.h>
