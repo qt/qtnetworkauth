@@ -151,8 +151,8 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
     QMultiMap<QString, QVariant> remainingParameters;
     appendCommonHeaders(&headers);
     for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it) {
-        const auto key = it.key();
-        const auto value = it.value();
+        const auto &key = it.key();
+        const auto &value = it.value();
         if (key.startsWith(QStringLiteral("oauth_")))
             headers.insert(key, value);
         else
