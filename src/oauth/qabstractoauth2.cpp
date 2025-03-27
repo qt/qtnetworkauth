@@ -713,7 +713,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     //
     // Note: 'scope' variable has two roles: requested scope, and later granted scope.
     // Therefore 'scope' needs to be set if the granted scope differs from 'scope'.
-    const QString receivedGrantedScope = values.value(QtOAuth2RfcKeywords::scope).toString();
+    QString receivedGrantedScope = values.value(QtOAuth2RfcKeywords::scope).toString();
     const QSet<QByteArray> splitGrantedScope = splitScope(receivedGrantedScope);
     if (splitGrantedScope.isEmpty()) {
         setGrantedScopeTokens(requestedScopeTokens);
@@ -721,7 +721,7 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
         setGrantedScopeTokens(splitGrantedScope);
 #ifndef QOAUTH2_NO_LEGACY_SCOPE
         if (receivedGrantedScope != legacyScope) {
-            legacyScope = receivedGrantedScope;
+            legacyScope = std::move(receivedGrantedScope);
             QT_IGNORE_DEPRECATIONS(Q_EMIT q->scopeChanged(legacyScope);)
         }
 #endif
