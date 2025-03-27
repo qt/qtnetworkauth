@@ -200,7 +200,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::authorizationReplyFinished(QRestRepl
 
     // https://datatracker.ietf.org/doc/html/rfc8628#section-3.2 REQUIRED parameters
     const auto receivedDeviceCode = data.value(QtOAuth2RfcKeywords::deviceCode).toString();
-    const auto receivedUserCode = data.value(QtOAuth2RfcKeywords::userCode).toString();
+    auto receivedUserCode = data.value(QtOAuth2RfcKeywords::userCode).toString();
     const auto receivedExpiresIn = data.value(QtOAuth2RfcKeywords::expiresIn).toInt();
     QUrl receivedVerificationUrl;
     // The RFC keyword is 'verification_uri', but some auth servers provide 'verification_url'
@@ -251,7 +251,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::authorizationReplyFinished(QRestRepl
             data.value(QtOAuth2RfcKeywords::completeVerificationUrl).toString();
     }
 
-    deviceCode = receivedDeviceCode;
+    deviceCode = std::move(receivedDeviceCode);
     setUserCode(receivedUserCode);
     setVerificationUrl(receivedVerificationUrl);
     setVerificationUrlComplete(receivedVerificationUrlComplete);
