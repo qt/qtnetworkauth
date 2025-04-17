@@ -19,4 +19,7 @@
     \note Set the redirect URI to \e http://localhost:1337/ in Reddit settings.
 
     \include examples-run.qdocinc
+
+    Before launching, add \c --client-id to the executable command line,
+    followed by your consumer key from \l {https://www.reddit.com/prefs/apps/}.
 */
