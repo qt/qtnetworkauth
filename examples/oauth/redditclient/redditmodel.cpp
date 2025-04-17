@@ -3,15 +3,15 @@
 
 #include "redditmodel.h"
 
-#include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
+#include <QJsonArray>
 
-#include <QtGui/qdesktopservices.h>
+#include <QDesktopServices>
 
-#include <QtNetwork/qrestaccessmanager.h>
-#include <QtNetwork/qrestreply.h>
+#include <QNetworkAccessManager>
+#include <QRestAccessManager>
+#include <QRestReply>
 
-#include <QtCore/qjsonarray.h>
-#include <QtCore/qjsondocument.h>
+#include <QOAuthHttpServerReplyHandler>
 
 using namespace Qt::StringLiterals;
 
