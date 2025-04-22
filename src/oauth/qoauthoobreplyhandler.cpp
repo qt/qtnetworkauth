@@ -4,7 +4,6 @@
 
 #include "qoauthoobreplyhandler.h"
 #include "qoauthoobreplyhandler_p.h"
-#include "qabstractoauthreplyhandler_p.h"
 
 #include <QtCore/qurlquery.h>
 #include <QtCore/qjsonobject.h>
