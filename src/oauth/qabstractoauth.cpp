@@ -20,8 +20,6 @@
 #include <QtCore/qrandom.h>
 #include <QtCore/private/qlocking_p.h>
 
-#include <utility>
-
 QT_BEGIN_NAMESPACE
 
 /*!
