@@ -10,7 +10,7 @@
 
 \section1 OAuth2 User-Agents
 
-OAuth2 \l{Qt OAuth2 Overview}{Authorization stage}
+OAuth2 \l{OAuth 2.0 Overview}{Authorization stage}
 \l{https://datatracker.ietf.org/doc/html/rfc6749#section-9}{relies on a user-agent},
 which is typically either the system browser or an embedded user-agent such as
 \l {Qt WebEngine Overview}{Qt WebEngine}.
@@ -72,7 +72,7 @@ the system browser, and it typically remains open once the authorization is
 concluded.
 
 For further details and supported redirect URL schemes with
-system browser please see \l{Qt OAuth2 Overview},
+system browser please see \l{OAuth 2.0 Overview},
 \l {QOAuthHttpServerReplyHandler}, and \l {QOAuthUriSchemeReplyHandler}.
 
 \section2 Using Qt WebEngine
@@ -92,7 +92,7 @@ From practical point of view the main considerations are:
     \li QtQuick vs QtWidgets Applications. This impacts how to set up the
         necessary integration with QtNetworkAuth classes.
     \li Redirect URI scheme. This impacts which QtNetworkAuth reply handler
-        classes to use, and how (see \l {Qt OAuth2 Overview}).
+        classes to use, and how (see \l {OAuth 2.0 Overview}).
 \endlist
 
 \section3 QtQuick and QtWidgets Applications
