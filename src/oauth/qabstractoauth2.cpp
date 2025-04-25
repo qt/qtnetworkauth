@@ -190,7 +190,7 @@ static constexpr auto FallbackRefreshInterval = 2s;
     \value Enabled Nonce is sent during authorization stage.
     \value Disabled Nonce is not sent during authorization stage.
 
-    \sa nonce, {Qt OAuth2 Overview}
+    \sa nonce, {OAuth 2.0 Overview}
 */
 
 /*!

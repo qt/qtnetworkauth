@@ -39,7 +39,7 @@ using namespace Qt::StringLiterals;
     user will need access to a web browser.
 
     As a redirection-based flow this class requires a proper
-    reply handler to be set. See \l {Qt OAuth2 Overview},
+    reply handler to be set. See \l {OAuth 2.0 Overview},
     QOAuthHttpServerReplyHandler, and QOAuthUriSchemeReplyHandler.
 */
 
