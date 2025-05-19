@@ -40,6 +40,9 @@ imagedirs  += images
 examplesinstallpath     = oauth
 exampledirs += ../../../examples/oauth snippets
 
+# Path to the root of qtnetworkauth (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
 #manifestmeta.highlighted.names = "QtNetworkAuth/Twitter Timeline Example"
 
 navigation.landingpage = "Qt Network Authorization"
