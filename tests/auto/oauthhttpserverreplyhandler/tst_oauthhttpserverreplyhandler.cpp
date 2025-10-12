@@ -9,12 +9,15 @@
 
 typedef QSharedPointer<QNetworkReply> QNetworkReplyPtr;
 
+using namespace Qt::StringLiterals;
+
 class tst_QOAuthHttpServerReplyHandler : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
     void callback();
+    void callbackCaching();
 };
 
 void tst_QOAuthHttpServerReplyHandler::callback()
@@ -44,6 +47,32 @@ void tst_QOAuthHttpServerReplyHandler::callback()
     reply.reset(networkAccessManager.get(request));
     eventLoop.exec();
     QCOMPARE(count, query.queryItems().size());
+}
+
+void tst_QOAuthHttpServerReplyHandler::callbackCaching()
+{
+    QOAuthHttpServerReplyHandler replyHandler;
+    constexpr auto callbackPath = "/foo"_L1;
+    constexpr auto callbackHost = "127.0.0.1"_L1;
+
+    QVERIFY(replyHandler.isListening());
+    replyHandler.setCallbackPath(callbackPath);
+    QUrl callback = replyHandler.callback();
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
+
+    replyHandler.close();
+    QVERIFY(!replyHandler.isListening());
+    callback = replyHandler.callback();
+    // Should remain after close
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
+
+    replyHandler.listen();
+    QVERIFY(replyHandler.isListening());
+    callback = replyHandler.callback();
+    QCOMPARE(callback.path(), callbackPath);
+    QCOMPARE(callback.host(), callbackHost);
 }
 
 QTEST_MAIN(tst_QOAuthHttpServerReplyHandler)
