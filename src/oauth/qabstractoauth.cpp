@@ -373,6 +373,13 @@ QAbstractOAuth::~QAbstractOAuth()
 {}
 
 /*!
+    \property QAbstractOAuth::clientIdentifier
+
+    This property holds the client identifier used in the authentication process.
+
+    \sa setClientIdentifier()
+*/
+/*!
     Returns the current client identifier used in the authentication
     process.
 
@@ -398,6 +405,13 @@ void QAbstractOAuth::setClientIdentifier(const QString &clientIdentifier)
     }
 }
 
+/*!
+    \property QAbstractOAuth::token
+
+    This property holds the token used to sign authenticated requests.
+
+    \sa setToken()
+*/
 /*!
     Returns the token used to sign the authenticated requests.
 

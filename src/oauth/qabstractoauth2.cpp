@@ -1324,6 +1324,16 @@ QDateTime QAbstractOAuth2::expirationAt() const
 }
 
 /*!
+    \property QAbstractOAuth2::refreshToken
+
+    This property holds the refresh token used to obtain new access tokens.
+
+    Refresh tokens usually have longer lifespans than access tokens,
+    so it makes sense to save them for later use.
+
+    \sa setRefreshToken()
+*/
+/*!
     \brief Gets the current refresh token.
 
     Refresh tokens usually have longer lifespans than access tokens,
