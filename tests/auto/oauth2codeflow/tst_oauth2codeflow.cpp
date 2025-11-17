@@ -755,8 +755,8 @@ void tst_OAuth2CodeFlow::nonce()
 
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
-    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
 
     QByteArray nonceInAuthorizationUrl;
     connect(&oauth2, &QAbstractOAuth::authorizeWithBrowser, this, [&](const QUrl &url){
@@ -799,8 +799,8 @@ void tst_OAuth2CodeFlow::idToken()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
     oauth2.setRequestedScopeTokens({"openid"});
-    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -943,8 +943,8 @@ void tst_OAuth2CodeFlow::requestedScopeTokens()
     QFETCH(QSet<QByteArray>, expected_requested_scope);
 
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
     QVERIFY(oauth2.requestedScopeTokens().isEmpty());
 
     QSignalSpy requestedScopeTokensSpy(&oauth2, &QAbstractOAuth2::requestedScopeTokensChanged);
@@ -1004,8 +1004,8 @@ void tst_OAuth2CodeFlow::grantedScopeTokens()
     QOAuth2AuthorizationCodeFlow oauth2;
     QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth2::grantedScopeTokensChanged);
     oauth2.setRequestedScopeTokens(requested_scope);
-    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -1209,8 +1209,8 @@ void tst_OAuth2CodeFlow::tlsAuthentication()
 void tst_OAuth2CodeFlow::extraTokens()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);
@@ -1260,8 +1260,8 @@ void tst_OAuth2CodeFlow::extraTokens()
 void tst_OAuth2CodeFlow::expirationAt()
 {
     QOAuth2AuthorizationCodeFlow oauth2;
-    oauth2.setAuthorizationUrl({"authorizationEndpoint"_L1});
-    oauth2.setTokenUrl({"tokenEndpoint"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationEndpoint"_L1});
+    oauth2.setTokenUrl(QUrl{"tokenEndpoint"_L1});
     oauth2.setState("a_state"_L1);
     ReplyHandler replyHandler;
     oauth2.setReplyHandler(&replyHandler);

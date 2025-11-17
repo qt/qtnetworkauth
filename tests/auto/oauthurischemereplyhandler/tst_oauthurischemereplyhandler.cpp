@@ -87,8 +87,8 @@ void tst_QOAuthUriSchemeReplyHandler::redirectUrl()
 
 void tst_QOAuthUriSchemeReplyHandler::listenClose()
 {
-    const QUrl scheme1 = u"scheme1:/foo"_s;
-    const QUrl scheme2 = u"scheme2:/foo"_s;
+    const QUrl scheme1{u"scheme1:/foo"_s};
+    const QUrl scheme2{u"scheme2:/foo"_s};
     QOAuthUriSchemeReplyHandler rh;
     QSignalSpy callbackSpy(&rh, &QAbstractOAuthReplyHandler::callbackReceived);
 

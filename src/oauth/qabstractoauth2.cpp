@@ -771,10 +771,11 @@ bool QAbstractOAuth2Private::handleRfcErrorResponseIfPresent(const QVariantMap &
         qCWarning(loggingCategory, "Authorization stage: AuthenticationError: %ls(%ls): %ls",
                   qUtf16Printable(error), qUtf16Printable(uri), qUtf16Printable(description));
 
+        const QUrl url = QUrl{uri};
 #if QT_DEPRECATED_SINCE(6, 13)
-        QT_IGNORE_DEPRECATIONS(Q_EMIT q->error(error, description, uri);)
+        QT_IGNORE_DEPRECATIONS(Q_EMIT q->error(error, description, url);)
 #endif
-        Q_EMIT q->serverReportedErrorOccurred(error, description, uri);
+        Q_EMIT q->serverReportedErrorOccurred(error, description, url);
 
         // Emit also requestFailed() so that it is a signal for all errors
         emit q->requestFailed(QAbstractOAuth::Error::ServerError);

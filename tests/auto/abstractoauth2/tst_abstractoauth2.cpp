@@ -180,8 +180,8 @@ void tst_AbstractOAuth2::scopeAndRequestedScope()
     QFETCH(QSet<QByteArray>, requested_scope);
 
     TestFlow oauth2;
-    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
-    oauth2.setTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setAuthorizationUrl(QUrl{"authorizationUrl"_L1});
+    oauth2.setTokenUrl(QUrl{"accessTokenUrl"_L1});
     QVERIFY(oauth2.scope().isEmpty());
     QVERIFY(oauth2.requestedScopeTokens().isEmpty());
 
