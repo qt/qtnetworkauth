@@ -159,7 +159,7 @@ using Stage = QAbstractOAuth::Stage;
 
 QOAuth2DeviceAuthorizationFlowPrivate::QOAuth2DeviceAuthorizationFlowPrivate(
     QNetworkAccessManager *manager)
-    : QAbstractOAuth2Private(std::make_pair(QString(), QString()), QString(), manager)
+    : QAbstractOAuth2Private(std::make_pair(QString(), QString()), QUrl(), manager)
 {
 }
 
@@ -317,7 +317,7 @@ void QOAuth2DeviceAuthorizationFlowPrivate::handleTokenErrorResponse(const QJson
         // https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
         const auto error = data.value(QtOAuth2RfcKeywords::error).toString();
         const auto description = data.value(QtOAuth2RfcKeywords::errorDescription).toString();
-        const auto uri = data.value(QtOAuth2RfcKeywords::errorUri).toString();
+        const QUrl uri{data.value(QtOAuth2RfcKeywords::errorUri).toString()};
         qCDebug(loggingCategory) << "Token acquisition failed:" << error << description;
 #if QT_DEPRECATED_SINCE(6, 13)
         QT_IGNORE_DEPRECATIONS(Q_EMIT q->error(error, description, uri);)

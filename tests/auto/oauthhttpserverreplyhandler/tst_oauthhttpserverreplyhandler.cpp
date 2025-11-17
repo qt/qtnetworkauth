@@ -298,20 +298,20 @@ void tst_QOAuthHttpServerReplyHandler::callbackCaching()
 
     QVERIFY(replyHandler.isListening());
     replyHandler.setCallbackPath(callbackPath);
-    QUrl callback = replyHandler.callback();
+    QUrl callback{replyHandler.callback()};
     QCOMPARE(callback.path(), callbackPath);
     QCOMPARE(callback.host(), callbackHost);
 
     replyHandler.close();
     QVERIFY(!replyHandler.isListening());
-    callback = replyHandler.callback();
+    callback.setUrl(replyHandler.callback());
     // Should remain after close
     QCOMPARE(callback.path(), callbackPath);
     QCOMPARE(callback.host(), callbackHost);
 
     replyHandler.listen({QHostAddress::SpecialAddress::LocalHost});
     QVERIFY(replyHandler.isListening());
-    callback = replyHandler.callback();
+    callback.setUrl(replyHandler.callback());
     QCOMPARE(callback.path(), callbackPath);
     QCOMPARE(callback.host(), callbackHost);
 }
@@ -439,7 +439,7 @@ void tst_QOAuthHttpServerReplyHandler::callbackDataReceived()
     QString expected_response_data = replyHandler.callback() + redirect_response_data;
 
     QNetworkAccessManager networkAccessManager;
-    QNetworkRequest request(expected_response_data);
+    QNetworkRequest request(QUrl{expected_response_data});
     QNetworkReplyPtr reply;
 
     reply.reset(networkAccessManager.get(request));
@@ -498,7 +498,7 @@ void tst_QOAuthHttpServerReplyHandler::localhostHttps()
     // Calling listen() with SSL configuration makes handler to use 'https'
     QVERIFY(replyHandler.listen(serverConfig));
     QVERIFY(replyHandler.isListening());
-    const QUrl redirectUrl = replyHandler.callback() + u"?state=somestate&code=somecode"_s;
+    const QUrl redirectUrl{replyHandler.callback() + "?state=somestate&code=somecode"_L1};
     QCOMPARE(redirectUrl.scheme(), u"https"_s);
 
     // Issue a HTTP GET to the handler's server to mimic OAuth2 redirection event
@@ -539,16 +539,16 @@ void tst_QOAuthHttpServerReplyHandler::callbackHost_data()
     QTest::addColumn<QUrl>("expectedCallback");
 
     const QString localhost = u"localhost"_s;
-    const QUrl localhostCallback = u"http://localhost/"_s;
+    const QUrl localhostCallback{u"http://localhost/"_s};
 
     const QString ipv4literal = u"127.0.0.1"_s;
-    const QUrl ipv4literalCallback = u"http://127.0.0.1/"_s;
+    const QUrl ipv4literalCallback{u"http://127.0.0.1/"_s};
 
     const QString ipv6literal = u"::1"_s;
-    const QUrl ipv6literalCallback = u"http://[::1]/"_s;
+    const QUrl ipv6literalCallback{u"http://[::1]/"_s};
 
     const QString localnet = u"localhost.localnet"_s;
-    const QUrl localnetCallback = u"http://localhost.localnet/"_s;
+    const QUrl localnetCallback{u"http://localhost.localnet/"_s};
 
     QTest::newRow("default")
         << QHostAddress() << QString() << ipv4literalCallback;
