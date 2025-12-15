@@ -32,9 +32,31 @@ private Q_SLOTS:
     void setSslConfig();
     void tlsAuthentication();
 #endif
+    void extraTokens();
 
 private:
     QString testDataDir;
+    [[nodiscard]] auto useTemporaryKeychain()
+    {
+#ifndef QT_NO_SSL
+        // Set the same environment value as CI uses, so that it's possible
+        // to run autotests locally without macOS asking for permission to use
+        // a private key in keychain (with TLS sockets)
+        auto value = qEnvironmentVariable("QT_SSL_USE_TEMPORARY_KEYCHAIN");
+        qputenv("QT_SSL_USE_TEMPORARY_KEYCHAIN", "1");
+        auto envRollback = qScopeGuard([value](){
+            if (value.isEmpty())
+                qunsetenv("QT_SSL_USE_TEMPORARY_KEYCHAIN");
+            else
+                qputenv("QT_SSL_USE_TEMPORARY_KEYCHAIN", value.toUtf8());
+        });
+        return envRollback;
+#else
+        // avoid maybe-unused warnings from callers
+        return qScopeGuard([]{});
+#endif // QT_NO_SSL
+    }
+
 };
 
 struct ReplyHandler : QAbstractOAuthReplyHandler
@@ -56,6 +78,11 @@ struct ReplyHandler : QAbstractOAuthReplyHandler
     void emitCallbackReceived(const QVariantMap &data)
     {
         Q_EMIT callbackReceived(data);
+    }
+
+    void emitTokensReceived(const QVariantMap &data)
+    {
+        Q_EMIT tokensReceived(data);
     }
 };
 
@@ -354,6 +381,8 @@ void tst_OAuth2::tlsAuthentication()
     if (!QSslSocket::supportsSsl())
         QSKIP("This test will fail because the backend does not support TLS");
 
+    auto rollback = useTemporaryKeychain();
+
     // erros may vary, depending on backend
     const QSet<QSslError::SslError> expectedErrors{ QSslError::SelfSignedCertificate,
                                                     QSslError::CertificateUntrusted,
@@ -406,6 +435,60 @@ void tst_OAuth2::tlsAuthentication()
     QCOMPARE(oauth2.token(), QLatin1String("token"));
 }
 #endif // !QT_NO_SSL
+
+void tst_OAuth2::extraTokens()
+{
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl({"authorizationUrl"_L1});
+    oauth2.setAccessTokenUrl({"accessTokenUrl"_L1});
+    oauth2.setState("a_state"_L1);
+    ReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+    QSignalSpy extraTokensSpy(&oauth2, &QAbstractOAuth::extraTokensChanged);
+    QVERIFY(oauth2.extraTokens().isEmpty());
+
+    constexpr auto name1 = "name1"_L1;
+    constexpr auto value1 = "value1"_L1;
+    constexpr auto name2 = "name2"_L1;
+    constexpr auto value2 = "value2"_L1;
+
+    // Conclude authorization stage without extra tokens
+    oauth2.grant();
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1}});
+    QCOMPARE(extraTokensSpy.size(), 1); // 'state'
+
+    // Conclude authorization stage with extra tokens
+    extraTokensSpy.clear();
+    oauth2.grant();
+    replyHandler.emitCallbackReceived({{"code"_L1, "acode"_L1}, {"state"_L1, "a_state"_L1},
+                                       {name1, value1}});
+    QTRY_COMPARE(extraTokensSpy.size(), 1);
+    QVariantMap extraTokens = oauth2.extraTokens();
+    QCOMPARE(extraTokens, extraTokensSpy.at(0).at(0).toMap());
+    QCOMPARE(extraTokens.size(), 2);
+    QCOMPARE(extraTokens.value("state"_L1).toString(), "a_state"_L1);
+    QCOMPARE(extraTokens.value(name1).toString(), value1);
+
+    // Conclude token stage without additional extra tokens
+    extraTokensSpy.clear();
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}});
+    QCOMPARE(extraTokensSpy.size(), 0);
+    extraTokens = oauth2.extraTokens();
+    QCOMPARE(extraTokens.size(), 2);
+    QCOMPARE(extraTokens.value("state"_L1).toString(), "a_state"_L1);
+    QCOMPARE(extraTokens.value(name1).toString(), value1);
+
+    // Conclude token stage with additional extra tokens
+    extraTokensSpy.clear();
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {name2, value2}});
+    QTRY_COMPARE(extraTokensSpy.size(), 1);
+    extraTokens = oauth2.extraTokens();
+    QCOMPARE(extraTokens, extraTokensSpy.at(0).at(0).toMap());
+    QCOMPARE(extraTokens.size(), 3);
+    QCOMPARE(extraTokens.value("state"_L1).toString(), "a_state"_L1);
+    QCOMPARE(extraTokens.value(name1).toString(), value1);
+    QCOMPARE(extraTokens.value(name2).toString(), value2);
+}
 
 QTEST_MAIN(tst_OAuth2)
 #include "tst_oauth2.moc"
