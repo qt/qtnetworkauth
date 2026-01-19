@@ -15,6 +15,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 /*!
     \class QOAuthUriSchemeReplyHandler
     \inmodule QtNetworkAuth
@@ -168,8 +170,16 @@ public:
         // of interest like 'code' and 'state' are received as query parameters and comparison
         // would always fail). Fragments are removed as some servers (eg. Reddit) seem to add some,
         // possibly for some implementation consistency with other OAuth flows where fragments
-        // are actually used.
-        bool urlMatch = url.matches(redirectUrl, QUrl::RemoveQuery | QUrl::RemoveFragment);
+        // are actually used. Some servers (eg. Microsoft) also add an extra '/' path, so treat
+        // '/' and empty paths as equal
+        auto normalized = [](const QUrl &url) {
+            auto normalized = url.adjusted(QUrl::RemoveQuery | QUrl::RemoveFragment);
+            if (normalized.path().isEmpty())
+                normalized.setPath("/"_L1);
+            return normalized;
+        };
+
+        bool urlMatch = normalized(url).matches(normalized(redirectUrl), QUrl::None);
 
         const QUrlQuery responseQuery{url};
         if (urlMatch) {
