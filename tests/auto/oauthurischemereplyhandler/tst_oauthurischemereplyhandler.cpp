@@ -130,6 +130,29 @@ void tst_QOAuthUriSchemeReplyHandler::authorization_data()
         << QUrl{"com.example://cb.example.org/a_path"_L1 + stateCodeQuery}
         << true << stateCodeMap;
 
+    QTest::newRow("match_with_empty_path_1")
+        << QUrl{"com.example://cb.example.org/"_L1}
+        << QUrl{"com.example://cb.example.org/"_L1 + stateCodeQuery}
+        << true << stateCodeMap;
+
+    // No path vs empty path
+    QTest::newRow("match_with_empty_path_2")
+        << QUrl{"com.example://cb.example.org"_L1}
+        << QUrl{"com.example://cb.example.org/"_L1 + stateCodeQuery}
+        << true << stateCodeMap;
+
+    // Empty path vs no path
+    QTest::newRow("match_with_empty_path_3")
+        << QUrl{"com.example://cb.example.org/"_L1}
+        << QUrl{"com.example://cb.example.org"_L1 + stateCodeQuery}
+        << true << stateCodeMap;
+
+    // Empty path vs no path, and host mismatch
+    QTest::newRow("match_with_empty_path_4")
+        << QUrl{"com.example://cb.abc.example.org/"_L1}
+        << QUrl{"com.example://cb.def.example.org"_L1 + stateCodeQuery}
+        << false << stateCodeMap;
+
     QVariantMap resultParameters = stateCodeMap;
     resultParameters.insert("lang"_L1, "de");
     QTest::newRow("match_with_path_and_query")
