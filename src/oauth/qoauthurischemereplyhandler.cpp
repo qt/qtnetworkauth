@@ -3,8 +3,8 @@
 // Qt-Security score:critical reason:authorization-protocol
 
 #include "qabstractoauthreplyhandler_p.h" // for lcReplyHandler()
-#include "qoauthoobreplyhandler_p.h"
 #include "qoauthurischemereplyhandler.h"
+#include "qoauthurischemereplyhandler_p.h"
 
 #include <QtGui/qdesktopservices.h>
 
@@ -150,12 +150,7 @@ using namespace Qt::StringLiterals;
     handler - see \l {Qt OAuth2 Browser Support} for details.
 */
 
-class QOAuthUriSchemeReplyHandlerPrivate : public QOAuthOobReplyHandlerPrivate
-{
-    Q_DECLARE_PUBLIC(QOAuthUriSchemeReplyHandler)
-
-public:
-    bool hasValidRedirectUrl() const
+    bool QOAuthUriSchemeReplyHandlerPrivate::hasValidRedirectUrl() const
     {
         // RFC 6749 Section 3.1.2
         return redirectUrl.isValid()
@@ -163,7 +158,7 @@ public:
                && redirectUrl.fragment().isEmpty();
     }
 
-    bool _q_handleRedirectUrl(const QUrl &url)
+    bool QOAuthUriSchemeReplyHandlerPrivate::_q_handleRedirectUrl(const QUrl &url)
     {
         Q_Q(QOAuthUriSchemeReplyHandler);
         // Remove the query parameters from comparison, and compare them manually (the parameters
@@ -216,12 +211,6 @@ public:
         emit q->callbackReceived(resultParameters);
         return true;
     }
-
-public:
-    QUrl redirectUrl;
-    bool forwardUnhandledUrls = true;
-    bool listening = false;
-};
 
 /*!
     \fn QOAuthUriSchemeReplyHandler::QOAuthUriSchemeReplyHandler()
