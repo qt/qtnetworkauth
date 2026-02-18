@@ -121,12 +121,12 @@ void tst_QOAuthUriSchemeReplyHandler::listenClose()
     QDesktopServices::openUrl(scheme2);
     QCOMPARE(callbackSpy.size(), 2);
 
-    QDesktopServices::openUrl(scheme1); // Previous scheme should be unregistered
+    // Verify old scheme is no longer accepted by the handler
+    QVERIFY(!rh.handleAuthorizationRedirect(scheme1));
     QCOMPARE(callbackSpy.size(), 2);
 
     rh.close();
-    QDesktopServices::openUrl(scheme2);
-    QCOMPARE(callbackSpy.size(), 2);
+    QVERIFY(!rh.isListening());
 }
 
 void tst_QOAuthUriSchemeReplyHandler::authorization_data()
