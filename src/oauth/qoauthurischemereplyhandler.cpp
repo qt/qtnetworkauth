@@ -143,7 +143,7 @@ using namespace Qt::StringLiterals;
             (\c apple-app-site-association)
     \endlist
 
-    \section2 \l {Qt for Windows}{Windows}, \l {Qt for Linux/X11}{Linux}
+    \section2 \l {Qt for Windows}{Windows}, \l {Qt for Linux}{Linux}
 
     Currently not supported. However platforms and use cases supporting
     \l {Qt WebEngine Platform Notes}{Qt WebEngine} can still use this reply
