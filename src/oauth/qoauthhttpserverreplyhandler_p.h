@@ -83,7 +83,7 @@ private:
         QMap<QByteArray, QByteArray> headers;
     };
 
-    QMap<QTcpSocket *, QHttpRequest> clients;
+    QHash<QTcpSocket *, QHttpRequest> clients;
 
     QOAuthHttpServerReplyHandler *q_ptr;
 };
