@@ -862,8 +862,9 @@ void QOAuth1::grant()
         return;
     }
 
-    QMetaObject::Connection connection;
-    connection = connect(this, &QAbstractOAuth::statusChanged, this, [&](Status status) {
+    auto connection = std::make_shared<QMetaObject::Connection>();
+    *connection = connect(this, &QAbstractOAuth::statusChanged, this,
+                          [this, connection](Status status) {
         Q_D(QOAuth1);
 
         if (status == Status::TemporaryCredentialsReceived) {
@@ -885,7 +886,7 @@ void QOAuth1::grant()
         } else if (status == Status::NotAuthenticated) {
             // Inherit class called QAbstractOAuth::setStatus(Status::NotAuthenticated);
             setTokenCredentials(QString(), QString());
-            disconnect(connection);
+            disconnect(*connection);
         }
     });
 
