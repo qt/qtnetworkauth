@@ -8,6 +8,7 @@
 
 #ifndef QT_NO_HTTP
 
+#include <QtCore/qmap.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qshareddata.h>
