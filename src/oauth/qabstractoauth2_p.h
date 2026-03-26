@@ -23,6 +23,7 @@
 #include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qabstractoauth2.h>
 
+#include <QtCore/qbytearray.h>
 #include <QtCore/qchronotimer.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qurl.h>
