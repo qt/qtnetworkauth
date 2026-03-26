@@ -30,6 +30,9 @@
 #include <QtCore/qpointer.h>
 
 #include <QtNetwork/qnetworkreply.h>
+#ifndef QT_NO_SSL
+#include <QtNetwork/qsslconfiguration.h>
+#endif
 
 #include <utility>
 
