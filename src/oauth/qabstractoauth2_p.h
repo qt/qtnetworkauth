@@ -26,6 +26,7 @@
 #include <QtCore/qchronotimer.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qurl.h>
+#include <QtCore/qset.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qpointer.h>
 
