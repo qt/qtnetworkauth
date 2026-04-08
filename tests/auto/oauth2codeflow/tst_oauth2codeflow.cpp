@@ -857,6 +857,23 @@ void tst_OAuth2CodeFlow::idToken()
     QCOMPARE(oauth2.idToken(), idToken);
     QCOMPARE(idTokenSpy.size(), 1);
     QCOMPARE(idTokenSpy.at(0).at(0).toByteArray(), idToken);
+    idTokenSpy.clear();
+
+    // Providing an id_token is not mandatory when refreshing tokens. Test first with the id_token
+    oauth2.setRefreshToken("refresh_token"_L1);
+    oauth2.refreshTokens();
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken);
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}, {"id_token"_L1, "fresh_id"}});
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(idTokenSpy.size(), 1);
+    QCOMPARE(oauth2.idToken(), "fresh_id"_L1);
+    // Test without providing id_token (also must not clear the pre-existing id_token)
+    oauth2.refreshTokens();
+    QTRY_COMPARE(oauth2.status(), QAbstractOAuth::Status::RefreshingToken);
+    replyHandler.emitTokensReceived({{"access_token"_L1, "at"_L1}});
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(idTokenSpy.size(), 1);
+    QCOMPARE(oauth2.idToken(), "fresh_id"_L1);
 
     // Test missing id_token error
     QVERIFY(requestFailedSpy.isEmpty());
