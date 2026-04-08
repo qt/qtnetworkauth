@@ -728,18 +728,25 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
 #endif
     }
 
-    // An id_token must be included if this was an OIDC request and the server granted it
+    // An id_token must be included if this was an OIDC request and the server granted it.
     // https://openid.net/specs/openid-connect-core-1_0-final.html#AuthRequest (cf. 'scope')
     // https://openid.net/specs/openid-connect-core-1_0-final.html#TokenResponse
+    //
+    // However token refresh responses 'might not' contain an id_token
+    // https://openid.net/specs/openid-connect-core-1_0-final.html#RefreshTokenResponse
     const QString receivedIdToken = values.value(QtOAuth2RfcKeywords::idToken).toString();
     if (requestedScopeTokens.contains("openid") && grantedScopeTokens.contains("openid")
-        && receivedIdToken.isEmpty()) {
+        && receivedIdToken.isEmpty() && status != QAbstractOAuth::Status::RefreshingToken) {
         setIdToken({});
         _q_tokenRequestFailed(QAbstractOAuth::Error::OAuthTokenNotFoundError,
                               "'openid' scope requested and granted but ID token not received"_L1);
         return;
     }
-    setIdToken(receivedIdToken);
+
+    // Update the id_token. However if we were refreshing tokens and didn't receive a new
+    // id_token, keep the original
+    if (status != QAbstractOAuth::Status::RefreshingToken || !receivedIdToken.isEmpty())
+        setIdToken(receivedIdToken);
 
     if (tokenLifetime > 0)
         setExpiresAt(QDateTime::currentDateTimeUtc().addSecs(tokenLifetime));
