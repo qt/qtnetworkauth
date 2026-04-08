@@ -728,14 +728,15 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
 #endif
     }
 
-    // An id_token must be included if this was an OIDC request
+    // An id_token must be included if this was an OIDC request and the server granted it
     // https://openid.net/specs/openid-connect-core-1_0-final.html#AuthRequest (cf. 'scope')
     // https://openid.net/specs/openid-connect-core-1_0-final.html#TokenResponse
     const QString receivedIdToken = values.value(QtOAuth2RfcKeywords::idToken).toString();
-    if (grantedScopeTokens.contains("openid") && receivedIdToken.isEmpty()) {
+    if (requestedScopeTokens.contains("openid") && grantedScopeTokens.contains("openid")
+        && receivedIdToken.isEmpty()) {
         setIdToken({});
         _q_tokenRequestFailed(QAbstractOAuth::Error::OAuthTokenNotFoundError,
-                                    "ID token not received"_L1);
+                              "'openid' scope requested and granted but ID token not received"_L1);
         return;
     }
     setIdToken(receivedIdToken);
