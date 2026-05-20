@@ -575,6 +575,46 @@ void QOAuth1::setSignatureMethod(QOAuth1::SignatureMethod value)
 }
 
 /*!
+    \fn void QOAuth1::signatureMethodChanged(QOAuth1::SignatureMethod method)
+
+    Emitted when the signature \a method changes.
+
+    \sa signatureMethod(), setSignatureMethod()
+*/
+
+/*!
+    \fn void QOAuth1::clientSharedSecretChanged(const QString &credential)
+
+    Emitted when the client shared secret \a credential changes.
+
+    \sa clientSharedSecret(), setClientSharedSecret(), setClientCredentials()
+*/
+
+/*!
+    \fn void QOAuth1::tokenSecretChanged(const QString &token)
+
+    Emitted when the token secret \a token changes.
+
+    \sa tokenSecret(), setTokenSecret(), setTokenCredentials()
+*/
+
+/*!
+    \fn void QOAuth1::temporaryCredentialsUrlChanged(const QUrl &url)
+
+    Emitted when the temporary credentials \a url changes.
+
+    \sa temporaryCredentialsUrl(), setTemporaryCredentialsUrl()
+*/
+
+/*!
+    \fn void QOAuth1::tokenCredentialsUrlChanged(const QUrl &url)
+
+    Emitted when the token credentials \a url changes.
+
+    \sa tokenCredentialsUrl(), setTokenCredentialsUrl()
+*/
+
+/*!
     Sends an authenticated HEAD request and returns a new
     QNetworkReply. The \a url and \a parameters are used to create
     the request.

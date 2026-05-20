@@ -432,6 +432,11 @@ static constexpr auto FallbackRefreshInterval = 2s;
     from the server.
 */
 
+/*!
+    \fn void QAbstractOAuth2::responseTypeChanged(const QString &responseType)
+    \internal
+*/
+
 QAbstractOAuth2Private::QAbstractOAuth2Private(const std::pair<QString, QString> &clientCredentials,
                                                const QUrl &authorizationUrl,
                                                QNetworkAccessManager *manager) :

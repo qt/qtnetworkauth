@@ -181,6 +181,16 @@ QT_BEGIN_NAMESPACE
     \sa QAbstractOAuthReplyHandler::tokenRequestErrorOccurred()
 */
 
+/*!
+    \fn void QAbstractOAuth::finished(QNetworkReply *reply)
+    \internal
+*/
+
+/*!
+    \fn void QAbstractOAuth::replyDataReceived(const QByteArray &data)
+    \internal
+*/
+
 // ### Qt 7 remove the support for separate HTTP methods (head(), get(), post(), put(),
 // deleteResource()), see QTBUG-124329
 
