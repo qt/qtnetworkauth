@@ -1,10 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtNetwork/qtnetwork-config.h>
-
-#ifndef QT_NO_HTTP
-
 #include "qoauth1.h"
 #include "qoauth1_p.h"
 #include "qoauth1signature.h"
@@ -155,8 +151,8 @@ QNetworkReply *QOAuth1Private::requestToken(QNetworkAccessManager::Operation ope
     QMultiMap<QString, QVariant> remainingParameters;
     appendCommonHeaders(&headers);
     for (auto it = parameters.begin(), end = parameters.end(); it != end; ++it) {
-        const auto key = it.key();
-        const auto value = it.value();
+        const auto &key = it.key();
+        const auto &value = it.value();
         if (key.startsWith(QStringLiteral("oauth_")))
             headers.insert(key, value);
         else
@@ -280,7 +276,8 @@ void QOAuth1::prepareRequest(QNetworkRequest *request, const QByteArray &verb,
         request->header(QNetworkRequest::ContentTypeHeader).toByteArray()
             == "application/x-www-form-urlencoded") {
         QUrlQuery query(QString::fromUtf8(body));
-        for (const auto &item : query.queryItems(QUrl::FullyDecoded))
+        const auto items = query.queryItems(QUrl::FullyDecoded);
+        for (const auto &item : items)
             signingParams.insert(item.first, item.second);
     }
     setup(request, signingParams, verb);
@@ -921,5 +918,3 @@ void QOAuth1::continueGrantWithVerifier(const QString &verifier)
 }
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP

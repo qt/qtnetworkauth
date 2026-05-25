@@ -4,11 +4,12 @@
 #ifndef QABSTRACTOAUTH2_H
 #define QABSTRACTOAUTH2_H
 
+#include <QtNetworkAuth/qoauthglobal.h>
+
 #ifndef QT_NO_HTTP
 
 #include <QtCore/qdatetime.h>
 
-#include <QtNetworkAuth/qoauthglobal.h>
 #include <QtNetworkAuth/qabstractoauth.h>
 
 QT_BEGIN_NAMESPACE

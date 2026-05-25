@@ -15,8 +15,6 @@
 #ifndef QABSTRACTOAUTH2_P_H
 #define QABSTRACTOAUTH2_P_H
 
-#ifndef QT_NO_HTTP
-
 #include <optional>
 
 #include <private/qabstractoauth_p.h>
@@ -43,6 +41,7 @@ public:
                            const QUrl &authorizationUrl, QNetworkAccessManager *manager = nullptr);
     ~QAbstractOAuth2Private();
 
+    void setExpiresAt(const QDateTime &expiration);
     static QString generateRandomState();
     QNetworkRequest createRequest(QUrl url, const QVariantMap *parameters = nullptr);
 
@@ -52,7 +51,7 @@ public:
     QString userAgent = QStringLiteral("QtOAuth/1.0 (+https://www.qt.io)");
     QString responseType;
     const QString bearerFormat = QStringLiteral("Bearer %1"); // Case sensitive
-    QDateTime expiresAt;
+    QDateTime expiresAtUtc;
     QString refreshToken;
 #ifndef QT_NO_SSL
     std::optional<QSslConfiguration> sslConfiguration;
@@ -80,7 +79,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-#endif // QT_NO_HTTP
 
 #endif // QABSTRACTOAUTH2_P_H
