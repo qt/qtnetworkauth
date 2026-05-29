@@ -1,10 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtNetwork/qtnetwork-config.h>
-
-#ifndef QT_NO_HTTP
-
 #include <qabstractoauth2.h>
 #include <private/qabstractoauth2_p.h>
 
@@ -78,7 +74,10 @@ using namespace Qt::StringLiterals;
 /*!
     \property QAbstractOAuth2::expiration
     This property holds the expiration time of the current access
-    token.
+    token. An invalid value means that the authorization server hasn't
+    provided a valid expiration time.
+
+    \sa QDateTime::isValid()
 */
 
 /*!
@@ -129,9 +128,19 @@ QAbstractOAuth2Private::QAbstractOAuth2Private(const QPair<QString, QString> &cl
 QAbstractOAuth2Private::~QAbstractOAuth2Private()
 {}
 
+void QAbstractOAuth2Private::setExpiresAt(const QDateTime &expiration)
+{
+    Q_ASSERT(!expiration.isValid() || expiration.timeSpec() == Qt::TimeSpec::UTC);
+    if (expiresAtUtc == expiration)
+        return;
+    Q_Q(QAbstractOAuth2);
+    expiresAtUtc = expiration;
+    emit q->expirationAtChanged(expiresAtUtc.toLocalTime());
+}
+
 QString QAbstractOAuth2Private::generateRandomState()
 {
-    return QString::fromUtf8(QAbstractOAuthPrivate::generateRandomString(8));
+    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(8));
 }
 
 QNetworkRequest QAbstractOAuth2Private::createRequest(QUrl url, const QVariantMap *parameters)
@@ -457,7 +466,7 @@ void QAbstractOAuth2::setState(const QString &state)
 QDateTime QAbstractOAuth2::expirationAt() const
 {
     Q_D(const QAbstractOAuth2);
-    return d->expiresAt;
+    return d->expiresAtUtc.toLocalTime();
 }
 
 /*!
@@ -538,5 +547,3 @@ void QAbstractOAuth2::setSslConfiguration(const QSslConfiguration &configuration
 QT_END_NAMESPACE
 
 #include "moc_qabstractoauth2.cpp"
-
-#endif // QT_NO_HTTP

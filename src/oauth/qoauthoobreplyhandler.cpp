@@ -1,8 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef QT_NO_HTTP
-
 #include "qoauthoobreplyhandler.h"
 #include "qabstractoauthreplyhandler_p.h"
 
@@ -76,7 +74,7 @@ QVariantMap QOAuthOobReplyHandler::parseResponse(const QByteArray &response)
 {
     QVariantMap ret;
     QUrlQuery query(QString::fromUtf8(response));
-    auto queryItems = query.queryItems(QUrl::FullyDecoded);
+    const auto queryItems = query.queryItems(QUrl::FullyDecoded);
     for (auto it = queryItems.begin(), end = queryItems.end(); it != end; ++it)
         ret.insert(it->first, it->second);
     return ret;
@@ -85,5 +83,3 @@ QVariantMap QOAuthOobReplyHandler::parseResponse(const QByteArray &response)
 QT_END_NAMESPACE
 
 #include "moc_qoauthoobreplyhandler.cpp"
-
-#endif // QT_NO_HTTP
