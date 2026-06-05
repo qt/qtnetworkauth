@@ -281,10 +281,8 @@ void tst_QOAuthHttpServerReplyHandler::callback()
             &QTestEventLoop::exitLoop);
 
     if (!success) {
-        QByteArray httpUri = callback.toEncoded(QUrl::RemoveScheme | QUrl::RemoveAuthority | QUrl::RemoveFragment);
-        const QByteArray msg = "Invalid request: " + httpUri;
         for (int i = 0; i < 2; ++i) // emitted more than once
-            QTest::ignoreMessage(QtWarningMsg, msg.data());
+            QTest::ignoreMessage(QtWarningMsg, "Invalid request: URL path doesn't match");
     }
     QTestEventLoop::instance().enterLoop(Timeout);
     QCOMPARE(count > 0, success);
@@ -386,8 +384,7 @@ void tst_QOAuthHttpServerReplyHandler::badCallbackUris()
     connect(&socket, &QTcpSocket::disconnected, &QTestEventLoop::instance(),
             &QTestEventLoop::exitLoop);
 
-    QTest::ignoreMessage(QtWarningMsg,
-                         QByteArray{"Invalid request: " + uri.toLocal8Bit()}.constData());
+    QTest::ignoreMessage(QtWarningMsg, "Invalid request: invalid request-target");
     QTest::ignoreMessage(QtWarningMsg, "Invalid URL");
 
     QTestEventLoop::instance().enterLoop(Timeout);
