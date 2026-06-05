@@ -230,7 +230,7 @@ void QOAuthHttpServerReplyHandlerPrivate::_q_answerClient(QTcpSocket *socket, co
 {
     Q_Q(QOAuthHttpServerReplyHandler);
     if (url.path() != path) {
-        qCWarning(lcReplyHandler, "Invalid request: %s", qPrintable(url.toString()));
+        qCWarning(lcReplyHandler, "Invalid request: URL path doesn't match");
     } else {
         Q_EMIT q->callbackDataReceived(QUrl(callback()).resolved(url).toEncoded());
 
@@ -340,7 +340,7 @@ bool QOAuthHttpServerReplyHandlerPrivate::QHttpRequest::readUrl(QTcpSocket *sock
 
         if (!fragment.startsWith(u'/') || !url.isValid() || !url.scheme().isNull()
                 || !url.host().isNull()) {
-            qCWarning(lcReplyHandler, "Invalid request: %s", fragment.constData());
+            qCWarning(lcReplyHandler, "Invalid request: invalid request-target");
             return false;
         }
         fragment.clear();
