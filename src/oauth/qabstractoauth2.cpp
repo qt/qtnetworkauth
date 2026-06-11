@@ -290,6 +290,9 @@ static constexpr auto FallbackRefreshInterval = 2s;
     authentication. The state is used to identify and validate the
     request when the callback is received.
 
+    If no state has been set when the authorization flow starts, a
+    random 32-character state is generated automatically.
+
     Certain characters are illegal in the state element (see
     \l {https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5}{RFC 6749}).
     The use of illegal characters could lead to an unintended state mismatch
@@ -551,7 +554,12 @@ void QAbstractOAuth2Private::warnOnInvalidScopeToken(QStringView token)
 
 QString QAbstractOAuth2Private::generateRandomState()
 {
-    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(8));
+    // There is no strict minimum or maximum size for state, but
+    // generating a 32-character base64 URL string provides
+    // ~192 bits of entropy (32 characters * 6 bits per character), which is
+    // a common minimum size and meets OAuth 2 recommendation for secrets:
+    // https://datatracker.ietf.org/doc/html/rfc6819#section-5.1.4.2.2
+    return QString::fromLatin1(QAbstractOAuthPrivate::generateRandomBase64String(32));
 }
 
 QString QAbstractOAuth2Private::generateNonce()
