@@ -135,6 +135,7 @@ void tst_OAuth2CodeFlow::state()
     oauth2.grant();
     QVERIFY(!stateParameter.isEmpty()); // internally generated initial state used
     QCOMPARE(stateParameter, oauth2.state());
+    QCOMPARE(stateParameter.size(), 32);
 
     // Test setting the 'state' property
     const QString simpleState = u"a_state"_s;
