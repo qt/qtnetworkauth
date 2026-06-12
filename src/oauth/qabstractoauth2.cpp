@@ -291,7 +291,13 @@ static constexpr auto FallbackRefreshInterval = 2s;
     request when the callback is received.
 
     If no state has been set when the authorization flow starts, a
-    random 32-character state is generated automatically.
+    random 32-character state is generated automatically. This is the
+    default and the recommended way.
+
+    This state is the primary protection against
+    \l {https://datatracker.ietf.org/doc/html/rfc6819#section-3.6}{cross-site request forgery},
+    and should therefore contain a sufficient amount of
+    randomness. If you set it manually consider using at least 32 random characters.
 
     Certain characters are illegal in the state element (see
     \l {https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.5}{RFC 6749}).
