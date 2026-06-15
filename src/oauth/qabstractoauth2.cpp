@@ -189,6 +189,7 @@ static constexpr auto FallbackRefreshInterval = 2s;
            relevant to OIDC authentication flows.
     \value Enabled Nonce is sent during authorization stage.
     \value Disabled Nonce is not sent during authorization stage.
+           This disables OpenID Connect \c {id_token} replay protection.
 
     \sa nonce, {OAuth 2.0 Overview}
 */
