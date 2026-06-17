@@ -23,6 +23,9 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
 
+// OAuth 1.0 is deprecated since Qt 6.13 and removed in Qt 7 (QTBUG-124329)
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+
 /*!
     \class QOAuth1
     \inmodule QtNetworkAuth
@@ -30,6 +33,10 @@ using namespace Qt::StringLiterals;
     \brief The QOAuth1 class provides an implementation of the
     \l {https://tools.ietf.org/html/rfc5849}{OAuth 1 Protocol}.
     \since 5.8
+
+    \deprecated [6.13] OAuth 1.0 is deprecated in favour of OAuth 2 and
+    scheduled for removal in Qt 7. If your authorization server supports
+    it, use OAuth 2 instead.
 
     QOAuth1 provides a method for clients to access server resources
     on behalf of a resource owner (such as a different client or an
@@ -211,6 +218,10 @@ QString QOAuth1Private::signatureMethodString() const
     return QString();
 }
 
+// QOAuth1Signature is deprecated together with QOAuth1; suppress the warnings
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+
 QByteArray QOAuth1Private::generateSignature(const QMultiMap<QString, QVariant> &parameters,
                                              const QUrl &url,
                                              QNetworkAccessManager::Operation operation) const
@@ -235,6 +246,8 @@ QByteArray QOAuth1Private::generateSignature(const QMultiMap<QString, QVariant> 
     signature.setCustomMethodString(verb);
     return formatSignature(signature);
 }
+
+QT_WARNING_POP
 
 QByteArray QOAuth1Private::formatSignature(const QOAuth1Signature &signature) const
 {
@@ -324,7 +337,12 @@ void QOAuth1Private::_q_tokensReceived(const QVariantMap &tokens)
     }
 }
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+
 /*!
+    \deprecated [6.13] OAuth 1.0 is deprecated; use OAuth 2 instead.
+
     Constructs a QOAuth1 object with parent object \a parent.
 */
 QOAuth1::QOAuth1(QObject *parent) :
@@ -333,6 +351,8 @@ QOAuth1::QOAuth1(QObject *parent) :
 {}
 
 /*!
+    \deprecated [6.13] OAuth 1.0 is deprecated; use OAuth 2 instead.
+
     Constructs a QOAuth1 object with parent object \a parent, using
     \a manager to access the network.
 */
@@ -344,6 +364,8 @@ QOAuth1::QOAuth1(QNetworkAccessManager *manager, QObject *parent) :
 {}
 
 /*!
+    \deprecated [6.13] OAuth 1.0 is deprecated; use OAuth 2 instead.
+
     Constructs a QOAuth1 object with parent object \a parent, using
     \a manager to access the network.
     Also sets \a clientIdentifier and \a clientSharedSecret to sign
@@ -357,6 +379,8 @@ QOAuth1::QOAuth1(const QString &clientIdentifier,
                                          manager),
                      parent)
 {}
+
+QT_WARNING_POP
 
 /*!
     Returns the current shared secret used to sign requests to
@@ -929,5 +953,7 @@ void QOAuth1::continueGrantWithVerifier(const QString &verifier)
                                          parameters);
     connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
 }
+
+#endif // QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 
 QT_END_NAMESPACE

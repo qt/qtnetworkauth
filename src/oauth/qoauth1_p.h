@@ -31,6 +31,9 @@
 
 QT_BEGIN_NAMESPACE
 
+// OAuth 1.0 is deprecated since Qt 6.13 and removed in Qt 7
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+
 class QOAuth1Signature;
 
 class QOAuth1Private : public QAbstractOAuthPrivate
@@ -91,6 +94,8 @@ public:
         static const QString oauthVersion;
     };
 };
+
+#endif // QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 
 QT_END_NAMESPACE
 

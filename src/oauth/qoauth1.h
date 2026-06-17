@@ -14,7 +14,9 @@
 
 QT_BEGIN_NAMESPACE
 
-// ### Qt 7 consider removing the support for OAuth1 (QTBUG-124329)
+// OAuth 1.0 is deprecated since Qt 6.13 and will be removed in Qt 7 (QTBUG-124329)
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+
 class QOAuth1Private;
 class Q_OAUTH_EXPORT QOAuth1: public QAbstractOAuth
 {
@@ -29,10 +31,16 @@ public:
 
     Q_ENUM(SignatureMethod)
 
+    QT_DEPRECATED_VERSION_X_6_13("OAuth 1.0 support is deprecated and scheduled for removal in 7. "
+                                 "Use OAuth 2 if your service supports it.")
     explicit QOAuth1(QObject *parent = nullptr);
+    QT_DEPRECATED_VERSION_X_6_13("OAuth 1.0 support is deprecated and scheduled for removal in 7. "
+                                 "Use OAuth 2 if your service supports it.")
     explicit QOAuth1(QNetworkAccessManager *manager,
                      QObject *parent = nullptr);
 
+    QT_DEPRECATED_VERSION_X_6_13("OAuth 1.0 support is deprecated and scheduled for removal in 7. "
+                                 "Use OAuth 2 if your service supports it.")
     QOAuth1(const QString &clientIdentifier,
             const QString &clientSharedSecret,
             QNetworkAccessManager *manager,
@@ -109,6 +117,8 @@ private:
     Q_DISABLE_COPY(QOAuth1)
     Q_DECLARE_PRIVATE(QOAuth1)
 };
+
+#endif // QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 
 QT_END_NAMESPACE
 

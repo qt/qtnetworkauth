@@ -13,6 +13,9 @@
 
 QT_BEGIN_NAMESPACE
 
+// OAuth 1.0 is deprecated since Qt 6.13 and removed in Qt 7 (QTBUG-124329)
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+
 Q_STATIC_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")
 
 /*!
@@ -21,6 +24,9 @@ Q_STATIC_LOGGING_CATEGORY(loggingCategory, "qt.networkauth.oauth1.signature")
     \ingroup oauth
     \brief Implements OAuth 1 signature methods.
     \since 5.8
+
+    \deprecated [6.13] OAuth 1.0 is deprecated in favor of OAuth 2,
+    and scheduled for removal in Qt 7.
 
     OAuth-authenticated requests can have two sets of credentials:
     those passed via the "oauth_consumer_key" parameter and those in
@@ -156,6 +162,8 @@ QByteArray QOAuth1SignaturePrivate::encodeHeaders(const QMultiMap<QString, QVari
 }
 
 /*!
+    \deprecated [6.13] OAuth 1 is deprecated and scheduled for removal in Qt 7.
+
     Creates a QOAuth1Signature using
     \list
         \li \a url as the target address
@@ -169,6 +177,8 @@ QOAuth1Signature::QOAuth1Signature(const QUrl &url, QOAuth1Signature::HttpReques
 {}
 
 /*!
+    \deprecated [6.13] OAuth 1 is deprecated and scheduled for removal in Qt 7.
+
     Creates a QOAuth1Signature using
     \list
         \li \a url as the target address
@@ -436,5 +446,7 @@ QOAuth1Signature &QOAuth1Signature::operator=(QOAuth1Signature &&other)
     swap(moved);
     return *this;
 }
+
+#endif // QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 
 QT_END_NAMESPACE

@@ -6,6 +6,10 @@
 
 #include <QtNetworkAuth/qoauth1signature.h>
 
+// QOAuth1 and QOAuth1Signature are deprecated since Qt 6.13
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+
 Q_DECLARE_METATYPE(QOAuth1Signature::HttpRequestMethod)
 
 class tst_OAuth1Signature : public QObject
@@ -232,6 +236,9 @@ void tst_OAuth1Signature::signatures()
     const auto signatureData = signature.hmacSha1();
     QCOMPARE(signatureData.toBase64(), result.toLatin1());
 }
+
+// Deprecation warnings
+QT_WARNING_POP
 
 QTEST_MAIN(tst_OAuth1Signature)
 #include "tst_oauth1signature.moc"

@@ -13,6 +13,10 @@
 
 #include "webserver.h"
 
+// QOAuth1 and QOAuth1Signature are deprecated since Qt 6.13
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+
 Q_DECLARE_METATYPE(QNetworkAccessManager::Operation)
 Q_DECLARE_METATYPE(QAbstractOAuth::Error)
 
@@ -949,6 +953,9 @@ void tst_OAuth1::secondTemporaryToken()
     QCOMPARE(o1.status(), QAbstractOAuth::Status::TemporaryCredentialsReceived);
     QCOMPARE(tokenReceived, expectedToken);
 }
+
+// Deprecation warnings
+QT_WARNING_POP
 
 QTEST_MAIN(tst_OAuth1)
 #include "tst_oauth1.moc"

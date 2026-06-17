@@ -17,6 +17,9 @@ QT_BEGIN_NAMESPACE
 
 class QUrlQuery;
 
+// OAuth 1.0 is deprecated since Qt 6.13 and will be removed in Qt 7 (QTBUG-124329)
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+
 class QOAuth1SignaturePrivate;
 class Q_OAUTH_EXPORT QOAuth1Signature
 {
@@ -32,9 +35,11 @@ public:
         Unknown = 0
     };
 
+    QT_DEPRECATED_VERSION_X_6_13("OAuth 1.0 support is deprecated and scheduled for removal in 7. ")
     explicit QOAuth1Signature(const QUrl &url = QUrl(),
                               HttpRequestMethod method = HttpRequestMethod::Post,
                               const QMultiMap<QString, QVariant> &parameters = {});
+    QT_DEPRECATED_VERSION_X_6_13("OAuth 1.0 support is deprecated and scheduled for removal in 7. ")
     QOAuth1Signature(const QUrl &url, const QString &clientSharedKey, const QString &tokenSecret,
                      HttpRequestMethod method = HttpRequestMethod::Post,
                      const QMultiMap<QString, QVariant> &parameters = {});
@@ -79,6 +84,8 @@ public:
 private:
     QSharedDataPointer<QOAuth1SignaturePrivate> d;
 };
+
+#endif // QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
 
 QT_END_NAMESPACE
 
