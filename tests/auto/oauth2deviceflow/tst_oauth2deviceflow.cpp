@@ -141,11 +141,15 @@ static void expectWarning(const QString &warningText)
 void tst_OAuth2DeviceFlow::initTestCase()
 {
     // QLoggingCategory::setFilterRules(QStringLiteral("qt.networkauth* = true"));
+#ifdef BUILTIN_TESTDATA
+    testDataDir = QStringLiteral(":/shared/");
+#else
     testDataDir = QFileInfo(QFINDTESTDATA("../shared/certs")).absolutePath();
     if (testDataDir.isEmpty())
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+#endif
 }
 
 class RequestModifier : public QObject
