@@ -67,11 +67,15 @@ private:
 
 void tst_QOAuthHttpServerReplyHandler::initTestCase()
 {
+#ifdef BUILTIN_TESTDATA
+    testDataDir = QStringLiteral(":/shared/");
+#else
     testDataDir = QFileInfo(QFINDTESTDATA("certs")).absolutePath();
     if (testDataDir.isEmpty())
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+#endif
 }
 
 void tst_QOAuthHttpServerReplyHandler::tokenReplyErrors_data()
