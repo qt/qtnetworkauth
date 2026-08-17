@@ -5,6 +5,7 @@
 
 #include <QtNetworkAuth/qabstractoauthreplyhandler.h>
 #include <QtNetworkAuth/qoauth2authorizationcodeflow.h>
+#include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 
 #include "oauthtestutils.h"
 
@@ -25,6 +26,7 @@ private Q_SLOTS:
     void refreshToken();
     void getAndRefreshToken();
     void tokenRequestErrors();
+    void refreshTokenErrorResponse();
     void authorizationErrors();
     void modifyTokenRequests();
     void pkce_data();
@@ -664,6 +666,71 @@ void tst_OAuth2CodeFlow::tokenRequestErrors()
              QAbstractOAuth::Status::Granted); // back to granted since we have an access token
     QCOMPARE(requestFailedSpy.size(), 1);
     QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+}
+
+void tst_OAuth2CodeFlow::refreshTokenErrorResponse()
+{
+    auto server = createAuthorizationServer<WebServer>(Responses::defaults());
+
+    QOAuth2AuthorizationCodeFlow oauth2;
+    oauth2.setAuthorizationUrl(server->authorizationEndpoint());
+    oauth2.setTokenUrl(server->tokenEndpoint());
+
+    QOAuthHttpServerReplyHandler replyHandler;
+    oauth2.setReplyHandler(&replyHandler);
+
+    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+            &oauth2, [&replyHandler](const QUrl &url) {
+        const QUrlQuery query(url.query());
+        emit replyHandler.callbackReceived({
+            { u"code"_s, u"test"_s },
+            { u"state"_s, query.queryItemValue(u"state"_s) }
+        });
+    });
+
+    QSignalSpy grantedSpy(&oauth2, &QAbstractOAuth::granted);
+    oauth2.grant();
+    QTRY_COMPARE(grantedSpy.size(), 1);
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.token(), u"an-access-token"_s);
+    QCOMPARE(oauth2.refreshToken(), u"a-refresh-token"_s);
+
+    server->responses.tokenHttpStatus = "400 Bad Request"_ba;
+    // https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
+    // invalid_grant is for expired refresh tokens
+    server->responses.tokenBody = R"({
+        "error": "invalid_grant",
+        "error_description": "Token is not active",
+        "error_uri": "https://example.com/oauth/errors/invalid-grant"
+    })"_ba;
+
+    // We should get both server-side reported error as well as generic requestFailed()
+    QSignalSpy serverErrorSpy(&oauth2, &QAbstractOAuth2::serverReportedErrorOccurred);
+    QSignalSpy requestFailedSpy(&oauth2, &QAbstractOAuth::requestFailed);
+    QSignalSpy statusSpy(&oauth2, &QAbstractOAuth::statusChanged);
+    QTest::ignoreMessage(QtWarningMsg,
+                         QRegularExpression{"Authorization stage: AuthenticationError:.*"});
+
+    oauth2.refreshTokens();
+
+    QTRY_COMPARE(serverErrorSpy.size(), 1);
+    QCOMPARE(serverErrorSpy.at(0).at(0).toString(), u"invalid_grant"_s);
+    QCOMPARE(serverErrorSpy.at(0).at(1).toString(), u"Token is not active"_s);
+    QCOMPARE(serverErrorSpy.at(0).at(2).toUrl(),
+             QUrl{u"https://example.com/oauth/errors/invalid-grant"_s});
+    QCOMPARE(requestFailedSpy.size(), 1);
+    QCOMPARE(requestFailedSpy.at(0).at(0).value<QAbstractOAuth::Error>(),
+             QAbstractOAuth::Error::ServerError);
+    QCOMPARE(statusSpy.size(), 2);
+    QCOMPARE(statusSpy.at(0).at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::RefreshingToken);
+    // Since we still have access token, the flow returns back to granted
+    // even if refresh failed
+    QCOMPARE(statusSpy.at(1).at(0).value<QAbstractOAuth::Status>(),
+             QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.status(), QAbstractOAuth::Status::Granted);
+    QCOMPARE(oauth2.token(), u"an-access-token"_s);
+    QCOMPARE(oauth2.refreshToken(), u"a-refresh-token"_s);
 }
 
 using Method = QOAuth2AuthorizationCodeFlow::PkceMethod;

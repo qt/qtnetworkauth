@@ -42,10 +42,7 @@ void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
         emit tokenRequestErrorOccurred(QAbstractOAuth::Error::NetworkError, reply->errorString());
         return;
     }
-    if (!restReply.isHttpStatusSuccess()) {
-        emit tokenRequestErrorOccurred(QAbstractOAuth::Error::ServerError, reply->errorString());
-        return;
-    }
+    const bool isHttpStatusSuccess = restReply.isHttpStatusSuccess();
     if (reply->header(QNetworkRequest::ContentTypeHeader).isNull()) {
         emit tokenRequestErrorOccurred(QAbstractOAuth::Error::ServerError,
                                        u"Empty Content-type header"_s);
@@ -85,6 +82,14 @@ void QOAuthOobReplyHandler::networkReplyFinished(QNetworkReply *reply)
     } else {
         emit tokenRequestErrorOccurred(QAbstractOAuth::Error::ServerError,
                                u"Unknown Content-type %1"_s.arg(contentType));
+        return;
+    }
+
+    // RFC 6749 section 5.2 specifies that token endpoint errors are typically
+    // returned with HTTP status 400. Let tokensReceived() handler report
+    // the error if it's an actual sever-side reported error. Otherwise error out here
+    if (!isHttpStatusSuccess && !ret.contains(u"error"_s)) {
+        emit tokenRequestErrorOccurred(QAbstractOAuth::Error::ServerError, reply->errorString());
         return;
     }
 

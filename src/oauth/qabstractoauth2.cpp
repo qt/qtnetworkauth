@@ -396,8 +396,10 @@ static constexpr auto FallbackRefreshInterval = 2s;
     \deprecated [6.13] Use serverReportedErrorOccurred instead
     \fn QAbstractOAuth2::error(const QString &error, const QString &errorDescription, const QUrl &uri)
 
-    Signal emitted when the server responds to the authorization request with
-    an error as defined in \l {https://www.rfc-editor.org/rfc/rfc6749#section-5.2}
+    Signal emitted when the authorization server reports an error while
+    processing an authorization or token request, including a token refresh
+    request, as defined in
+    \l {https://www.rfc-editor.org/rfc/rfc6749#section-5.2}
     {RFC 6749 error response}.
 
     \a error is the name of the error; \a errorDescription describes the error
@@ -413,8 +415,10 @@ static constexpr auto FallbackRefreshInterval = 2s;
                                                      const QUrl &uri)
     \since 6.9
 
-    Signal emitted when the server responds to the authorization request with
-    an error as defined in \l {https://www.rfc-editor.org/rfc/rfc6749#section-5.2}
+    Signal emitted when the authorization server reports an error while
+    processing an authorization or token request, including a token refresh
+    request, as defined in
+    \l {https://www.rfc-editor.org/rfc/rfc6749#section-5.2}
     {RFC 6749 error response}.
 
     \a error is the name of the error; \a errorDescription describes the error
@@ -701,8 +705,24 @@ void QAbstractOAuth2Private::_q_tokenRequestFinished(const QVariantMap &values)
     Q_Q(QAbstractOAuth2);
 
     if (values.contains(QtOAuth2RfcKeywords::error)) {
-        _q_tokenRequestFailed(QAbstractOAuth::Error::ServerError,
-                                    values.value(QtOAuth2RfcKeywords::error).toString());
+        const QString error = values.value(QtOAuth2RfcKeywords::error).toString();
+
+        // RFC 6749 section 5.2: error keyword is required to contain a value
+        if (error.isEmpty()) {
+            _q_tokenRequestFailed(QAbstractOAuth::Error::ServerError,
+                                  u"Received an empty OAuth error code"_s);
+            return;
+        }
+
+        // A failed refresh does not necessarily invalidate an existing
+        // access token. Restore the status before reporting the error.
+        if (status == QAbstractOAuth::Status::RefreshingToken) {
+            if (!q->token().isEmpty())
+                setStatus(QAbstractOAuth::Status::Granted);
+            else
+                setStatus(QAbstractOAuth::Status::NotAuthenticated);
+        }
+        (void)handleRfcErrorResponseIfPresent(values);
         return;
     }
 
