@@ -1361,7 +1361,7 @@ void tst_OAuth2DeviceFlow::tlsAuthentication()
         QSKIP("This test will fail because the backend does not support TLS");
 
 #ifdef Q_OS_MACOS
-#if !QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(150000, 180000)
+#if !QT_APPLE_SDK_EQUAL_OR_ABOVE(MACOS(15), IOS(18))
     if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSSequoia
         && QSslSocket::activeBackend() == QLatin1String("securetransport")) {
         // Built with SDK < 15, with file-based keychains that no longer work on macOS >= 15.
