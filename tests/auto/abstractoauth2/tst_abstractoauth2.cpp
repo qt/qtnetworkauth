@@ -49,11 +49,15 @@ protected Q_SLOTS:
 void tst_AbstractOAuth2::initTestCase()
 {
     // QLoggingCategory::setFilterRules(QStringLiteral("qt.networkauth* = true"));
+#ifdef BUILTIN_TESTDATA
+    testDataDir = QStringLiteral(":/shared/");
+#else
     testDataDir = QFileInfo(QFINDTESTDATA("../shared/certs")).absolutePath();
     if (testDataDir.isEmpty())
         testDataDir = QCoreApplication::applicationDirPath();
     if (!testDataDir.endsWith(QLatin1String("/")))
         testDataDir += QLatin1String("/");
+#endif
 }
 
 void tst_AbstractOAuth2::scopeCharacterWarnings()
